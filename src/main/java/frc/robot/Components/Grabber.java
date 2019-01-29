@@ -1,6 +1,8 @@
 package frc.robot.Components;
 
-import common.instrumentation.*;
+import common.instrumentation.Telemetry;
+import common.i2cSensors.*;
+import common.util.*;
 import edu.wpi.first.wpilibj.*;
 import frc.robot.HardwareMap;
 
@@ -14,6 +16,16 @@ public class Grabber {
     Telemetry telemetry = new Telemetry("Robot/Grabber");
 
     SpeedController grabber;
+    DigitalInput hatchALimitSwitch;
+    DigitalInput hatchBLimitSwitch;
+
+    SpeedController rollers;
+    double rollerSpeed;
+    MRColorSensor cargoSensor;
+    final int[] cargoColor;
+    final double cargoColorThreshold;
+    double speed;
+
     double power;
 
     States state = States.Stopped;
@@ -27,8 +39,25 @@ public class Grabber {
         return state;
     }
 
+    public boolean isHatchHeld() {
+        return (hatchALimitSwitch.get() || hatchBLimitSwitch.get());
+    }
+
+    public boolean isCargoHeld() {
+        return Similarity.isMatch(cargoSensor.getColor(), cargoColor, cargoColorThreshold); 
+    }
+
     public Grabber(HardwareMap hardwareMap) {
         grabber = hardwareMap.grabberSpeedController;
+
+        hatchALimitSwitch = hardwareMap.hatchALimitSwitch;
+        hatchBLimitSwitch = hardwareMap.hatchBLimitSwitch;
+        
+        rollers = hardwareMap.cargoRollerSpeedController;
+        cargoSensor = hardwareMap.cargoColorSensor;
+        cargoColor = hardwareMap.cargoColor;
+        cargoColorThreshold = hardwareMap.cargoColorThreshold;
+
         stop();
     }
 
@@ -59,6 +88,18 @@ public class Grabber {
         }
 
         grabber.set(power);
+
+        rollers.set(speed);
+
+        putTelemetry();
+    }
+
+    public void putTelemetry() {
+        telemetry.putString("State", state.toString());
+        telemetry.putDouble("Speed (intake|expell)", speed);
+        telemetry.putDouble("Cargo Held", speed);
+        telemetry.putBoolean("Hatch Held", isHatchHeld());
+        telemetry.putString("Version", "1.0.0");
     }
 
     // === User Trigerrable States ===
@@ -98,5 +139,20 @@ public class Grabber {
             expireCommand = Timer.getFPGATimestamp();       // set to now so other commands can go immediately
             power = .5d;
         }
+    }
+
+    // full grab. Touch it! Own it!
+    public void intake() {
+        rollerSpeed = 1d;
+    }
+
+    // lazy expell. No shooting just tossing!
+    public void expell() {
+        rollerSpeed = -.3d;
+    }
+
+    // use a tiny bit of force to hang onto ball without grinding it
+    public void grip() {
+        rollerSpeed = .1d;
     }
 }

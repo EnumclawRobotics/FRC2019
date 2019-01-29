@@ -17,11 +17,9 @@ public class HardwareMap {
   final int leftDrivePwmPort = 0;            // pwm group - use Y split to signal both front and back motor controller
   final int rightDrivePwmPort = 1;           // pwm group - use Y split to signal both front and back motor controller
 
-  final int elbowPwmPort = 4;
-  final int wristPwmPort = 5;
-
-  final int grabberPwmPort = 6;
-  final int cargoRollerPwmPort = 7;          // depending on motor size can Y split the power to both motors 
+  final int wristPwmPort = 3;
+  final int grabberPwmPort = 4;
+  final int cargoRollerPwmPort = 5;          // depending on motor size can Y split the power to both motors 
 
   // CAN Device IDs
   final int roboRioCanId = 0;                 // one end of bus

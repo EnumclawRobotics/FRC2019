@@ -11,33 +11,20 @@ public class Robot extends TimedRobot {
   public Shoulder shoulder;
   public Wrist wrist;
   public Grabber grabber;
-  public CargoHandler cargoHandler;
-  public HatchHandler hatchHandler; 
-
-  private static Robot robot;
-  public static Robot getInstance() {
-    return robot;
-  }
-
+  
   @Override
   public void robotInit() {
     // === setup and cleanup ===
 
     // setup hardware specific stuff
     hardwareMap = new HardwareMap();
-    
-    // setup ability to get at this robot via static call
-    Robot.robot = this;
 
     // setup logical subsystem components
     operator = new Operator(hardwareMap);
     drive = new Drive(hardwareMap);
     shoulder = new Shoulder(hardwareMap);
     wrist = new Wrist(hardwareMap);
-
     grabber = new Grabber(hardwareMap);
-    cargoHandler = new CargoHandler(hardwareMap);
-    hatchHandler = new HatchHandler(hardwareMap, grabber); 
   }
 
   // === Modes ===
@@ -89,26 +76,20 @@ public class Robot extends TimedRobot {
 
   public void stop() {
     drive.stop();
-    //shoulder.stop();
+    shoulder.stop();
     wrist.stop();
     grabber.stop();
-    cargoHandler.stop();
-    hatchHandler.stop();
   }
 
   public void run() {
-    drive.stop();
-    //shoulder.stop();
-    wrist.stop();
-    grabber.stop();
-    cargoHandler.stop();
-    hatchHandler.stop();
+    drive.run();
+    shoulder.run();
+    wrist.run();
+    grabber.run();
 
     putTelemetry();
   }
 
   private void putTelemetry() {
   }
-
-
 }

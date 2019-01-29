@@ -18,6 +18,7 @@ public class Drive {
     double speed = 0;
     double rotation = 0;
     boolean squareInputs = false;
+    boolean normalFacing = true;
 
     double headingTarget = 0;
     double distanceTarget = 0;
@@ -49,7 +50,7 @@ public class Drive {
 
     // === Executing per Period ===
     public void run() {
-        differentialDrive.arcadeDrive(speed, rotation, squareInputs);
+        differentialDrive.arcadeDrive(normalFacing ? speed : -speed, rotation, squareInputs);
         putTelemetry();
     }
 
@@ -58,6 +59,7 @@ public class Drive {
         telemetry.putDouble("Distance Target", distanceTarget);
         telemetry.putDouble("Heading", gyro.getAngle());
         telemetry.putDouble("Heading Target", headingTarget);
+        telemetry.putBoolean("Normal Facing", normalFacing);
         telemetry.putDouble("Speed (forward|back)", speed);
         telemetry.putDouble("Rotation (turn left|right)", rotation);
         telemetry.putString("Version", "1.0.0");
@@ -79,6 +81,10 @@ public class Drive {
         this.speed = speed;
         this.rotation = rotation;
         this.squareInputs = squareInputs;
+    }
+
+    public void setFacing(boolean normalFacing) {
+        this.normalFacing = normalFacing;
     }
 
     // layered onto Move to help drive straight according to gyro
@@ -111,10 +117,6 @@ public class Drive {
 
         headingError = (gyro.getAngle() - headingTarget);
         this.rotation = headingError * .1d;  
-    }
-
-    private double distance(double x1, double y1, double x2, double y2) {
-        return Math.sqrt(Math.pow(x2-x1, 2d) + Math.pow(y2-y1, 2d));
     }
 
     // === Internally Trigerrable States ===
