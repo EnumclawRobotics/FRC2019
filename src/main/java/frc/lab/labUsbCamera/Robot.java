@@ -9,7 +9,6 @@ package frc.lab.labUsbCamera;
 
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.wpilibj.Encoder;
 
 import common.instrumentation.*;
 
