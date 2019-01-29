@@ -9,6 +9,7 @@ package frc.lab.labCanSparkMaxNeo;
 
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
 
 import com.revrobotics.*;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
@@ -22,6 +23,8 @@ import common.instrumentation.*;
 public class Robot extends TimedRobot {
   Telemetry telemetry = new Telemetry("Robot/LabMotorEncoder");  
 
+  double debounceTarget; 
+  int deviceId = 1;
   CANEncoder quadratureEncoder;
   CANSparkMax motorController;
   Joystick joystick;
@@ -29,8 +32,6 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     joystick = new Joystick(0);                 // USB
-    motorController = new CANSparkMax(1, MotorType.kBrushless);       // CAN device ID - Only needs to be unique within controller type
-    quadratureEncoder = new CANEncoder(motorController);              // Encoder is through CAN too
   }
 
    /*
@@ -39,11 +40,38 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotPeriodic() {
+    // if not teleop then allow user to cycle the CAN device id by clicking the trigger
+    if (!this.isOperatorControl()) {
+      if (joystick.getRawButton(1)) {
+        if (Timer.getFPGATimestamp() >= debounceTarget) {
+          debounceTarget = Timer.getFPGATimestamp() + .5;
+          if (deviceId > 9) {
+            deviceId = 1;
+          } else {
+            deviceId ++;
+          }
+        }
+      }
+    }
+  
     putTelemetry();
   }
 
   @Override
+  public void disabledInit() {
+    motorController = null;
+    quadratureEncoder = null;
+  }
+
+  @Override
+  public void disabledPeriodic() {
+  }
+
+
+  @Override
   public void teleopInit() {
+    motorController = new CANSparkMax(deviceId, MotorType.kBrushless);        // CAN device ID - Only needs to be unique within controller type
+    quadratureEncoder = new CANEncoder(motorController);                      // Encoder is through CAN too
   }
 
   @Override
@@ -53,6 +81,7 @@ public class Robot extends TimedRobot {
   }
 
   private void putTelemetry() {
+    telemetry.putDouble("Device ID", deviceId);
     telemetry.putDouble("Joystick.getY", joystick.getY());
     telemetry.putDouble("Encoder Position", quadratureEncoder.getPosition());
     telemetry.putDouble("Encoder Velocity", quadratureEncoder.getVelocity());
