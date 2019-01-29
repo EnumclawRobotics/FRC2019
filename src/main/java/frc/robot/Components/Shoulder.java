@@ -6,6 +6,10 @@ import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.drive.*;
 import frc.robot.HardwareMap;
 
+/**
+* Shoulder for holding up arm
+*  DESIGNED TO ONLY APPLY CHANGES IN RUN()
+*/
 public class Shoulder {
     // -- setup and cleanup ===
     Telemetry telemetry = new Telemetry("Robot/Drive");
@@ -19,7 +23,7 @@ public class Shoulder {
     double feedForward = 0;
     double speed = 0;
 
-    int inverted = 0;
+    boolean facingNormal = true;
 
     States state = States.Stopped;
 
@@ -46,6 +50,10 @@ public class Shoulder {
     }
 
     // === Executing per Period ===
+    public void setfacing(boolean facingNormal) {
+        this.facingNormal = facingNormal;
+    }
+
     public void run() {
         // always ensure that we never use rotation. i.e. both shoulder motors should move as one not try to fight each other
         shoulder.arcadeDrive(speed, 0, false);

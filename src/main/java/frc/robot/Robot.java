@@ -82,6 +82,15 @@ public class Robot extends TimedRobot {
   }
 
   public void run() {
+    // update components
+    drive.setFacing(operator.driveFacing.toggleOn());
+    drive.move(- operator.speedJoystick.getY(), operator.speedJoystick.getX(), false);
+
+    shoulder.setFacing(operator.armFacing.toggleOn());
+
+
+
+    // apply component changes
     drive.run();
     shoulder.run();
     wrist.run();

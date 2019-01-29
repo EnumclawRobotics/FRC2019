@@ -10,6 +10,8 @@ import frc.robot.HardwareMap;
  * 'Hand' that closes and opens grippers to hold the Cargo or Hatch
  * Assumes a position mechanical stop
  * Timebased opening and closing behavior
+ * 
+ * DESIGNED TO ONLY APPLY CHANGES IN RUN()
  */
 public class Grabber {
     // === setup and cleanup ===

@@ -6,7 +6,8 @@ import edu.wpi.first.wpilibj.drive.*;
 import frc.robot.HardwareMap;
 
 /**
- * Drive base that requires constant motive direction from either joystick or sensor assist 
+ * Drive base that requires constant motive direction from either joystick or sensor assist
+ * DESIGNED TO ONLY APPLY CHANGES IN RUN()
  */
 public class Drive {
     // -- setup and cleanup ===
@@ -18,7 +19,7 @@ public class Drive {
     double speed = 0;
     double rotation = 0;
     boolean squareInputs = false;
-    boolean normalFacing = true;
+    boolean facingNormal = true;
 
     double headingTarget = 0;
     double distanceTarget = 0;
@@ -50,7 +51,7 @@ public class Drive {
 
     // === Executing per Period ===
     public void run() {
-        differentialDrive.arcadeDrive(normalFacing ? speed : -speed, rotation, squareInputs);
+        differentialDrive.arcadeDrive(facingNormal ? speed : -speed, rotation, squareInputs);
         putTelemetry();
     }
 
@@ -66,6 +67,10 @@ public class Drive {
     }
 
     // === User Trigerrable States ===
+    public void setFacing(boolean facingNormal) {
+        this.facingNormal = facingNormal;
+    }
+
     public void stop() {
         state = States.Stopped;
 
@@ -81,10 +86,6 @@ public class Drive {
         this.speed = speed;
         this.rotation = rotation;
         this.squareInputs = squareInputs;
-    }
-
-    public void setFacing(boolean normalFacing) {
-        this.normalFacing = normalFacing;
     }
 
     // layered onto Move to help drive straight according to gyro

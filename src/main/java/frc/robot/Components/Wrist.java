@@ -4,6 +4,10 @@ import common.instrumentation.Telemetry;
 import edu.wpi.first.wpilibj.*;
 import frc.robot.HardwareMap;
 
+/**
+ * Wrist portion tries to line up hrizontally
+ *  DESIGNED TO ONLY APPLY CHANGES IN RUN()
+ */
 public class Wrist {
     // -- setup and cleanup ===
     Telemetry telemetry = new Telemetry("Robot/Drive");
@@ -16,6 +20,8 @@ public class Wrist {
     double targetPosition = 0;
     double feedForward = 0;
     double speed = 0;
+
+    boolean facingNormal = true; 
 
     int inverted = 0;
 
@@ -41,6 +47,11 @@ public class Wrist {
     }
 
     // === Executing per Period ===
+
+    public void setFacing(boolean facingNormal) {
+        this.facingNormal = facingNormal;
+    }
+
     public void run() {
         // always ensure that we never use rotation. i.e. both shoulder motors should move as one not try to fight each other
         rotator.set(speed);
@@ -48,6 +59,7 @@ public class Wrist {
     }
 
     private void putTelemetry() {
+        telemetry.putBoolean("Arm Facing (normal)", facingNormal);
         telemetry.putString("State", state.toString());
         telemetry.putDouble("Angle", speed);
         telemetry.putDouble("FeedForward", speed);
