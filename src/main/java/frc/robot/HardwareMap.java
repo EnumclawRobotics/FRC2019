@@ -29,7 +29,6 @@ public class HardwareMap {
 
   // DIO Ports
   final int shoulderLimitSwitchDioPort = 0;
-  final int elbowLimitSwitchDioPort = 1;
   final int wristLimitSwitchDioPort = 2;
 
   final int wristEncoderADioPort = 5;
@@ -43,6 +42,7 @@ public class HardwareMap {
   final int turnJoystickUsb = 1;
   final int heightJoystickUsb = 2;
 
+
   // === REFERENCES ======================
 
   // SpeedControllers
@@ -52,7 +52,7 @@ public class HardwareMap {
   public CANSparkMax leftShoulderSpeedController; 
   public CANSparkMax rightShoulderSpeedController; 
   public Spark wristSpeedController;
-  
+
   public Spark grabberSpeedController;
   public Spark cargoRollerSpeedController;
 
@@ -83,7 +83,14 @@ public class HardwareMap {
   // colors / constants
   public int[] cargoColor = new int[] { 0, 0,0,0 };     // TODO: Fill in accurate color values 
   public double cargoColorThreshold = .1d;
+
+  // cargoFloor, hatch1, cargo1, hatch2, cargo2, hatch3, cargo3   TODO: fill in heights 
+  public double[] fieldHeightsInch = new double[] {6, 19, 3};
   
+  public double armFeedFowardFactor;
+  public double wristFeedFowardFactor;
+
+
   // setup subsystems
   public HardwareMap() {
     // operator

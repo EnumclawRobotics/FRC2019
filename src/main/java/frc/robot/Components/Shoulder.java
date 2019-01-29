@@ -18,8 +18,8 @@ public class Shoulder {
     CANEncoder shoulderEncoder; 
     DigitalInput shoulderLimitSwitch;
     
+    double baseLineAngle = 0;            
     double targetAngle = 0;
-    double targetPosition = 0;
     double feedForward = 0;
     double speed = 0;
 
@@ -33,12 +33,16 @@ public class Shoulder {
         Holding
     }
 
+    public double[] Heights;
+
+
     public States getState() {
         return state;
     }
     
     public Shoulder(HardwareMap hardwareMap) {
-        shoulder = new DifferentialDrive(hardwareMap.leftShoulderSpeedController, hardwareMap.rightShoulderSpeedController);
+        shoulder = new DifferentialDrive(hardwareMap.leftShoulderSpeedController, 
+                                            hardwareMap.rightShoulderSpeedController);
         shoulder.setExpiration(hardwareMap.safetyExpiration);
         shoulder.setSafetyEnabled(true);
         shoulder.setRightSideInverted(true);                // ensure that both motors work in the same direction
@@ -50,7 +54,11 @@ public class Shoulder {
     }
 
     // === Executing per Period ===
-    public void setfacing(boolean facingNormal) {
+    public double getCurrentAngle() {
+        return shoulderEncoder.getPosition();       // TODO: Confirm what getPosition() returns
+    }
+
+    public void setFacing(boolean facingNormal) {
         this.facingNormal = facingNormal;
     }
 
@@ -62,8 +70,9 @@ public class Shoulder {
 
     private void putTelemetry() {
         telemetry.putString("State", state.toString());
-        telemetry.putDouble("Angle", speed);
-        telemetry.putDouble("FeedForward", speed);
+        telemetry.putDouble("CurrentAngle", getCurrentAngle());
+        telemetry.putDouble("Angle", targetAngle);
+        telemetry.putDouble("FeedForward", feedForward);
         telemetry.putDouble("Speed (forward|back)", speed);
         telemetry.putString("Version", "1.0.0");
     }
@@ -78,9 +87,7 @@ public class Shoulder {
     public void hold() {
         state = States.Holding;
 
-        feedForward = Math.cos(targetAngle);        // power is a function of angle given everything else
-
-
+        feedForward = Math.cos(targetAngle);        // power is a function of angle given everything else. degrees? clicks? radians?
     }
 
     // === Internally Trigerrable States ===

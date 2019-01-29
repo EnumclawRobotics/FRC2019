@@ -10,16 +10,16 @@ import frc.robot.HardwareMap;
  */
 public class Wrist {
     // -- setup and cleanup ===
-    Telemetry telemetry = new Telemetry("Robot/Drive");
+    Telemetry telemetry = new Telemetry("Robot/Wrist");
 
-    PWMSpeedController rotator;             
+    PWMSpeedController wrist;             
     Encoder encoder; 
     DigitalInput limitSwitch;
     
     double targetAngle = 0;
-    double targetPosition = 0;
     double feedForward = 0;
     double speed = 0;
+    double feedFowardFactor;
 
     boolean facingNormal = true; 
 
@@ -28,9 +28,7 @@ public class Wrist {
     States state = States.Stopped;
 
     public enum States {
-        Stopped, 
-        MovingCargoFloor, MovingCargo1, MovingCargo2, MovingCargo3, MovingCargoShip, MovingHatch1, MovingHatch2, MovingHatch3,
-        Holding
+        Stopped, Moving, Holding
     }
 
     public States getState() {
@@ -38,11 +36,13 @@ public class Wrist {
     }
     
     public Wrist(HardwareMap hardwareMap) {
-        rotator = hardwareMap.wristSpeedController;
-        rotator.setExpiration(hardwareMap.safetyExpiration);
-        rotator.setSafetyEnabled(true);
+        wrist = hardwareMap.wristSpeedController;
+        wrist.setExpiration(hardwareMap.safetyExpiration);
+        wrist.setSafetyEnabled(true);
 
         encoder = hardwareMap.wristEncoder;
+
+        feedFowardFactor = hardwareMap.wristFeedFowardFactor;
         stop();
     }
 
@@ -52,17 +52,27 @@ public class Wrist {
         this.facingNormal = facingNormal;
     }
 
+    public double getCurrentAngle() {
+        return encoder.getDistance();   // TODO: what is this unit? how to turn into desired unit? degrees? clicks? radians?
+    }
+
+    // attempts to set the wrist level compared to the arm angle
+    public void setLevel(double shoulderAngle) {
+        // TODO:
+    }
+
     public void run() {
         // always ensure that we never use rotation. i.e. both shoulder motors should move as one not try to fight each other
-        rotator.set(speed);
+        wrist.set(speed);
         putTelemetry();
     }
 
     private void putTelemetry() {
         telemetry.putBoolean("Arm Facing (normal)", facingNormal);
         telemetry.putString("State", state.toString());
-        telemetry.putDouble("Angle", speed);
-        telemetry.putDouble("FeedForward", speed);
+        telemetry.putDouble("CurrentAngle", getCurrentAngle());
+        telemetry.putDouble("TargetAngle", targetAngle);
+        telemetry.putDouble("FeedForward", feedForward);
         telemetry.putDouble("Speed (forward|back)", speed);
         telemetry.putString("Version", "1.0.0");
     }
@@ -76,10 +86,7 @@ public class Wrist {
     // whenever we arent moving use PID controller to hold at desired height
     public void hold() {
         state = States.Holding;
-
-        feedForward = Math.cos(targetAngle);        // power is a function of angle given everything else
-
-
+        feedForward = Math.cos(targetAngle) * feedFowardFactor;        // power is a function of angle given everything else
     }
 
     // === Internally Trigerrable States ===

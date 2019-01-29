@@ -60,7 +60,7 @@ public class Drive {
         telemetry.putDouble("Distance Target", distanceTarget);
         telemetry.putDouble("Heading", gyro.getAngle());
         telemetry.putDouble("Heading Target", headingTarget);
-        telemetry.putBoolean("Normal Facing", normalFacing);
+        telemetry.putBoolean("Facing Normal (bot)", facingNormal);
         telemetry.putDouble("Speed (forward|back)", speed);
         telemetry.putDouble("Rotation (turn left|right)", rotation);
         telemetry.putString("Version", "1.0.0");
