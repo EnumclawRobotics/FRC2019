@@ -8,7 +8,6 @@
 package frc.lab.labMotor;
 
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -51,7 +50,7 @@ public class Robot extends TimedRobot {
   }
 
   private void putTelemetry() {
-    telemetry.putDouble("Joystick.getY", joystick.getY());
+    telemetry.putDouble("Joystick.getY", -joystick.getY());
     telemetry.putString("Version", "1.0.0");
   }
 
