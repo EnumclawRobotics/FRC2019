@@ -3,7 +3,7 @@
 //built in class from arduino, strongly suggest looking at it on their website
 //it is not a complicated class
 
-#include <Pixy2.h>
+#include <Pixy2I2C.h>
 
 //this is provided by the pixy creators, you will have to go to the arduino sketch editor, 
 //click sketch, include library, and import the pixy .zip files
@@ -15,30 +15,28 @@
 //connect the two grounds
 
 
-String piOutput = "none";//string to be sent to the robot
-					     
-String input = "blank";	 //string received from the robot
-const String PIXY = "pi";
-Pixy pixy;
+//String piOutput = "none";//string to be sent to the robot
+//String input = "blank";  //string received from the robot
+//const String PIXY = "pi";
 
-void setup(){
-  Serial.begin(9600);
+Pixy2I2C pixy;
+
+void setup() {
+  Serial.begin(115200);
+  Serial.print("Starting...\n");
+  
   Wire.begin(4);                // join i2c bus with address #4 as a slave device
   Wire.onReceive(receiveEvent); // Registers a function to be called when a slave device receives a transmission from a master
   Wire.onRequest(requestEvent); // Register a function to be called when a master requests data from this slave device
+
   pixy.init();
+
+  pixy.progname(
 }
 
 void loop(){
   
   int8_t setMode(int8_t LINE_MODE_WHITE_LINE);
-  
-  
-  
-  
-  
-  
-  
   
   uint16_t blocks = pixy.getBlocks();//use this line to get every available object the pixy sees
   
@@ -47,7 +45,7 @@ void loop(){
   double area = 0, temp;
   for(int i=0;i<blocks;i++){
     //if(pixy.blocks[i].signature == 3) //if checking for an object and have more than one "type" or color to choose from
-    								     //use this line and choose the signature or "color" you want
+                         //use this line and choose the signature or "color" you want
       temp = pixy.blocks[i].width * pixy.blocks[i].height;
       if(temp > area){
         area = temp;
@@ -61,9 +59,9 @@ void loop(){
     piOutput = "none"; //if no blocks tell roborio there are none 
   }else{
     piOutput = String(pixy.blocks[biggest].x / 319.0);  //turns into a percent of the screen 
-    piOutput += "|";				        //inserts a "pipe" so robrio can split the numbers later
+    piOutput += "|";                //inserts a "pipe" so robrio can split the numbers later
     piOutput += String(pixy.blocks[biggest].y / 199.0); //319 and 199 were, we found, the dimensions of the screen 
-    piOutput += "|";					
+    piOutput += "|";          
     piOutput += String(area / 64000); 
     
   }
@@ -71,11 +69,10 @@ void loop(){
   delay(70); //gives time for everything to process
 }
 
-void requestEvent(){//called when RoboRIO request a message from this device
-  Wire.write(output.c_str()); //writes data to the RoboRIO, converts it to string
-
+void requestEvent(){            // called when RoboRIO request a message from this device
+  Wire.write("Hello worl"); //writes data to the RoboRIO, converts it to string
 }
 
-void receiveEvent(int bytes){//called when RoboRIO "gives" this device a message
-
+void receiveEvent(int bytes){   // called when RoboRIO "gives" this device a message
+    
 }

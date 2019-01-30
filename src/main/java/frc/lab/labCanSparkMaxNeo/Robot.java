@@ -23,11 +23,11 @@ import common.instrumentation.*;
 public class Robot extends TimedRobot {
   Telemetry telemetry = new Telemetry("Robot/LabMotorEncoder");  
 
-  double debounceTarget; 
-  int deviceId = 1;
+  double debounceTarget = 0; 
+  int deviceId = 3;
   CANEncoder quadratureEncoder;
   CANSparkMax motorController;
-  Joystick joystick;
+  Joystick joystick = new Joystick(0);
 
   @Override
   public void robotInit() {
@@ -83,8 +83,10 @@ public class Robot extends TimedRobot {
   private void putTelemetry() {
     telemetry.putDouble("Device ID", deviceId);
     telemetry.putDouble("Joystick.getY", joystick.getY());
-    telemetry.putDouble("Encoder Position", quadratureEncoder.getPosition());
-    telemetry.putDouble("Encoder Velocity", quadratureEncoder.getVelocity());
+    if (quadratureEncoder != null) {
+      telemetry.putDouble("Encoder Position", quadratureEncoder.getPosition());
+      telemetry.putDouble("Encoder Velocity", quadratureEncoder.getVelocity());
+    }
     telemetry.putString("Version", "1.0.1");
   }
 
