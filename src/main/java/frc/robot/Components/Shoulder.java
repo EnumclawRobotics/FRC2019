@@ -92,4 +92,25 @@ public class Shoulder {
 
     // === Internally Trigerrable States ===
 
+    // === Helper ===
+    // getting an arm angle in radians from a height above ground
+    public static double armAngleFromHeight(double pivotHeight, double armLength, double targetHeight) {
+        double angleRadians = 0;
+
+        if (pivotHeight - armLength == targetHeight) {
+            angleRadians = 0;
+        } else if (pivotHeight == targetHeight) {
+            angleRadians = 90;
+        } else if (pivotHeight > targetHeight) { 
+            double sine = (pivotHeight - targetHeight)/armLength;
+            angleRadians = Math.asin(sine);
+        } else if (pivotHeight < targetHeight) {
+            double sine = (targetHeight - pivotHeight)/armLength;
+            angleRadians = Math.asin(sine) + 90;
+        }
+
+        return angleRadians;
+    }
+
+
 }

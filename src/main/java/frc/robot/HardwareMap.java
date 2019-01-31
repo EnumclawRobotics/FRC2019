@@ -22,10 +22,8 @@ public class HardwareMap {
   final int cargoRollerPwmPort = 5;          // depending on motor size can Y split the power to both motors 
 
   // CAN Device IDs
-  final int roboRioCanId = 0;                 // one end of bus
-  final int powerDistributionModuleCanId = 1; // other end of bus - remember to set CAN jumper
-  final int leftShoulderCanId = 2;           // if using SparkMax can only use CAN version with NEO
-  final int rightShoulderCanId = 3;          // if using SparkMax can only use CAN version with NEO
+  final int leftShoulderCanId = 2;            // SparkMax-Neo requires CAN otherwise buggy
+  final int rightShoulderCanId = 3;           // SparkMax-Neo requires CAN otherwise buggy
 
   // DIO Ports
   final int shoulderLimitSwitchDioPort = 0;
@@ -41,7 +39,6 @@ public class HardwareMap {
   final int speedJoystickUsb = 0;
   final int turnJoystickUsb = 1;
   final int heightJoystickUsb = 2;
-
 
   // === REFERENCES ======================
 
@@ -81,15 +78,44 @@ public class HardwareMap {
   public double safetyExpiration = .25;
 
   // colors / constants
-  public int[] cargoColor = new int[] { 0, 0,0,0 };     // TODO: Fill in accurate color values 
+  public int[] cargoColor = new int[] { 0, 0, 0, 0 };     // TODO: Fill in accurate color values 
   public double cargoColorThreshold = .1d;
 
-  // cargoFloor, hatch1, cargo1, hatch2, cargo2, hatch3, cargo3   TODO: fill in heights 
-  public double[] fieldHeightsInch = new double[] {6, 19, 3};
-  
-  public double armFeedFowardFactor;
-  public double wristFeedFowardFactor;
+  // arm geometries (in inches)
+  public double lengthArm = 41;                   // TODO: Confirm this
+  public double heightArmPivot = 46;              // TODO: Confirm this
 
+  // field geometries
+  public double whiteLineLength = 18;
+
+  public double heightHatchRocket1 = 19;
+  public double heightHatchRocket2 = 47;
+  public double heightHatchRocket3 = 75;
+  
+  public double heightCargoRocket1 = 27.5;
+  public double heightCargoRocket2 = 55.5;
+  public double heightCargoRocket3 = 83.5;
+  
+  public double heightCargoFloor = 9.250;             // requires wrist to be straight with arm instead of held level
+  public double heightHatchStation = 19;
+  public double heightCargoStation = 44.125;
+  
+  public double heightCargoShip = 38.75;
+  public double heightHatchShip = 19;
+  
+  // arm 
+  public double armFeedFowardFactor = .5;         // use to multiply cos(arm angle) to find holding power
+  public double wristFeedFowardFactor = .5;       // use to multiply cos(wrist angle) to find holding power
+
+  // hab geometries
+  public double heightHabLevel1 = 3; 
+  public double heightHabLevel2 = 6;
+  public double heightHabLevel3 = 19;
+
+  // game piece geometries
+  public double hatchDiameter = 19;
+  public double hatchHoleDiameter = 6;
+  public double cargoDiameter = 13;
 
   // setup subsystems
   public HardwareMap() {

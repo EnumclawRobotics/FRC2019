@@ -91,4 +91,11 @@ public class Wrist {
 
     // === Internally Trigerrable States ===
 
+    // === helpers ===
+
+    // getting a level wrist angle in radians from an arm angle
+    public static double wristAngleFromArm(double armAngleRadians) {
+        // 90 degrees - arm angle = correction to get a level angle
+        return (Math.PI/2) - armAngleRadians;
+    }
 }
