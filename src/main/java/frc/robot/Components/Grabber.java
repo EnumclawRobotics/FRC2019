@@ -4,7 +4,7 @@ import common.instrumentation.Telemetry;
 import common.i2cSensors.*;
 import common.util.*;
 import edu.wpi.first.wpilibj.*;
-import frc.robot.HardwareMap;
+import frc.robot.*;
 
 /**
  * 'Hand' that closes and opens grippers to hold the Cargo or Hatch
@@ -49,16 +49,16 @@ public class Grabber {
         return Similarity.isMatch(cargoSensor.getColor(), cargoColor, cargoColorThreshold); 
     }
 
-    public Grabber(HardwareMap hardwareMap) {
-        grabber = hardwareMap.grabberSpeedController;
+    public Grabber(RobotMap robotMap) {
+        grabber = robotMap.grabberSpeedController;
 
-        hatchALimitSwitch = hardwareMap.hatchALimitSwitch;
-        hatchBLimitSwitch = hardwareMap.hatchBLimitSwitch;
+        hatchALimitSwitch = robotMap.hatchALimitSwitch;
+        hatchBLimitSwitch = robotMap.hatchBLimitSwitch;
         
-        rollers = hardwareMap.cargoRollerSpeedController;
-        cargoSensor = hardwareMap.cargoColorSensor;
-        cargoColor = hardwareMap.cargoColor;
-        cargoColorThreshold = hardwareMap.cargoColorThreshold;
+        rollers = robotMap.cargoRollerSpeedController;
+        cargoSensor = robotMap.cargoColorSensor;
+        cargoColor = FieldMap.cargoColor;
+        cargoColorThreshold = FieldMap.cargoColorThreshold;
 
         stop();
     }

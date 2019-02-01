@@ -4,7 +4,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import frc.robot.Components.*;
 
 public class Robot extends TimedRobot {
-  public HardwareMap hardwareMap;
+  public RobotMap robotMap;
 
   public Operator operator;
   public Drive drive;
@@ -17,14 +17,14 @@ public class Robot extends TimedRobot {
     // === setup and cleanup ===
 
     // setup hardware specific stuff
-    hardwareMap = new HardwareMap();
+    robotMap = new RobotMap();
 
     // setup logical subsystem components
-    operator = new Operator(hardwareMap);
-    drive = new Drive(hardwareMap);
-    shoulder = new Shoulder(hardwareMap);
-    wrist = new Wrist(hardwareMap);
-    grabber = new Grabber(hardwareMap);
+    operator = new Operator(robotMap);
+    drive = new Drive(robotMap);
+    shoulder = new Shoulder(robotMap);
+    wrist = new Wrist(robotMap);
+    grabber = new Grabber(robotMap);
   }
 
   // === Modes ===

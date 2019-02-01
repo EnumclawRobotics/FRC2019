@@ -3,7 +3,7 @@ package frc.robot.Components;
 import common.instrumentation.Telemetry;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.drive.*;
-import frc.robot.HardwareMap;
+import frc.robot.*;
 
 /**
  * Drive base that requires constant motive direction from either joystick or sensor assist
@@ -36,12 +36,12 @@ public class Drive {
         return state;
     }
     
-    public Drive(HardwareMap hardwareMap) {
-        differentialDrive = new DifferentialDrive(hardwareMap.leftDriveSpeedController, hardwareMap.rightDriveSpeedController);
-        differentialDrive.setExpiration(hardwareMap.safetyExpiration);
+    public Drive(RobotMap robotMap) {
+        differentialDrive = new DifferentialDrive(robotMap.leftDriveSpeedController, robotMap.rightDriveSpeedController);
+        differentialDrive.setExpiration(robotMap.safetyExpiration);
         differentialDrive.setSafetyEnabled(true);
 
-        gyro = hardwareMap.driveGyro;
+        gyro = robotMap.driveGyro;
         stop();
     }
 

@@ -6,10 +6,10 @@ import common.i2cSensors.*;
 import com.revrobotics.*;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
-// important numbers and hardware specifics. 
+// Hardware specifics 
 // NOTE: Components will use super classes to hide the hardware specifics.
 //       One exception is CAN versus PWM speedcontrollers
-public class HardwareMap {
+public class RobotMap {
 
   // === ADDRESSES/PLUGINS ============================
   
@@ -44,52 +44,19 @@ public class HardwareMap {
   // === CONSTANTS =====================================
 
   // safety
-  public static double safetyExpiration = .25;
-
-  // colors / constants
-  public static int[] cargoColor = new int[] { 0, 0, 0, 0 };     // TODO: Fill in accurate color values 
-  public static double cargoColorThreshold = .1d;
+  public final static double safetyExpiration = .25;
 
   // arm geometries (in inches)
-  public static double lengthArm = 38; 
-  public static double heightArmPivot = 45;
+  public final static double armLength = 38; 
+  public final static double heightArmPivot = 45;
 
-  // field geometries
-  public static double whiteLineLength = 18;
-
-  public static double heightHatchRocket1 = 19;
-  public static double heightHatchRocket2 = 47;
-  public static double heightHatchRocket3 = 75;
-  
-  public static double heightCargoRocket1 = 27.5;
-  public static double heightCargoRocket2 = 55.5;
-  public static double heightCargoRocket3 = 83.5;
-  
-  public static double heightCargoFloor = 9.250;             // requires wrist to be straight with arm instead of held level
-  public static double heightHatchStation = 19;
-  public static double heightCargoStation = 44.125;
-  
-  public static double heightCargoShip = 38.75;
-  public static double heightHatchShip = 19;
-  
   // arm 
-  public static double armFeedFowardFactor = .5;         // use to multiply cos(arm angle) to find holding power
-  public static double wristFeedFowardFactor = .5;       // use to multiply cos(wrist angle) to find holding power
-  public static double armEncoderCicksPerRev = 4200;     // NEO gearbox output shaft include gear reduction  
+  public final static double armFeedFowardFactor = .5;         // use to multiply cos(arm angle) to find holding power
+  public final static double wristFeedFowardFactor = .5;       // use to multiply cos(wrist angle) to find holding power
+  public final static double armEncoderCicksPerRev = 4200;     // NEO gearbox output shaft include gear reduction  
 
   // wrist
-  public static double wristEncoderClicksPerRev = 1316;    // PG188 output shaft include gear reduction
-
-  // hab geometries
-  public static double heightHabLevel1 = 3; 
-  public static double heightHabLevel2 = 6;
-  public static double heightHabLevel3 = 19;
-
-  // game piece geometries
-  public static double hatchDiameter = 19;
-  public static double hatchHoleDiameter = 6;
-  public static double cargoDiameter = 13;
-
+  public final static double wristEncoderClicksPerRev = 1316;    // PG188 output shaft include gear reduction
 
   // === REFERENCES ======================
 
@@ -126,7 +93,7 @@ public class HardwareMap {
   public Joystick heightJoystick;  
 
   // setup subsystems
-  public HardwareMap() {
+  public RobotMap() {
     // operator
     speedJoystick = new Joystick(speedJoystickUsb);
     turnJoystick = new Joystick(turnJoystickUsb);

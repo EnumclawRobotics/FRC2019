@@ -4,8 +4,7 @@ import com.revrobotics.*;
 import common.instrumentation.Telemetry;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.drive.*;
-import frc.robot.FieldMap;
-import frc.robot.HardwareMap;
+import frc.robot.*;
 
 /**
 * Shoulder for holding up arm
@@ -38,15 +37,15 @@ public class Shoulder {
         return state;
     }
     
-    public Shoulder(HardwareMap hardwareMap) {
-        shoulder = new DifferentialDrive(hardwareMap.leftShoulderSpeedController, 
-                                            hardwareMap.rightShoulderSpeedController);
-        shoulder.setExpiration(HardwareMap.safetyExpiration);
+    public Shoulder(RobotMap robotMap) {
+        shoulder = new DifferentialDrive(robotMap.leftShoulderSpeedController, 
+                                            robotMap.rightShoulderSpeedController);
+        shoulder.setExpiration(RobotMap.safetyExpiration);
         shoulder.setSafetyEnabled(true);
         shoulder.setRightSideInverted(true);                // ensure that both motors work in the same direction
 
-        shoulderEncoder = hardwareMap.shoulderEncoder;
-        shoulderLimitSwitch = hardwareMap.shoulderLimitSwitch;
+        shoulderEncoder = robotMap.shoulderEncoder;
+        shoulderLimitSwitch = robotMap.shoulderLimitSwitch;
 
         stop();
     }
@@ -61,7 +60,7 @@ public class Shoulder {
     }
 
     public void moveCargoFloor() {
-        this.targetAngle = armAngleFromHeight(HardwareMap.heightArmPivot, HardwareMap.lengthArm, FieldMap.heightCargoFloor);
+        this.targetAngle = armAngleFromHeight(RobotMap.heightArmPivot, RobotMap.armLength, FieldMap.heightCargoFloor);
     }
 
     public void run() {

@@ -20,12 +20,10 @@ public class Robot extends TimedRobot {
   Telemetry telemetry = new Telemetry("Robot/LabLimitSwitch");  
 
   DigitalInput digitalInput;
-  private Counter counter;
 
   @Override
   public void robotInit() {
     digitalInput = new DigitalInput(0);   // DIO ports
-    counter = new Counter(0);             // DIO ports    // counter is a simple case of a forward only 1 port encoder
   }
 
   /*
@@ -44,8 +42,6 @@ public class Robot extends TimedRobot {
 
   private void putTelemetry() {
     telemetry.putBoolean("DigitalInput.get", digitalInput.get());
-    telemetry.putDouble("Counter.get", counter.get());
-    // telemetry.putDouble("Counter.getDistance", counter.getDistance());     // same as get for pulse=1
     telemetry.putString("Version", "1.0.0");
   } 
 }

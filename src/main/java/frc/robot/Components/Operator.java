@@ -4,7 +4,7 @@ package frc.robot.Components;
 import common.instrumentation.Telemetry;
 import common.oiHelpers.ToggleButton;
 import edu.wpi.first.wpilibj.Joystick;
-import frc.robot.HardwareMap;
+import frc.robot.*;
 
 public class Operator {
     // -- setup and cleanup ===
@@ -17,13 +17,13 @@ public class Operator {
     
     public Joystick heightJoystick; 
 
-    public Operator(HardwareMap hardwareMap) {
+    public Operator(RobotMap robotMap) {
         driveFacing = new ToggleButton(speedJoystick, 2);        // thumb reverses direction
-        speedJoystick = hardwareMap.speedJoystick;
-        turnJoystick = hardwareMap.turnJoystick;
+        speedJoystick = robotMap.speedJoystick;
+        turnJoystick = robotMap.turnJoystick;
         
         armFacing = new ToggleButton(heightJoystick, 2);         // thumb reverses direction
-        heightJoystick = hardwareMap.heightJoystick;
+        heightJoystick = robotMap.heightJoystick;
     }
 
     public void putTelemetry() {

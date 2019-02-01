@@ -2,7 +2,7 @@ package frc.robot.Components;
 
 import common.instrumentation.Telemetry;
 import edu.wpi.first.wpilibj.*;
-import frc.robot.HardwareMap;
+import frc.robot.*;
 
 /**
  * Wrist portion tries to line up hrizontally
@@ -35,14 +35,14 @@ public class Wrist {
         return state;
     }
     
-    public Wrist(HardwareMap hardwareMap) {
-        wrist = hardwareMap.wristSpeedController;
-        wrist.setExpiration(hardwareMap.safetyExpiration);
+    public Wrist(RobotMap robotMap) {
+        wrist = robotMap.wristSpeedController;
+        wrist.setExpiration(robotMap.safetyExpiration);
         wrist.setSafetyEnabled(true);
 
-        encoder = hardwareMap.wristEncoder;
+        encoder = robotMap.wristEncoder;
 
-        feedFowardFactor = hardwareMap.wristFeedFowardFactor;
+        feedFowardFactor = robotMap.wristFeedFowardFactor;
         stop();
     }
 
