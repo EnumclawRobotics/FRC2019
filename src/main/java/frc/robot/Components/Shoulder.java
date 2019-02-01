@@ -4,6 +4,7 @@ import com.revrobotics.*;
 import common.instrumentation.Telemetry;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.drive.*;
+import frc.robot.FieldMap;
 import frc.robot.HardwareMap;
 
 /**
@@ -33,9 +34,6 @@ public class Shoulder {
         Holding
     }
 
-    public double[] Heights;
-
-
     public States getState() {
         return state;
     }
@@ -43,7 +41,7 @@ public class Shoulder {
     public Shoulder(HardwareMap hardwareMap) {
         shoulder = new DifferentialDrive(hardwareMap.leftShoulderSpeedController, 
                                             hardwareMap.rightShoulderSpeedController);
-        shoulder.setExpiration(hardwareMap.safetyExpiration);
+        shoulder.setExpiration(HardwareMap.safetyExpiration);
         shoulder.setSafetyEnabled(true);
         shoulder.setRightSideInverted(true);                // ensure that both motors work in the same direction
 
@@ -60,6 +58,10 @@ public class Shoulder {
 
     public void setFacing(boolean facingNormal) {
         this.facingNormal = facingNormal;
+    }
+
+    public void moveCargoFloor() {
+        this.targetAngle = armAngleFromHeight(HardwareMap.heightArmPivot, HardwareMap.lengthArm, FieldMap.heightCargoFloor);
     }
 
     public void run() {

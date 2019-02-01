@@ -9,7 +9,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 // important numbers and hardware specifics. 
 // NOTE: Components will use super classes to hide the hardware specifics.
 //       One exception is CAN versus PWM speedcontrollers
-public class HardwareMap {
+public class FieldMap {
 
   // === ADDRESSES/PLUGINS ============================
   
@@ -126,7 +126,7 @@ public class HardwareMap {
   public Joystick heightJoystick;  
 
   // setup subsystems
-  public HardwareMap() {
+  public FieldMap() {
     // operator
     speedJoystick = new Joystick(speedJoystickUsb);
     turnJoystick = new Joystick(turnJoystickUsb);
