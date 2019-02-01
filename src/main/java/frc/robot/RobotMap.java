@@ -9,6 +9,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 // Hardware specifics 
 // NOTE: Components will use super classes to hide the hardware specifics.
 //       One exception is CAN versus PWM speedcontrollers
+// TODO: Fill in Javadocs for all calls
 public class RobotMap {
 
   // === ADDRESSES/PLUGINS ============================
@@ -32,13 +33,15 @@ public class RobotMap {
   final int wristEncoderADioPort = 5;
   final int wristEncoderBDioPort = 6;
 
-  final int hatchALimitSwitchDioPort = 7;
-  final int hatchBLimitSwitchDioPort = 8;
-
+  final int hatchLimitSwitchDioPort = 7;
+  
   // USB Ports (driver station)
   final int speedJoystickUsb = 0;
   final int turnJoystickUsb = 1;
   final int heightJoystickUsb = 2;
+
+
+  // TODO: Add buttons to control height
 
 
   // === CONSTANTS =====================================
@@ -51,8 +54,8 @@ public class RobotMap {
   public final static double heightArmPivot = 45;
 
   // arm 
-  public final static double armFeedFowardFactor = .5;         // use to multiply cos(arm angle) to find holding power
-  public final static double wristFeedFowardFactor = .5;       // use to multiply cos(wrist angle) to find holding power
+  public final static double armFeedForwardFactor = .5;         // use to multiply cos(arm angle) to find holding power
+  public final static double wristFeedForwardFactor = .5;       // use to multiply cos(wrist angle) to find holding power
   public final static double armEncoderCicksPerRev = 4200;     // NEO gearbox output shaft include gear reduction  
 
   // wrist
@@ -75,16 +78,13 @@ public class RobotMap {
   public ADXRS450_Gyro driveGyro;
   
   public CANEncoder shoulderEncoder;
-  public Encoder elbowEncoder;
   public Encoder wristEncoder;
   
   public DigitalInput shoulderLimitSwitch;
-  public DigitalInput elbowLimitSwitch;
   public DigitalInput wristLimitSwitch;
   
-  public DigitalInput hatchALimitSwitch;
-  public DigitalInput hatchBLimitSwitch;
-
+  public DigitalInput hatchLimitSwitch;     // TODO: Use two limitswitches on physical bot just linked together
+  
   public MRColorSensor cargoColorSensor;
 
   // usb
@@ -121,7 +121,6 @@ public class RobotMap {
     cargoColorSensor = new MRColorSensor();
 
     // hatch handler
-    hatchALimitSwitch = new DigitalInput(hatchALimitSwitchDioPort);
-    hatchBLimitSwitch = new DigitalInput(hatchBLimitSwitchDioPort);
+    hatchLimitSwitch = new DigitalInput(hatchLimitSwitchDioPort);
   }
 }

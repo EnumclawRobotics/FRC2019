@@ -106,6 +106,8 @@ public class Drive {
             state = States.AssistingTurn;
         }
 
+        // TODO: Get our white line navigation working
+
         // which point is the waypoint and which is endpoint? assume waypoint closest by distance.
         // make waypoint 6" further away from endpoint.
 
@@ -116,7 +118,6 @@ public class Drive {
         
         // how to adjust for current speed? Needed? Pathmarker software? Quick approximation?
 
-        headingError = (gyro.getAngle() - headingTarget);
         this.rotation = headingError * .1d;  
     }
 

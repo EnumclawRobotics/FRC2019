@@ -12,7 +12,7 @@ public class FieldMap {
   public final static double lengthArm = 38; 
   public final static double heightArmPivot = 45;
 
-  // field geometries
+  // field geometries (in inches)
   public final static double whiteLineLength = 18;
 
   public final static double heightHatchRocket1 = 19;

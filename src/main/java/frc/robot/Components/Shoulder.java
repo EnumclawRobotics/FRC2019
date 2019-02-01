@@ -12,7 +12,7 @@ import frc.robot.*;
 */
 public class Shoulder {
     // -- setup and cleanup ===
-    Telemetry telemetry = new Telemetry("Robot/Drive");
+    Telemetry telemetry = new Telemetry("Robot/Shoulder");
 
     DifferentialDrive shoulder;             // NOTE: we will never run this differentially. Using it for default safety enabled             
     CANEncoder shoulderEncoder; 
@@ -88,7 +88,7 @@ public class Shoulder {
     public void hold() {
         state = States.Holding;
 
-        feedForward = Math.cos(targetAngle);        // power is a function of angle given everything else. degrees? clicks? radians?
+        feedForward = Math.cos(targetAngle) * RobotMap.armFeedForwardFactor;      // power is a function of angle given everything else. degrees? clicks? radians?
     }
 
     // === Internally Trigerrable States ===

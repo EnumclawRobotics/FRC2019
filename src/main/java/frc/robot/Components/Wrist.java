@@ -56,7 +56,7 @@ public class Wrist {
 
     // attempts to set the wrist level compared to the arm angle
     public void setLevel(double shoulderAngle) {
-        // TODO:
+        // TODO: Complement of shoulder angle
     }
 
     public void run() {
@@ -70,7 +70,7 @@ public class Wrist {
         telemetry.putString("State", state.toString());
         telemetry.putDouble("CurrentAngle", getCurrentAngle());
         telemetry.putDouble("TargetAngle", targetAngle);
-        telemetry.putDouble("FeedForward", RobotMap.wristFeedFowardFactor);
+        telemetry.putDouble("FeedForward", RobotMap.wristFeedForwardFactor);
         telemetry.putDouble("Speed (forward|back)", speed);
         telemetry.putString("Version", "1.0.0");
     }
@@ -84,7 +84,7 @@ public class Wrist {
     // whenever we arent moving use PID controller to hold at desired height
     public void hold() {
         state = States.Holding;
-        feedForward = Math.cos(targetAngle) * RobotMap.wristFeedFowardFactor;        // power is a function of angle given everything else
+        feedForward = Math.cos(targetAngle) * RobotMap.wristFeedForwardFactor;        // power is a function of angle given everything else
     }
 
     // === Internally Trigerrable States ===

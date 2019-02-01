@@ -18,16 +18,16 @@ public class Grabber {
     Telemetry telemetry = new Telemetry("Robot/Grabber");
 
     SpeedController grabber;
-    DigitalInput hatchALimitSwitch;
-    DigitalInput hatchBLimitSwitch;
+    DigitalInput hatchLimitSwitch;
 
     SpeedController rollers;
     double rollerSpeed;
+
     MRColorSensor cargoSensor;
     final int[] cargoColor;
     final double cargoColorThreshold;
-    double speed;
 
+    double speed;
     double power;
 
     States state = States.Stopped;
@@ -42,7 +42,7 @@ public class Grabber {
     }
 
     public boolean isHatchHeld() {
-        return (hatchALimitSwitch.get() || hatchBLimitSwitch.get());
+        return (hatchLimitSwitch.get());
     }
 
     public boolean isCargoHeld() {
@@ -52,8 +52,7 @@ public class Grabber {
     public Grabber(RobotMap robotMap) {
         grabber = robotMap.grabberSpeedController;
 
-        hatchALimitSwitch = robotMap.hatchALimitSwitch;
-        hatchBLimitSwitch = robotMap.hatchBLimitSwitch;
+        hatchLimitSwitch = robotMap.hatchLimitSwitch;
         
         rollers = robotMap.cargoRollerSpeedController;
         cargoSensor = robotMap.cargoColorSensor;
