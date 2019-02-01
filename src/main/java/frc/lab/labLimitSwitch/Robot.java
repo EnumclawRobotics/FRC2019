@@ -8,7 +8,7 @@
 package frc.lab.labLimitSwitch;
 
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.Counter;
+//import edu.wpi.first.wpilibj.Counter;
 import edu.wpi.first.wpilibj.DigitalInput;
 import common.instrumentation.*;
 

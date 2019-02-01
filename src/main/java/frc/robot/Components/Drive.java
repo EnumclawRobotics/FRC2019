@@ -38,7 +38,7 @@ public class Drive {
     
     public Drive(RobotMap robotMap) {
         differentialDrive = new DifferentialDrive(robotMap.leftDriveSpeedController, robotMap.rightDriveSpeedController);
-        differentialDrive.setExpiration(robotMap.safetyExpiration);
+        differentialDrive.setExpiration(RobotMap.safetyExpiration);
         differentialDrive.setSafetyEnabled(true);
 
         gyro = robotMap.driveGyro;

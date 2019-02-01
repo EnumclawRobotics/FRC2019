@@ -19,7 +19,6 @@ public class Wrist {
     double targetAngle = 0;
     double feedForward = 0;
     double speed = 0;
-    double feedFowardFactor;
 
     boolean facingNormal = true; 
 
@@ -37,12 +36,11 @@ public class Wrist {
     
     public Wrist(RobotMap robotMap) {
         wrist = robotMap.wristSpeedController;
-        wrist.setExpiration(robotMap.safetyExpiration);
+        wrist.setExpiration(RobotMap.safetyExpiration);
         wrist.setSafetyEnabled(true);
 
         encoder = robotMap.wristEncoder;
 
-        feedFowardFactor = robotMap.wristFeedFowardFactor;
         stop();
     }
 
@@ -72,7 +70,7 @@ public class Wrist {
         telemetry.putString("State", state.toString());
         telemetry.putDouble("CurrentAngle", getCurrentAngle());
         telemetry.putDouble("TargetAngle", targetAngle);
-        telemetry.putDouble("FeedForward", feedForward);
+        telemetry.putDouble("FeedForward", RobotMap.wristFeedFowardFactor);
         telemetry.putDouble("Speed (forward|back)", speed);
         telemetry.putString("Version", "1.0.0");
     }
@@ -86,7 +84,7 @@ public class Wrist {
     // whenever we arent moving use PID controller to hold at desired height
     public void hold() {
         state = States.Holding;
-        feedForward = Math.cos(targetAngle) * feedFowardFactor;        // power is a function of angle given everything else
+        feedForward = Math.cos(targetAngle) * RobotMap.wristFeedFowardFactor;        // power is a function of angle given everything else
     }
 
     // === Internally Trigerrable States ===
