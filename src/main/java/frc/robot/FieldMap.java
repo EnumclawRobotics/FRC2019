@@ -15,20 +15,21 @@ public class FieldMap {
   // field geometries (in inches)
   public final static double whiteLineLength = 18;
 
-  public final static double heightHatchRocket1 = 19;
-  public final static double heightHatchRocket2 = 47;
-  public final static double heightHatchRocket3 = 75;
+  public final static double heightRocketHatch1 = 19;
+  public final static double heightRocketHatch2 = 47;
+  public final static double heightRocketHatch3 = 75;
   
-  public final static double heightCargoRocket1 = 27.5;
-  public final static double heightCargoRocket2 = 55.5;
-  public final static double heightCargoRocket3 = 83.5;
+  public final static double heightRocketCargo1 = 27.5;
+  public final static double heightRocketCargo2 = 55.5;
+  public final static double heightRocketCargo3 = 83.5;
   
-  public final static double heightCargoFloor = 9.250;             // requires wrist to be straight with arm instead of held level
-  public final static double heightHatchStation = 19;
-  public final static double heightCargoStation = 44.125;
+  public final static double heightFloorCargo = 9.250;             // requires wrist to be straight with arm instead of held level
   
-  public final static double heightCargoShip = 38.75;
-  public final static double heightHatchShip = 19;
+  public final static double heightStationHatch = 19;
+  public final static double heightStationCargo = 44.125;
+  
+  public final static double heightShipHatch = 19;
+  public final static double heightShipCargo = 38.75;
   
   // hab geometries
   public final static double heightHabLevel1 = 3; 

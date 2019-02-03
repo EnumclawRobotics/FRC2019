@@ -8,7 +8,7 @@ public class Robot extends TimedRobot {
 
   public Operator operator;
   public Drive drive;
-  public Shoulder shoulder;
+  public Arm arm;
   public Wrist wrist;
   public Grabber grabber;
   
@@ -22,7 +22,7 @@ public class Robot extends TimedRobot {
     // setup logical subsystem components
     operator = new Operator(robotMap);
     drive = new Drive(robotMap);
-    shoulder = new Shoulder(robotMap);
+    arm = new Arm(robotMap);
     wrist = new Wrist(robotMap);
     grabber = new Grabber(robotMap);
   }
@@ -76,7 +76,7 @@ public class Robot extends TimedRobot {
 
   public void stop() {
     drive.stop();
-    shoulder.stop();
+    arm.stop();
     wrist.stop();
     grabber.stop();
   }
@@ -86,13 +86,13 @@ public class Robot extends TimedRobot {
     drive.setFacing(operator.driveFacing.toggleOn());
     drive.move(- operator.speedJoystick.getY(), operator.speedJoystick.getX(), false);
 
-    shoulder.setFacing(operator.armFacing.toggleOn());
+    arm.setFacing(operator.armFacing.toggleOn());
 
 
 
     // apply component changes
     drive.run();
-    shoulder.run();
+    arm.run();
     wrist.run();
     grabber.run();
 

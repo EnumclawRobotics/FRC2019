@@ -18,23 +18,23 @@ public class Grabber {
     Telemetry telemetry = new Telemetry("Robot/Grabber");
 
     SpeedController grabber;
+    Encoder grabberEncoder;
     DigitalInput hatchLimitSwitch;
 
     SpeedController rollers;
-    double rollerSpeed;
+    double rollerPower;
 
     MRColorSensor cargoSensor;
     final int[] cargoColor;
     final double cargoColorThreshold;
 
-    double speed;
+    States state = States.Stopped;
+    int baseClicks;                                      // assumes closed at robotStart
+    int targetClicks;
     double power;
 
-    States state = States.Stopped;
-    double expireCommand;
-
     public enum States {
-        Stopped, Opening, HoldingOpen, Closing, HoldingClose
+        Stopped, OpeningHatch, OpeningCargo, Closing
     }
 
     public States getState() {
@@ -51,10 +51,12 @@ public class Grabber {
 
     public Grabber(RobotMap robotMap) {
         grabber = robotMap.grabberSpeedController;
+        grabberEncoder = robotMap.grabberEncoder;
+        baseClicks = grabberEncoder.get();
 
         hatchLimitSwitch = robotMap.hatchLimitSwitch;
         
-        rollers = robotMap.cargoRollerSpeedController;
+        rollers = robotMap.cargoRollerSpeedController;          
         cargoSensor = robotMap.cargoColorSensor;
         cargoColor = FieldMap.cargoColor;
         cargoColorThreshold = FieldMap.cargoColorThreshold;
@@ -63,97 +65,63 @@ public class Grabber {
     }
 
     // === Executing per Period ===
-
-    public void run() {
-        // update based on time based expiration of command
-        switch (state) {
-        case Stopped: 
-            // nothing to do
-            break;
-        case Opening:
-            if (Timer.getFPGATimestamp() > expireCommand) {
-                holdOpen();
-            }
-            break;
-        case HoldingOpen: 
-            // nothing to do keep holding
-            break;
-        case Closing:
-            if (Timer.getFPGATimestamp() > expireCommand) {
-                holdClose();
-            }
-            break;
-        case HoldingClose: 
-            // nothing to do keep holding
-            break;
-        }
-
-        grabber.set(power);
-
-        rollers.set(speed);
-
-        putTelemetry();
+    private int clicksPerOpeningSize(double opening) {
+        double sine = (opening/2)/RobotMap.grabberLength;
+        return (int)(Math.toDegrees(Math.asin(sine)) * RobotMap.grabberEncoderClicksPerDegree);
+    }
+    
+    public void openHatch() {
+        this.state = States.OpeningHatch;
+        targetClicks = baseClicks + clicksPerOpeningSize(FieldMap.hatchHoleDiameter);
     }
 
-    public void putTelemetry() {
-        telemetry.putString("State", state.toString());
-        telemetry.putDouble("Speed (intake|expell)", speed);
-        telemetry.putDouble("Cargo Held", speed);
-        telemetry.putBoolean("Hatch Held", isHatchHeld());
-        telemetry.putString("Version", "1.0.0");
-    }
-
-    // === User Trigerrable States ===
-    public void stop() {
-        state = States.Stopped;
-        power = 0;
-    }
-
-    public void open() {
-        if (state != States.Opening) {
-            state = States.Opening;
-            expireCommand = Timer.getFPGATimestamp() + .5;      // time to complete action
-            power = -1d;
-        }
+    public void openCargo() {
+        this.state = States.OpeningCargo;
+        targetClicks = baseClicks + clicksPerOpeningSize(FieldMap.cargoDiameter);
     }
 
     public void close() {
-        if (state != States.Closing) {
-            state = States.Closing;
-            expireCommand = Timer.getFPGATimestamp() + .5;      // time to complete action
-            power = 1d;
-        }
+        state = States.Stopped;
+        targetClicks = baseClicks;
     }
 
-    // === Internal Triggerable States ====
-    public void holdOpen() {
-        if (state != States.HoldingOpen) {
-            state = States.HoldingOpen;
-            expireCommand = Timer.getFPGATimestamp();       // set to now so other commands can go immediately
-            power = -.5d;
-        }
-    }
-
-    public void holdClose() {
-        if (state != States.HoldingClose) {
-            state = States.HoldingClose;
-            expireCommand = Timer.getFPGATimestamp();       // set to now so other commands can go immediately
-            power = .5d;
-        }
+    public void stop() {
+        state = States.Stopped;
+        power = 0;
+        rollerPower = 0;
     }
 
     // full grab. Touch it! Own it!
     public void intake() {
-        rollerSpeed = 1d;
+        rollerPower = 1d;
     }
 
     // lazy expell. No shooting just tossing!
     public void expell() {
-        rollerSpeed = -.3d;
+        rollerPower = -.3d;
     }
 
-    // use a tiny bit of force to hang onto ball without grinding it
-    public void grip() {
-        rollerSpeed = .1d;
+    // RUN is only place to set motor values
+    public void run() {
+        if (state != States.Stopped) {
+            int error = grabberEncoder.get() - targetClicks;
+            power = Geometry.clip(error * .5d, -1, 1) ;          // PID  
+
+            grabber.set(power);
+            rollers.set(rollerPower);
+            putTelemetry();
+        }
+    }
+
+    public void putTelemetry() {
+        telemetry.putString("State", state.toString());
+        telemetry.putDouble("Base Clicks", baseClicks);
+        telemetry.putDouble("Target Clicks", targetClicks);
+        telemetry.putDouble("Grabber Clicks", grabberEncoder.get());
+        telemetry.putDouble("Grabber Power", power);
+        telemetry.putDouble("Roller Power (intake|expell)", rollerPower);
+        telemetry.putBoolean("Cargo Held", isCargoHeld());
+        telemetry.putBoolean("Hatch Held", isHatchHeld());
+        telemetry.putString("Version", "1.0.0");
     }
 }

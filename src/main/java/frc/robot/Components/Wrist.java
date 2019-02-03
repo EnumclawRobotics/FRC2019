@@ -5,24 +5,23 @@ import edu.wpi.first.wpilibj.*;
 import frc.robot.*;
 
 /**
- * Wrist portion tries to line up hrizontally
+ * Wrist portion tries to line up horizontally at end of arm
  *  DESIGNED TO ONLY APPLY CHANGES IN RUN()
  */
 public class Wrist {
     // -- setup and cleanup ===
     Telemetry telemetry = new Telemetry("Robot/Wrist");
 
-    PWMSpeedController wrist;             
+    PWMSpeedController wrist;
     Encoder encoder; 
     DigitalInput limitSwitch;
-    
+
+    double targetClicks = 0;
     double targetAngle = 0;
     double feedForward = 0;
-    double speed = 0;
+    double power = 0;
 
     boolean facingNormal = true; 
-
-    int inverted = 0;
 
     States state = States.Stopped;
 
@@ -61,7 +60,7 @@ public class Wrist {
 
     public void run() {
         // always ensure that we never use rotation. i.e. both shoulder motors should move as one not try to fight each other
-        wrist.set(speed);
+        wrist.set(power);
         putTelemetry();
     }
 
@@ -71,14 +70,14 @@ public class Wrist {
         telemetry.putDouble("CurrentAngle", getCurrentAngle());
         telemetry.putDouble("TargetAngle", targetAngle);
         telemetry.putDouble("FeedForward", RobotMap.wristFeedForwardFactor);
-        telemetry.putDouble("Speed (forward|back)", speed);
+        telemetry.putDouble("Power (forward|back)", power);
         telemetry.putString("Version", "1.0.0");
     }
 
     // === User Trigerrable States ===
     public void stop() {
         state = States.Stopped;
-        speed = 0;
+        power = 0;
     }
 
     // whenever we arent moving use PID controller to hold at desired height

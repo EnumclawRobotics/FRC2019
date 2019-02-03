@@ -6,4 +6,7 @@ public class Geometry {
         return Math.sqrt(Math.pow(x2-x1, 2d) + Math.pow(y2-y1, 2d));
     }
 
+    public static double clip(double value, double min, double max) {
+        return Math.min(Math.max(value, min), max);
+    }
 }

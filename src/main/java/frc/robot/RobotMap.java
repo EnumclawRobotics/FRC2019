@@ -15,25 +15,29 @@ public class RobotMap {
   // === ADDRESSES/PLUGINS ============================
   
   // PWM Ports
-  final int leftDrivePwmPort = 0;            // pwm group - use Y split to signal both front and back motor controller
-  final int rightDrivePwmPort = 1;           // pwm group - use Y split to signal both front and back motor controller
+  final int leftDrivePwmPort = 0;            // 40AMP x2 pwm group - use Y split to signal both front and back motor controller
+  final int rightDrivePwmPort = 1;           // 40AMP x2 pwm group - use Y split to signal both front and back motor controller
 
-  final int wristPwmPort = 3;
-  final int grabberPwmPort = 4;
-  final int cargoRollerPwmPort = 5;          // depending on motor size can Y split the power to both motors 
+  final int wristPwmPort = 3;                // 30AMP
+  final int grabberPwmPort = 4;              // 30AMP
+  final int cargoRollerPwmPort = 5;          // 30AMP depending on motor size can Y split the power to both motors 
 
   // CAN Device IDs
-  final int leftShoulderCanId = 2;            // SparkMax-Neo requires CAN otherwise buggy
-  final int rightShoulderCanId = 3;           // SparkMax-Neo requires CAN otherwise buggy
+  final int leftArmCanId = 2;                 // 40AMP SparkMax-Neo requires CAN otherwise buggy
+  final int rightArmCanId = 3;                // 40AMP SparkMax-Neo requires CAN otherwise buggy
 
   // DIO Ports
-  final int shoulderLimitSwitchDioPort = 0;
-  final int wristLimitSwitchDioPort = 2;
+  final int armLimitSwitchDioPort = 0;
+ 
+  final int wristLimitSwitchDioPort = 1;
+  final int wristEncoderADioPort = 2;
+  final int wristEncoderBDioPort = 3;
 
-  final int wristEncoderADioPort = 5;
-  final int wristEncoderBDioPort = 6;
+  final int grabberLimitSwitchDioPort = 4;
+  final int grabberEncoderADioPort = 5;
+  final int grabberEncoderBDioPort = 6;
 
-  final int hatchLimitSwitchDioPort = 7;
+  final int hatchLimitSwitchDioPort = 7;      // tie the two limit switches together so that either pressed causes trigger 
   
   // USB Ports (driver station)
   final int speedJoystickUsb = 0;
@@ -52,14 +56,18 @@ public class RobotMap {
   // arm geometries (in inches)
   public final static double armLength = 38; 
   public final static double heightArmPivot = 45;
-
-  // arm 
-  public final static double armFeedForwardFactor = .5;         // use to multiply cos(arm angle) to find holding power
-  public final static double wristFeedForwardFactor = .5;       // use to multiply cos(wrist angle) to find holding power
-  public final static double armEncoderCicksPerRev = 4200;     // NEO gearbox output shaft include gear reduction  
+  public final static double armFeedForwardFactor = .5;                   // use to multiply cos(arm angle) to find holding power
+  public final static double armEncoderCicksPerDegree = 4200/360;         // NEO gearbox output shaft include gear reduction  
 
   // wrist
-  public final static double wristEncoderClicksPerRev = 1316;    // PG188 output shaft include gear reduction
+  public final static double wristLength = 12;                            // TODO: Confirm 
+  public final static double wristEncoderClicksPerDegree = 1316/360;      // PG188 output shaft include gear reduction
+  public final static double wristFeedForwardFactor = .5;                 // use to multiply cos(wrist angle) to find holding power
+
+  // grabber
+  public final static double grabberLength = 7; 
+  public final static double grabberEncoderClicksPerDegree = 1316/360;    // PG188 output shaft include gear reduction
+
 
   // === REFERENCES ======================
 
@@ -67,21 +75,24 @@ public class RobotMap {
   public Spark leftDriveSpeedController;
   public Spark rightDriveSpeedController;
   
-  public CANSparkMax leftShoulderSpeedController; 
-  public CANSparkMax rightShoulderSpeedController; 
+  public CANSparkMax leftArmSpeedController; 
+  public CANSparkMax rightArmSpeedController; 
   public Spark wristSpeedController;
 
   public Spark grabberSpeedController;
-  public Spark cargoRollerSpeedController;
+  public Spark cargoRollerSpeedController;                    // TODO: Set brake mode on roller controller
 
   // sensors
   public ADXRS450_Gyro driveGyro;
   
-  public CANEncoder shoulderEncoder;
+  public CANEncoder armEncoder;
+  public DigitalInput armLimitSwitch;
+
   public Encoder wristEncoder;
-  
-  public DigitalInput shoulderLimitSwitch;
   public DigitalInput wristLimitSwitch;
+
+  public Encoder grabberEncoder;
+  public DigitalInput grabberLimitSwitch;
   
   public DigitalInput hatchLimitSwitch;     // TODO: Use two limitswitches on physical bot just linked together
   
@@ -105,16 +116,20 @@ public class RobotMap {
     driveGyro = new ADXRS450_Gyro();
 
     // arm
-    leftShoulderSpeedController = new CANSparkMax(leftShoulderCanId, MotorType.kBrushless);
-    rightShoulderSpeedController = new CANSparkMax(rightShoulderCanId, MotorType.kBrushless);
+    leftArmSpeedController = new CANSparkMax(leftArmCanId, MotorType.kBrushless);
+    rightArmSpeedController = new CANSparkMax(rightArmCanId, MotorType.kBrushless);
+    armEncoder = new CANEncoder(leftArmSpeedController);
+    armLimitSwitch = new DigitalInput(armLimitSwitchDioPort);
 
-    shoulderEncoder = new CANEncoder(leftShoulderSpeedController);
-
+    // wrist
     wristSpeedController = new Spark(wristPwmPort); 
     wristEncoder = new Encoder(wristEncoderADioPort, wristEncoderBDioPort);
+    wristLimitSwitch = new DigitalInput(wristLimitSwitchDioPort);
 
     // grabber
     grabberSpeedController = new Spark(grabberPwmPort);
+    grabberEncoder = new Encoder(grabberEncoderADioPort, grabberEncoderBDioPort);
+    grabberLimitSwitch = new DigitalInput(grabberLimitSwitchDioPort);
 
     // cargo handler
     cargoRollerSpeedController = new Spark(cargoRollerPwmPort);
