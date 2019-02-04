@@ -6,6 +6,7 @@ import common.i2cSensors.*;
 import com.revrobotics.*;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
+
 // Hardware specifics 
 // NOTE: Components will use super classes to hide the hardware specifics.
 //       One exception is CAN versus PWM speedcontrollers
@@ -51,22 +52,25 @@ public class RobotMap {
   // === CONSTANTS =====================================
 
   // safety
-  public final static double safetyExpiration = .25;
+  public final static double safetyExpiration = .25d;
 
   // arm geometries (in inches)
-  public final static double armLength = 38; 
-  public final static double heightArmPivot = 45;
-  public final static double armFeedForwardFactor = .5;                   // use to multiply cos(arm angle) to find holding power
-  public final static double armEncoderCicksPerDegree = 4200/360;         // NEO gearbox output shaft include gear reduction  
+  public final static double armLength = 38d; 
+  public final static double heightArmPivot = 45d;
+  public final static double armFeedForwardFactor = .5d;                     // hold at horizontal power. find by testing
+  public final static double armKpFactor = .1d;                               // PID kP correction factor 
+  public final static double armEncoderClicksPerDegree = 4200d/360d;          // NEO gearbox output shaft include gear reduction  
 
   // wrist
-  public final static double wristLength = 12;                            // TODO: Confirm 
-  public final static double wristEncoderClicksPerDegree = 1316/360;      // PG188 output shaft include gear reduction
-  public final static double wristFeedForwardFactor = .5;                 // use to multiply cos(wrist angle) to find holding power
+  public final static double wristLength = 7.75d; 
+  public final static double wristEncoderClicksPerDegree = 1316d/360d;        // PG188 output shaft include gear reduction
+  public final static double wristFeedForwardFactor = .5d;                  // hold at horizontal power. find by testing
+  public final static double wristKpFactor = .5d;                               // PID kP correction factor
+  public final static double wristHeldAngle = 10d;                           // angle to fold back the grabber for protection
 
   // grabber
-  public final static double grabberLength = 7; 
-  public final static double grabberEncoderClicksPerDegree = 1316/360;    // PG188 output shaft include gear reduction
+  public final static double grabberLength = 10d;
+  public final static double grabberEncoderClicksPerDegree = 1316d/360d;    // PG188 output shaft include gear reduction
 
 
   // === REFERENCES ======================
@@ -74,13 +78,11 @@ public class RobotMap {
   // SpeedControllers
   public Spark leftDriveSpeedController;
   public Spark rightDriveSpeedController;
-  
   public CANSparkMax leftArmSpeedController; 
   public CANSparkMax rightArmSpeedController; 
-  public Spark wristSpeedController;
-
-  public Spark grabberSpeedController;
-  public Spark cargoRollerSpeedController;                    // TODO: Set brake mode on roller controller
+  public PWMVictorSPX wristSpeedController;
+  public PWMVictorSPX grabberSpeedController;
+  public PWMVictorSPX cargoRollerSpeedController;                    // TODO: Set brake mode on roller controller
 
   // sensors
   public ADXRS450_Gyro driveGyro;
@@ -94,7 +96,7 @@ public class RobotMap {
   public Encoder grabberEncoder;
   public DigitalInput grabberLimitSwitch;
   
-  public DigitalInput hatchLimitSwitch;     // TODO: Use two limitswitches on physical bot just linked together
+  public DigitalInput hatchLimitSwitch;                 // TODO: Use two limit switches on physical bot just linked together
   
   public MRColorSensor cargoColorSensor;
 
@@ -122,17 +124,17 @@ public class RobotMap {
     armLimitSwitch = new DigitalInput(armLimitSwitchDioPort);
 
     // wrist
-    wristSpeedController = new Spark(wristPwmPort); 
+    wristSpeedController = new PWMVictorSPX(wristPwmPort); 
     wristEncoder = new Encoder(wristEncoderADioPort, wristEncoderBDioPort);
     wristLimitSwitch = new DigitalInput(wristLimitSwitchDioPort);
 
     // grabber
-    grabberSpeedController = new Spark(grabberPwmPort);
+    grabberSpeedController = new PWMVictorSPX(grabberPwmPort);
     grabberEncoder = new Encoder(grabberEncoderADioPort, grabberEncoderBDioPort);
     grabberLimitSwitch = new DigitalInput(grabberLimitSwitchDioPort);
 
     // cargo handler
-    cargoRollerSpeedController = new Spark(cargoRollerPwmPort);
+    cargoRollerSpeedController = new PWMVictorSPX(cargoRollerPwmPort);
     cargoColorSensor = new MRColorSensor();
 
     // hatch handler

@@ -13,187 +13,218 @@ import frc.robot.*;
 */
 public class Arm {
     // -- setup and cleanup ===
-    Telemetry telemetry = new Telemetry("Robot/Arm");
+    private Telemetry telemetry = new Telemetry("Robot/Arm");
 
-    DifferentialDrive arm;             // NOTE: we will never run this differentially. Using it for default safety enabled             
-    CANEncoder armEncoder; 
-    DigitalInput armLimitSwitch;
+    // parts of this subsystem
+    private DifferentialDrive controller;               // NOTE: we will never run this differentially. Using it for default safety enabled             
+    private CANEncoder encoder; 
+    private DigitalInput limitSwitch;                   // TODO: Implement handling 
     
-    boolean facingNormal = true;
-    double baseClicks = 0;
-    double targetHeight = 0;
-    double targetAngle = 0;
-    double targetClicks = 0;
-    double feedForward = 0;
-    double power = 0;
+    // set through command
+    private double targetHeight = 0;
+    private boolean facingNormal = true;                // Seperate setting from which end is front on the bot 
 
-    States state = States.Stopped;
+    // set at autonomous init
+    private double baseClicks = 0;
+    
+    // derived as needed and stored for reporting
+    private double targetAngle = 0;
+    private double targetClicks = 0;
+    private double feedForward = 0;
+    private double power = 0;
+
+    private States state = States.Stopped;
 
     public enum States {
-        Stopped, 
-        MovingRocketHatch1, MovingRocketHatch2, MovingRocketHatch3,
-        MovingRocketCargo1, MovingRocketCargo2, MovingRocketCargo3, 
+        Stopped,
         MovingFloorCargo, 
         MovingStationHatch, MovingStationCargo,
+        MovingRocketHatch1, MovingRocketHatch2, MovingRocketHatch3,
+        MovingRocketCargo1, MovingRocketCargo2, MovingRocketCargo3, 
         MovingShipHatch, MovingShipCargo 
+    }
+
+    // Constructor that saves controller and sensor references
+    public Arm(RobotMap robotMap) {
+        controller = new DifferentialDrive(robotMap.leftArmSpeedController, 
+                                            robotMap.rightArmSpeedController);
+        controller.setExpiration(RobotMap.safetyExpiration);
+        controller.setSafetyEnabled(true);
+        controller.setRightSideInverted(true);                 // ensure that both motors work in the same direction
+        controller.setDeadband(0);                             // even supply little amounts of power
+
+        encoder = robotMap.armEncoder;
+        limitSwitch = robotMap.armLimitSwitch;
+
+        stop();
+    }
+
+    public void init() {
+        baseClicks = encoder.getPosition();
+    }
+
+    // === Per Cycle ===
+
+    // not triggerable by user 
+    public void stop() {
+        state = States.Stopped;
+        power = 0;
+        controller.arcadeDrive(power, 0, false);
     }
 
     public States getState() {
         return state;
     }
-    
-    public Arm(RobotMap robotMap) {
-        arm = new DifferentialDrive(robotMap.leftArmSpeedController, 
-                                            robotMap.rightArmSpeedController);
-        arm.setExpiration(RobotMap.safetyExpiration);
-        arm.setSafetyEnabled(true);
-        arm.setRightSideInverted(true);                 // ensure that both motors work in the same direction
-        arm.setDeadband(0);                             // even supply little amounts of power
 
-        armEncoder = robotMap.armEncoder;
-        armLimitSwitch = robotMap.armLimitSwitch;
-
-        stop();
+    public boolean getFacingNormal() {
+        return facingNormal;
     }
 
-    // === Executing per Period ===
-
-    // used by wrist
+    // degrees 0 - 360
     public double getAngle() {
-        return angleFromClicks(armEncoder.getPosition());
+        return angleFromClicks(encoder.getPosition());
     }    
 
-    // set before setting height using the 'move' items
-    public void setFacing(boolean facingNormal) {
+    // degrees
+    public double getTargetAngle() {
+        return targetAngle;
+    }
+    
+    public void moveRocketHatch1(boolean facingNormal) {
+        state = States.MovingRocketHatch1;
+        targetHeight = FieldMap.heightRocketHatch1;
+        this.facingNormal = facingNormal;
+    }
+    public void moveRocketHatch2(boolean facingNormal) {
+        state = States.MovingRocketHatch2;
+        targetHeight = FieldMap.heightRocketHatch2;
+        this.facingNormal = facingNormal;
+    }
+    public void moveRocketHatch3(boolean facingNormal) {
+        state = States.MovingRocketHatch3;
+        targetHeight = FieldMap.heightRocketHatch3;
         this.facingNormal = facingNormal;
     }
 
-    public void moveRocketHatch1() {
-        state = States.MovingRocketHatch1;
-        targetHeight = FieldMap.heightRocketHatch1;
-    }
-    public void moveRocketHatch2() {
-        state = States.MovingRocketHatch2;
-        targetHeight = FieldMap.heightRocketHatch2;
-    }
-    public void moveRocketHatch3() {
-        state = States.MovingRocketHatch3;
-        targetHeight = FieldMap.heightRocketHatch3;
-    }
-
-    public void moveRocketCargo1() {
+    public void moveRocketCargo1(boolean facingNormal) {
         state = States.MovingRocketCargo1;
         targetHeight = FieldMap.heightRocketCargo1;
+        this.facingNormal = facingNormal;
     }
-    public void moveRocketCargo2() {
+    public void moveRocketCargo2(boolean facingNormal) {
         state = States.MovingRocketCargo2;
         targetHeight = FieldMap.heightRocketCargo2;
+        this.facingNormal = facingNormal;
     }
-    public void moveRocketCargo3() {
+    public void moveRocketCargo3(boolean facingNormal) {
         state = States.MovingRocketCargo3;
         targetHeight = FieldMap.heightRocketCargo3;
+        this.facingNormal = facingNormal;
     }
 
-    public void moveFloorCargo() {
+    public void moveFloorCargo(boolean facingNormal) {
         state = States.MovingFloorCargo;
         targetHeight = FieldMap.heightFloorCargo;
+        this.facingNormal = facingNormal;
     }
 
-    public void moveStationHatch() {
+    public void moveStationHatch(boolean facingNormal) {
         state = States.MovingStationHatch;
         targetHeight = FieldMap.heightStationHatch;
+        this.facingNormal = facingNormal;
     }
-    public void moveStationCargo() {
+    public void moveStationCargo(boolean facingNormal) {
         state = States.MovingStationCargo;
         targetHeight = FieldMap.heightStationCargo;
+        this.facingNormal = facingNormal;
     }
 
-    public void moveShipHatch() {
+    public void moveShipHatch(boolean facingNormal) {
         state = States.MovingShipHatch;
         targetHeight = FieldMap.heightShipHatch;
+        this.facingNormal = facingNormal;
     }
-    public void moveShipCargo() {
+    public void moveShipCargo(boolean facingNormal) {
         state = States.MovingShipCargo;
         targetHeight = FieldMap.heightShipCargo;
+        this.facingNormal = facingNormal;
     }
 
     public void run() {
-        // current angle implies how much force gravity applies
-        double currentAngle = angleFromClicks(armEncoder.getPosition());
-        feedForward = Math.abs(Math.cos(Math.toRadians(currentAngle)) * RobotMap.armFeedForwardFactor);
+        if (state != States.Stopped) {
+            // current angle implies how much force gravity applies and so what we need to make neutral
+            double angle = getAngle();
+            feedForward = Geometry.gravity(angle) * RobotMap.armFeedForwardFactor;
 
-        // we need to correct the sign to map the cos() to how our arm reacts with gravity
-        // opposite side of the bot gravity helps compared to the motor direction so reverse the feedforward 
-        if ((currentAngle >= 180 && currentAngle < 360)) {
-            feedForward = -feedForward;
+            // we need to adjust the sign to show that the arm has normal and inverted sides  
+            if (angle >= 180 && angle < 360) {
+                feedForward = -feedForward;
+            }
+
+            // moving to a height
+            targetAngle = angleFromHeight(targetHeight, facingNormal);
+            targetClicks = clicksFromAngle(targetAngle);
+
+            // compare the error degrees to 90 degrees for a percentage
+            double error = ((targetClicks - encoder.getPosition()) / RobotMap.armEncoderClicksPerDegree) / 90;
+            power = Geometry.clip(feedForward + (error * RobotMap.armKpFactor), -1, 1);
+
+            // always ensure that we never use rotation. i.e. both arm motors should move as one not try to fight each other
+            controller.arcadeDrive(power, 0, false);
+            putTelemetry();
         }
-
-        // moving to position - compare error degrees to 90 degrees for a percentage
-        targetAngle = armAngleFromHeight(targetHeight, facingNormal);
-        targetClicks = clicksFromAngle(targetAngle);
-
-        double error = ((targetClicks - armEncoder.getPosition()) / RobotMap.armEncoderCicksPerDegree) / 90;
-        double correctionPower = .5d;
-        power = Geometry.clip(feedForward + (error * correctionPower), -1, 1);
-
-        // always ensure that we never use rotation. i.e. both arm motors should move as one not try to fight each other
-        arm.arcadeDrive(power, 0, false);
-        putTelemetry();
     }
 
     private void putTelemetry() {
         telemetry.putString("State", state.toString());
-        telemetry.putDouble("Arm Clicks", armEncoder.getPosition());
-        telemetry.putDouble("Target Clicks", targetClicks);
+        telemetry.putDouble("TargetHeight", targetHeight);
+        telemetry.putDouble("Angle", getAngle());
+        telemetry.putDouble("Clicks", encoder.getPosition());
+        telemetry.putDouble("TargetAngle", targetAngle);
+        telemetry.putDouble("TargetClicks", targetClicks);
         telemetry.putDouble("FeedForward", feedForward);
         telemetry.putDouble("Power", power);
         telemetry.putString("Version", "1.0.0");
     }
 
-    // === User Trigerrable States ===
-    public void stop() {
-        state = States.Stopped;
-        power = 0;
-    }
-
     // === Helpers ===
 
     // given clicks figure out angle 
-    public double angleFromClicks(double clicks) {
-        return (((double)(clicks - baseClicks)) / RobotMap.armEncoderCicksPerDegree);
+    private double angleFromClicks(double clicks) {
+        return (((double)(clicks - baseClicks)) / RobotMap.armEncoderClicksPerDegree);
     }
     
-    // given a target height figure out target clicks  
-    public double clicksFromAngle(double angle) {
-        return (angle * RobotMap.armEncoderCicksPerDegree) + baseClicks;
+    // given a target angle figure out target clicks  
+    private double clicksFromAngle(double angle) {
+        return (angle * RobotMap.armEncoderClicksPerDegree) + baseClicks;
     }
 
-    // getting an arm angle in degrees from a height above ground
-    public double armAngleFromHeight(double targetHeight, boolean facingNormal) {
-        double sine;
+    // getting an angle in degrees from a height above ground
+    private double angleFromHeight(double targetHeight, boolean facingNormal) {
+        double height;
         double angle;
 
-        // figure sine about pivot point for all heights eg given '|'s in |X| shape figure out the X angles
+        // figure angle about pivot point given reach points in the vertical plane
         if (facingNormal) {
             if (RobotMap.heightArmPivot >= targetHeight) { 
-                // reaching low on start side
-                sine = (RobotMap.heightArmPivot - targetHeight)/RobotMap.armLength;
-                angle = Math.toDegrees(Math.asin(sine));
+                // reaching low on start side - height is cos
+                height = (RobotMap.heightArmPivot - targetHeight)/RobotMap.armLength;
+                angle = Math.toDegrees(Math.acos(height));
             } else {
-                // reaching high on start side
-                sine = (RobotMap.heightArmPivot - targetHeight)/RobotMap.armLength;
-                angle = Math.toDegrees(Math.asin(sine)) + 90;
+                // reaching high on start side - height is sin 
+                height = (targetHeight - RobotMap.heightArmPivot)/RobotMap.armLength;
+                angle = Math.toDegrees(Math.asin(height)) + 90;
             }
         }
         else {
             if (RobotMap.heightArmPivot >= targetHeight) { 
-                // reaching low on opposite side
-                sine = (RobotMap.heightArmPivot - targetHeight)/RobotMap.armLength;
-                angle = Math.toDegrees(Math.asin(sine)) + 270;
+                // reaching low on opposite side - height is sin
+                height = (RobotMap.heightArmPivot - targetHeight)/RobotMap.armLength;
+                angle = Math.toDegrees(Math.asin(height)) + 270;
             } else {
-                // reaching high on opposite side
-                sine = (RobotMap.heightArmPivot - targetHeight)/RobotMap.armLength;
-                angle = Math.toDegrees(Math.asin(sine)) + 180;
+                // reaching high on opposite side - height is cos
+                height = (RobotMap.heightArmPivot - targetHeight)/RobotMap.armLength;
+                angle = Math.toDegrees(Math.acos(height)) + 180;
             }
         }
 

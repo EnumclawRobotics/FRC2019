@@ -25,8 +25,6 @@ public class Grabber {
     double rollerPower;
 
     MRColorSensor cargoSensor;
-    final int[] cargoColor;
-    final double cargoColorThreshold;
 
     States state = States.Stopped;
     int baseClicks;                                      // assumes closed at robotStart
@@ -46,7 +44,8 @@ public class Grabber {
     }
 
     public boolean isCargoHeld() {
-        return Similarity.isMatch(cargoSensor.getColor(), cargoColor, cargoColorThreshold); 
+        return Math.abs(cargoSensor.getColorNumber() - FieldMap.cargoColorNumber) < FieldMap.cargoColorNumberVariance; 
+        // return Similarity.isMatch(cargoSensor.getColor(), cargoColor, cargoColorThreshold); 
     }
 
     public Grabber(RobotMap robotMap) {
@@ -58,8 +57,6 @@ public class Grabber {
         
         rollers = robotMap.cargoRollerSpeedController;          
         cargoSensor = robotMap.cargoColorSensor;
-        cargoColor = FieldMap.cargoColor;
-        cargoColorThreshold = FieldMap.cargoColorThreshold;
 
         stop();
     }

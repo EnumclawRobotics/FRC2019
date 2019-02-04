@@ -3,96 +3,169 @@ package frc.robot.Components;
 import common.instrumentation.Telemetry;
 import edu.wpi.first.wpilibj.*;
 import frc.robot.*;
+import common.util.*;
 
 /**
- * Wrist portion tries to line up horizontally at end of arm
+ * Wrist component. Often tries to line up horizontally level at end of arm
  *  DESIGNED TO ONLY APPLY CHANGES IN RUN()
  */
 public class Wrist {
     // -- setup and cleanup ===
-    Telemetry telemetry = new Telemetry("Robot/Wrist");
+    private Telemetry telemetry = new Telemetry("Robot/Wrist");
 
-    PWMSpeedController wrist;
-    Encoder encoder; 
-    DigitalInput limitSwitch;
+    // physical mechanical parent
+    private Arm arm;
 
-    double targetClicks = 0;
-    double targetAngle = 0;
-    double feedForward = 0;
-    double power = 0;
+    // equipment
+    private PWMSpeedController controller;          // controller for moving the joint
+    private Encoder encoder;                        // counts clicks of rotation for the joint 
+    private DigitalInput limitSwitch;               // determines when we're going to turn too far
+                                                    // TODO: Implement limit switch handling
+    // start condition
+    double baseClicks = 0;                          // where did encoder start at init?  0 is straight up
 
-    boolean facingNormal = true; 
+    // state set target
+    private double targetAngle = 0;                 // based on state determistically, or if horizontal to arm, based on arm angle
+
+    // derived but stored for awareness
+    double targetClicks = 0;                        // encoder clicks that match angle
+    double feedForward = 0;                         // amount of counter gravity force
+    double power = 0;                               // power sent to motor
 
     States state = States.Stopped;
 
     public enum States {
-        Stopped, Moving, Holding
+        Stopped,                // disable stop
+        MovingAligned,          // wrist aligned with arm into single bar for grabbing cargo off floor
+        MovingFolded,           // held in tight?
+        MovingHorizontal        // keep wrist aligned to horizontal
     }
+
+    // Constructor holds onto motor controller and sensor references
+    public Wrist(RobotMap robotMap, Arm arm) {
+        controller = robotMap.wristSpeedController;
+        controller.setExpiration(RobotMap.safetyExpiration);
+        controller.setSafetyEnabled(true);
+
+        encoder = robotMap.wristEncoder;
+    }
+
+    // assumes we will not move the wrist after this and before the start of autonomous 
+    public void init() {
+        // store starting position
+        baseClicks = encoder.get();
+
+        // zero out derived fields
+        targetClicks = 0;                        
+        feedForward = 0;
+        baseClicks = 0;
+        power = 0;
+    }
+
+    // not triggerable by user 
+    public void stop() {
+        state = States.Stopped;
+        power = 0;
+        controller.set(power);
+    }
+
+    // === Per Period ===
 
     public States getState() {
         return state;
     }
-    
-    public Wrist(RobotMap robotMap) {
-        wrist = robotMap.wristSpeedController;
-        wrist.setExpiration(RobotMap.safetyExpiration);
-        wrist.setSafetyEnabled(true);
 
-        encoder = robotMap.wristEncoder;
-
-        stop();
+    public double getAngle() {
+        return angleFromClicks(encoder.get());
     }
 
-    // === Executing per Period ===
-
-    public void setFacing(boolean facingNormal) {
-        this.facingNormal = facingNormal;
+    // keep wrist straight aligned with arm
+    public void moveAligned() {
+        state = States.MovingAligned;
+        targetAngle = 180;
     }
 
-    public double getCurrentAngle() {
-        return encoder.getDistance();   // TODO: what is this unit? how to turn into desired unit? degrees? clicks? radians?
+    // hold wrist in close 
+    public void moveFolded() {
+        state = States.MovingFolded;
+        targetAngle = (arm.getFacingNormal() ? 360 - RobotMap.wristHeldAngle : RobotMap.wristHeldAngle) ;
     }
 
-    // attempts to set the wrist level compared to the arm angle
-    public void setLevel(double shoulderAngle) {
-        // TODO: Complement of shoulder angle
+    // keep the wrist horizontal compared to the arm angle
+    public void moveHorizontal() {
+        state = States.MovingHorizontal;
+        targetAngle = horizontalAngleFromArm();
     }
 
     public void run() {
-        // always ensure that we never use rotation. i.e. both shoulder motors should move as one not try to fight each other
-        wrist.set(power);
+        if (state != States.Stopped) {
+            // adjust target based on arm move?
+            if (state == States.MovingHorizontal) {
+                targetAngle = horizontalAngleFromArm();
+            }
+
+            // current position
+            targetClicks = clicksFromAngle(targetAngle);
+
+            // current angle implies how much force gravity applies
+            double armAngle = arm.getAngle();
+            double gravityAngle = (getAngle() - 180) + armAngle;       // wrist angle is 180 degrees ahead of arm in orientation
+            feedForward = Geometry.gravity(gravityAngle) * RobotMap.wristFeedForwardFactor;
+
+            // we need to adjust the sign to show that the arm has normal and inverted sides  
+            if (armAngle >= 180 && armAngle < 360) {
+                feedForward = -feedForward;
+            }
+
+            // moving to an angle
+            targetClicks = clicksFromAngle(targetAngle);
+
+            // compare the error degrees to 90 degrees for a percentage error
+            double error = ((targetClicks - (double)encoder.get()) / RobotMap.armEncoderClicksPerDegree) / 90d;
+            power = Geometry.clip(feedForward + (error * RobotMap.wristKpFactor), -1, 1);
+
+            // apply the correction to move towards the target
+            controller.set(power);
+        }
+
         putTelemetry();
     }
 
     private void putTelemetry() {
-        telemetry.putBoolean("Arm Facing (normal)", facingNormal);
         telemetry.putString("State", state.toString());
-        telemetry.putDouble("CurrentAngle", getCurrentAngle());
+        telemetry.putDouble("Angle", getAngle());
         telemetry.putDouble("TargetAngle", targetAngle);
-        telemetry.putDouble("FeedForward", RobotMap.wristFeedForwardFactor);
-        telemetry.putDouble("Power (forward|back)", power);
+        telemetry.putDouble("TargetClicks", targetClicks);
+        telemetry.putDouble("FeedForward", feedForward);
+        telemetry.putDouble("Power", power);
         telemetry.putString("Version", "1.0.0");
     }
 
-    // === User Trigerrable States ===
-    public void stop() {
-        state = States.Stopped;
-        power = 0;
+    // === Helpers =========
+
+    // given clicks figure out angle 
+    public double angleFromClicks(double clicks) {
+        return (((double)(clicks - baseClicks)) / RobotMap.wristEncoderClicksPerDegree);
+    }
+    
+    // given a target angle figure out target clicks  
+    public double clicksFromAngle(double angle) {
+        return (angle * RobotMap.wristEncoderClicksPerDegree) + baseClicks;
     }
 
-    // whenever we arent moving use PID controller to hold at desired height
-    public void hold() {
-        state = States.Holding;
-        feedForward = Math.cos(targetAngle) * RobotMap.wristFeedForwardFactor;        // power is a function of angle given everything else
-    }
+    // returns the horizontal correction angle given the arm angle. 
+    public double horizontalAngleFromArm() {
+        double angle = 0;
 
-    // === Internally Trigerrable States ===
+        double armAngle = arm.getAngle(); 
+        if (armAngle >= 0 && armAngle < 180) {
+            // arm 0-180 - wrist is 180 degrees ahead of arm - but want 90 degree align with horizontal
+            angle = 270 - armAngle;
+        } else if (armAngle >= 180 && armAngle <= 360){
+            // arm 180-360 - wrist is 180 degrees ahead of arm - but want 90 degree align with horizontal
+            angle = 450 - armAngle ; 
+        }
 
-    // === helpers ===
-
-    // getting a level wrist angle in radians from an arm angle
-    public static double wristAngleFromArm(double armAngleRadians) {
-        // 90 degrees - arm angle = correction to get a level angle
-        return (Math.PI/2) - armAngleRadians;
+        return angle;
     }
 }

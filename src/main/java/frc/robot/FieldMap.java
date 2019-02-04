@@ -5,8 +5,11 @@ package frc.robot;
 public class FieldMap {
 
   // colors / constants
-  public final static int[] cargoColor = new int[] { 0, 0, 0, 0 };     // TODO: Fill in accurate color values 
-  public final static double cargoColorThreshold = .1d;
+  public final static int cargoColorNumber = 10;                        // MR Color Sensor number for orange
+  public final static int cargoColorNumberVariance = 1;                 // +- amount around color number that is still cargo color
+
+  //public final static int[] cargoColor = new int[] { 0, 0, 0, 0 };     // TODO: Fill in accurate color values 
+  //public final static double cargoColorThreshold = .1d;
 
   // arm geometries (in inches)
   public final static double lengthArm = 38; 
@@ -40,5 +43,4 @@ public class FieldMap {
   public final static double hatchDiameter = 19;
   public final static double hatchHoleDiameter = 6;
   public final static double cargoDiameter = 13;
-
 }

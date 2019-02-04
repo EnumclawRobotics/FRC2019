@@ -23,7 +23,7 @@ public class Robot extends TimedRobot {
     operator = new Operator(robotMap);
     drive = new Drive(robotMap);
     arm = new Arm(robotMap);
-    wrist = new Wrist(robotMap);
+    wrist = new Wrist(robotMap, arm);
     grabber = new Grabber(robotMap);
   }
 
@@ -86,7 +86,7 @@ public class Robot extends TimedRobot {
     drive.setFacing(operator.driveFacing.toggleOn());
     drive.move(- operator.speedJoystick.getY(), operator.speedJoystick.getX(), false);
 
-    arm.setFacing(operator.armFacing.toggleOn());
+    // arm.setFacing(operator.armFacing.toggleOn());
 
 
 
