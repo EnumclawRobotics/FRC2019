@@ -20,6 +20,8 @@ def ROBOT_MAIN_CLASS = "frc.lab.labLimitSwitch.Main"
 //def ROBOT_MAIN_CLASS = "frc.lab.labStraightAssist.Main"
 //def ROBOT_MAIN_CLASS = "frc.lab.labTogglebutton.Main"
 //def ROBOT_MAIN_CLASS = "frc.lab.labUsbCamera.Main"
+//def ROBOT_MAIN_CLASS = "frc.lab.labXboxController.Main"
+
 
 sourceCompatibility = JavaVersion.VERSION_11
 targetCompatibility = JavaVersion.VERSION_11

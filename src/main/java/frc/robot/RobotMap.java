@@ -16,34 +16,35 @@ public class RobotMap {
   // === ADDRESSES/PLUGINS ============================
   
   // PWM Ports
-  final int leftDrivePwmPort = 0;            // 40AMP x2 pwm group - use Y split to signal both front and back motor controller
-  final int rightDrivePwmPort = 1;           // 40AMP x2 pwm group - use Y split to signal both front and back motor controller
+  final int leftDrivePwm = 0;            // 40AMP x2 pwm group - use Y split to signal both front and back motor controller
+  final int rightDrivePwm = 1;           // 40AMP x2 pwm group - use Y split to signal both front and back motor controller
 
-  final int wristPwmPort = 3;                // 30AMP
-  final int grabberPwmPort = 4;              // 30AMP
-  final int cargoRollerPwmPort = 5;          // 30AMP depending on motor size can Y split the power to both motors 
+  final int wristPwm = 3;                // 30AMP
+  final int grabberPwm = 4;              // 30AMP
+  final int cargoRollerPwm = 5;          // 30AMP depending on motor size can Y split the power to both motors 
 
   // CAN Device IDs
-  final int leftArmCanId = 2;                 // 40AMP SparkMax-Neo requires CAN otherwise buggy
-  final int rightArmCanId = 3;                // 40AMP SparkMax-Neo requires CAN otherwise buggy
+  final int leftArmCan = 2;                 // 40AMP SparkMax-Neo requires CAN otherwise buggy
+  final int rightArmCan = 3;                // 40AMP SparkMax-Neo requires CAN otherwise buggy
 
   // DIO Ports
-  final int armLimitSwitchDioPort = 0;
+  final int armLimitSwitchDio = 0;
  
-  final int wristLimitSwitchDioPort = 1;
-  final int wristEncoderADioPort = 2;
-  final int wristEncoderBDioPort = 3;
+  final int wristLimitSwitchDio = 1;
+  final int wristEncoderADio = 2;
+  final int wristEncoderBDio = 3;
 
-  final int grabberLimitSwitchDioPort = 4;
-  final int grabberEncoderADioPort = 5;
-  final int grabberEncoderBDioPort = 6;
+  final int grabberLimitSwitchDio = 4;
+  final int grabberEncoderADio = 5;
+  final int grabberEncoderBDio = 6;
 
-  final int hatchLimitSwitchDioPort = 7;      // tie the two limit switches together so that either pressed causes trigger 
+  final int hatchLimitSwitchDio = 7;      // tie the two limit switches together so that either pressed causes trigger 
   
   // USB Ports (driver station)
-  final int speedJoystickUsb = 0;
-  final int turnJoystickUsb = 1;
-  final int heightJoystickUsb = 2;
+  final int xboxControllerUsb = 0;
+  final int speedJoystickUsb = 1;
+  final int turnJoystickUsb = 2;
+  final int heightJoystickUsb = 3;
 
 
   // TODO: Add buttons to control height
@@ -101,6 +102,7 @@ public class RobotMap {
   public MRColorSensor cargoColorSensor;
 
   // usb
+  public XboxController xboxController;
   public Joystick speedJoystick;  
   public Joystick turnJoystick;  
   public Joystick heightJoystick;  
@@ -108,36 +110,37 @@ public class RobotMap {
   // setup subsystems
   public RobotMap() {
     // operator
+    xboxController = new XboxController(xboxControllerUsb);
     speedJoystick = new Joystick(speedJoystickUsb);
     turnJoystick = new Joystick(turnJoystickUsb);
     heightJoystick = new Joystick(heightJoystickUsb);
 
     // drive 
-    leftDriveSpeedController = new Spark(leftDrivePwmPort);
-    rightDriveSpeedController = new Spark(rightDrivePwmPort);
+    leftDriveSpeedController = new Spark(leftDrivePwm);
+    rightDriveSpeedController = new Spark(rightDrivePwm);
     driveGyro = new ADXRS450_Gyro();
 
     // arm
-    leftArmSpeedController = new CANSparkMax(leftArmCanId, MotorType.kBrushless);
-    rightArmSpeedController = new CANSparkMax(rightArmCanId, MotorType.kBrushless);
+    leftArmSpeedController = new CANSparkMax(leftArmCan, MotorType.kBrushless);
+    rightArmSpeedController = new CANSparkMax(rightArmCan, MotorType.kBrushless);
     armEncoder = new CANEncoder(leftArmSpeedController);
-    armLimitSwitch = new DigitalInput(armLimitSwitchDioPort);
+    armLimitSwitch = new DigitalInput(armLimitSwitchDio);
 
     // wrist
-    wristSpeedController = new PWMVictorSPX(wristPwmPort); 
-    wristEncoder = new Encoder(wristEncoderADioPort, wristEncoderBDioPort);
-    wristLimitSwitch = new DigitalInput(wristLimitSwitchDioPort);
+    wristSpeedController = new PWMVictorSPX(wristPwm); 
+    wristEncoder = new Encoder(wristEncoderADio, wristEncoderBDio);
+    wristLimitSwitch = new DigitalInput(wristLimitSwitchDio);
 
     // grabber
-    grabberSpeedController = new PWMVictorSPX(grabberPwmPort);
-    grabberEncoder = new Encoder(grabberEncoderADioPort, grabberEncoderBDioPort);
-    grabberLimitSwitch = new DigitalInput(grabberLimitSwitchDioPort);
+    grabberSpeedController = new PWMVictorSPX(grabberPwm);
+    grabberEncoder = new Encoder(grabberEncoderADio, grabberEncoderBDio);
+    grabberLimitSwitch = new DigitalInput(grabberLimitSwitchDio);
 
     // cargo handler
-    cargoRollerSpeedController = new PWMVictorSPX(cargoRollerPwmPort);
+    cargoRollerSpeedController = new PWMVictorSPX(cargoRollerPwm);
     cargoColorSensor = new MRColorSensor();
 
     // hatch handler
-    hatchLimitSwitch = new DigitalInput(hatchLimitSwitchDioPort);
+    hatchLimitSwitch = new DigitalInput(hatchLimitSwitchDio);
   }
 }

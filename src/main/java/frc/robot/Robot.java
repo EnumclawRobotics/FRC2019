@@ -1,6 +1,8 @@
 package frc.robot;
 
-import edu.wpi.first.wpilibj.TimedRobot;
+import common.oiHelpers.ToggleButton;
+import edu.wpi.first.wpilibj.*;
+import edu.wpi.first.wpilibj.buttons.*;
 import frc.robot.Components.*;
 
 public class Robot extends TimedRobot {
@@ -11,7 +13,7 @@ public class Robot extends TimedRobot {
   public Arm arm;
   public Wrist wrist;
   public Grabber grabber;
-  
+
   @Override
   public void robotInit() {
     // === setup and cleanup ===
@@ -52,6 +54,8 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousInit() {
+    arm.init();
+    wrist.init();
   }
 
   @Override
@@ -84,11 +88,41 @@ public class Robot extends TimedRobot {
   public void run() {
     // update components
     drive.setFacing(operator.driveFacing.toggleOn());
-    drive.move(- operator.speedJoystick.getY(), operator.speedJoystick.getX(), false);
+    drive.move(-operator.speedJoystick.getY(), operator.turnJoystick.getX(), false);
 
-    // arm.setFacing(operator.armFacing.toggleOn());
+    // operator.xboxController.
 
 
+
+    //arm.moveFloorCargo(facingNormal);
+    //wrist.moveAligned();
+    
+    //arm.moveRocketCargo1(facingNormal);
+    //wrist.moveHorizontal();
+    //arm.moveRocketCargo2(facingNormal);
+    //wrist.moveHorizontal();
+    //arm.moveRocketCargo3(facingNormal);
+    //wrist.moveHorizontal();
+
+    //arm.moveRocketHatch1(facingNormal);
+    //wrist.moveHorizontal();
+    //arm.moveRocketHatch2(facingNormal);
+    ///wrist.moveHorizontal();
+    //arm.moveRocketHatch3(facingNormal);
+    //wrist.moveHorizontal();
+
+    //arm.moveStationHatch(facingNormal);
+    //wrist.moveHorizontal();
+    //arm.moveStatioCargo(facingNormal);
+    //wrist.moveHorizontal();
+
+    //arm.moveShipHatch(facingNormal);
+    //wrist.moveHorizontal();
+    //arm.moveShipCargo(facingNormal);
+    //wrist.moveHorizontal();
+
+    //arm.moveStationHatch(facingNormal);
+    //wrist.moveFolded();
 
     // apply component changes
     drive.run();
