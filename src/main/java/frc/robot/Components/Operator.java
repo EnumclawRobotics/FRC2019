@@ -16,20 +16,20 @@ public class Operator {
     public Joystick speedJoystick;
     public Joystick turnJoystick;
     public ToggleButton driveFacing;
-    public ToggleButton armFacing;
     
     public Joystick armJoystick; 
+    public ToggleButton armFacing;
 
     public Operator(RobotMap robotMap) {
 
         xboxController = robotMap.xboxController;
 
-        driveFacing = new ToggleButton(speedJoystick, 2);        // thumb reverses direction
         speedJoystick = robotMap.speedJoystick;
         turnJoystick = robotMap.turnJoystick;
+        driveFacing = new ToggleButton(speedJoystick, 2);        // thumb reverses direction
         
-        armFacing = new ToggleButton(armJoystick, 2);         // thumb reverses direction
         armJoystick = robotMap.heightJoystick;
+        armFacing = new ToggleButton(armJoystick, 2);         // thumb reverses direction
     }
 
     public void putTelemetry() {
@@ -39,4 +39,6 @@ public class Operator {
         telemetry.putBoolean("Arm Facing (toggle)", armFacing.toggleOn());
         telemetry.putString("Version", "1.0.0");
     }
+
+
 }

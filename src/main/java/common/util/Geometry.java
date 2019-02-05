@@ -10,6 +10,17 @@ public class Geometry {
         return Math.min(Math.max(value, min), max);
     }
 
+    // pov hat is angle 0-360 with 0/360 facing forward
+    public static double getYFromAngle(double pov) {
+
+        return Math.cos(Math.toRadians(pov));
+    }
+
+    // pov hat is angle 0-360 with 0/360 facing forward
+    public static double getXFromAngle(double pov) {
+        return Math.sin(Math.toRadians(pov));
+    }
+
     // calculate gravity amount based on 0 being straight down
     public static double gravity(double angle) {
         double gravity = 0;

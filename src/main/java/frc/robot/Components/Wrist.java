@@ -38,7 +38,8 @@ public class Wrist {
         Stopped,                // disable stop
         MovingAligned,          // wrist aligned with arm into single bar for grabbing cargo off floor
         MovingFolded,           // held in tight?
-        MovingHorizontal        // keep wrist aligned to horizontal
+        MovingHorizontal,        // keep wrist aligned to horizontal
+        MovingManual             // manually adjusting
     }
 
     // Constructor holds onto motor controller and sensor references
@@ -79,22 +80,30 @@ public class Wrist {
         return angleFromClicks(encoder.get());
     }
 
+    public void moveManual(double move) {
+        if (state != States.MovingManual) {
+            targetAngle = angleFromClicks(encoder.get());    
+        }
+        targetAngle += (arm.getFacingNormal() ? move : - move);
+        state = States.MovingManual; 
+    }
+
     // keep wrist straight aligned with arm
     public void moveAligned() {
-        state = States.MovingAligned;
         targetAngle = 180;
+        state = States.MovingAligned;
     }
 
     // hold wrist in close 
     public void moveFolded() {
-        state = States.MovingFolded;
         targetAngle = (arm.getFacingNormal() ? 360 - RobotMap.wristHeldAngle : RobotMap.wristHeldAngle) ;
+        state = States.MovingFolded;
     }
 
     // keep the wrist horizontal compared to the arm angle
     public void moveHorizontal() {
-        state = States.MovingHorizontal;
         targetAngle = horizontalAngleFromArm();
+        state = States.MovingHorizontal;
     }
 
     public void run() {

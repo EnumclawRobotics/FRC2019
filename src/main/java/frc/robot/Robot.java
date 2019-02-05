@@ -1,6 +1,7 @@
 package frc.robot;
 
 import common.oiHelpers.ToggleButton;
+import common.util.Geometry;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.buttons.*;
 import frc.robot.Components.*;
@@ -86,44 +87,48 @@ public class Robot extends TimedRobot {
   }
 
   public void run() {
-    // update components
-    drive.setFacing(operator.driveFacing.toggleOn());
-    drive.move(-operator.speedJoystick.getY(), operator.turnJoystick.getX(), false);
+    if (this.isAutonomous() || this.isOperatorControl()) {
 
-    // operator.xboxController.
+      // update components
+      drive.setFacing(operator.driveFacing.toggleOn());
+      drive.move(-operator.speedJoystick.getY(), operator.turnJoystick.getX(), false);
 
+      //arm.moveFloorCargo(facingNormal);
+      //wrist.moveAligned();
+      
+      //arm.moveRocketCargo1(facingNormal);
+      //wrist.moveHorizontal();
+      //arm.moveRocketCargo2(facingNormal);
+      //wrist.moveHorizontal();
+      //arm.moveRocketCargo3(facingNormal);
+      //wrist.moveHorizontal();
 
+      //arm.moveRocketHatch1(facingNormal);
+      //wrist.moveHorizontal();
+      //arm.moveRocketHatch2(facingNormal);
+      ///wrist.moveHorizontal();
+      //arm.moveRocketHatch3(facingNormal);
+      //wrist.moveHorizontal();
 
-    //arm.moveFloorCargo(facingNormal);
-    //wrist.moveAligned();
+      //arm.moveStationHatch(facingNormal);
+      //wrist.moveHorizontal();
+      //arm.moveStatioCargo(facingNormal);
+      //wrist.moveHorizontal();
+
+      //arm.moveShipHatch(facingNormal);
+      //wrist.moveHorizontal();
+      //arm.moveShipCargo(facingNormal);
+      //wrist.moveHorizontal();
+
+      //arm.moveStationHatch(facingNormal);
+      //wrist.moveFolded();
+    }
     
-    //arm.moveRocketCargo1(facingNormal);
-    //wrist.moveHorizontal();
-    //arm.moveRocketCargo2(facingNormal);
-    //wrist.moveHorizontal();
-    //arm.moveRocketCargo3(facingNormal);
-    //wrist.moveHorizontal();
-
-    //arm.moveRocketHatch1(facingNormal);
-    //wrist.moveHorizontal();
-    //arm.moveRocketHatch2(facingNormal);
-    ///wrist.moveHorizontal();
-    //arm.moveRocketHatch3(facingNormal);
-    //wrist.moveHorizontal();
-
-    //arm.moveStationHatch(facingNormal);
-    //wrist.moveHorizontal();
-    //arm.moveStatioCargo(facingNormal);
-    //wrist.moveHorizontal();
-
-    //arm.moveShipHatch(facingNormal);
-    //wrist.moveHorizontal();
-    //arm.moveShipCargo(facingNormal);
-    //wrist.moveHorizontal();
-
-    //arm.moveStationHatch(facingNormal);
-    //wrist.moveFolded();
-
+    if (this.isTest()) {
+      arm.moveManual(-operator.armJoystick.getY(), arm.getFacingNormal());
+      wrist.moveManual(Geometry.getYFromAngle(operator.armJoystick.getPOV(0)));
+    }
+  
     // apply component changes
     drive.run();
     arm.run();

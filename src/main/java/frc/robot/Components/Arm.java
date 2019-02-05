@@ -37,6 +37,7 @@ public class Arm {
 
     public enum States {
         Stopped,
+        MovingManual,
         MovingFloorCargo, 
         MovingStationHatch, MovingStationCargo,
         MovingRocketHatch1, MovingRocketHatch2, MovingRocketHatch3,
@@ -63,14 +64,14 @@ public class Arm {
         baseClicks = encoder.getPosition();
     }
 
-    // === Per Cycle ===
-
     // not triggerable by user 
     public void stop() {
         state = States.Stopped;
         power = 0;
         controller.arcadeDrive(power, 0, false);
     }
+
+    // === PER CYCLE ===
 
     public States getState() {
         return state;
@@ -90,6 +91,18 @@ public class Arm {
         return targetAngle;
     }
     
+    public void moveManual(double move, boolean facingNormal) {
+        state = States.MovingManual;
+        if (targetHeight < FieldMap.heightFloorCargo) {
+            targetHeight = FieldMap.heightFloorCargo;
+        } else if (targetHeight > FieldMap.heightRocketCargo3) {
+            targetHeight = FieldMap.heightRocketCargo3;
+        } else {
+            targetHeight += move;     
+        }
+        this.facingNormal = facingNormal;
+    }
+
     public void moveRocketHatch1(boolean facingNormal) {
         state = States.MovingRocketHatch1;
         targetHeight = FieldMap.heightRocketHatch1;
