@@ -42,15 +42,12 @@ public class RobotMap {
   
   // USB Ports (driver station)
   final int xboxControllerUsb = 0;
-  final int speedJoystickUsb = 1;
-  final int turnJoystickUsb = 2;
-  final int heightJoystickUsb = 3;
-
+  final int armJoystickUsb = 1;
+  final int armButtonsUsb = 2;
 
   // TODO: Add buttons to control height
 
-
-  // === CONSTANTS =====================================
+  // === TUNING CONSTANTS =====================================
 
   // safety
   public final static double safetyExpiration = .25d;
@@ -103,17 +100,15 @@ public class RobotMap {
 
   // usb
   public XboxController xboxController;
-  public Joystick speedJoystick;  
-  public Joystick turnJoystick;  
-  public Joystick heightJoystick;  
+  public Joystick armJoystick;  
+  public Joystick armButtons;  
 
   // setup subsystems
   public RobotMap() {
     // operator
     xboxController = new XboxController(xboxControllerUsb);
-    speedJoystick = new Joystick(speedJoystickUsb);
-    turnJoystick = new Joystick(turnJoystickUsb);
-    heightJoystick = new Joystick(heightJoystickUsb);
+    armJoystick = new Joystick(armJoystickUsb);
+    armButtons = new Joystick(armButtonsUsb);
 
     // drive 
     leftDriveSpeedController = new Spark(leftDrivePwm);

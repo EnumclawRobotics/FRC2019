@@ -113,25 +113,18 @@ public class Wrist {
                 targetAngle = horizontalAngleFromArm();
             }
 
-            // current position
-            targetClicks = clicksFromAngle(targetAngle);
-
             // current angle implies how much force gravity applies
             double armAngle = arm.getAngle();
             double gravityAngle = (getAngle() - 180) + armAngle;       // wrist angle is 180 degrees ahead of arm in orientation
             feedForward = Geometry.gravity(gravityAngle) * RobotMap.wristFeedForwardFactor;
 
-            // we need to adjust the sign to show that the arm has normal and inverted sides  
-            if (armAngle >= 180 && armAngle < 360) {
-                feedForward = -feedForward;
-            }
-
             // moving to an angle
             targetClicks = clicksFromAngle(targetAngle);
 
-            // compare the error degrees to 90 degrees for a percentage error
-            double error = ((targetClicks - (double)encoder.get()) / RobotMap.armEncoderClicksPerDegree) / 90d;
-            power = Geometry.clip(feedForward + (error * RobotMap.wristKpFactor), -1, 1);
+            // apply a (P)id error correction
+            double error = targetClicks - (double)encoder.get();
+            double correctionP = error * RobotMap.wristKpFactor;
+            power = Geometry.clip(feedForward + correctionP, -1, 1);
 
             // apply the correction to move towards the target
             controller.set(power);
@@ -143,10 +136,11 @@ public class Wrist {
     private void putTelemetry() {
         telemetry.putString("State", state.toString());
         telemetry.putDouble("Angle", getAngle());
+        telemetry.putDouble("Clicks", encoder.get());
+        telemetry.putDouble("Power", power);
         telemetry.putDouble("TargetAngle", targetAngle);
         telemetry.putDouble("TargetClicks", targetClicks);
         telemetry.putDouble("FeedForward", feedForward);
-        telemetry.putDouble("Power", power);
         telemetry.putString("Version", "1.0.0");
     }
 

@@ -169,18 +169,14 @@ public class Arm {
             double angle = getAngle();
             feedForward = Geometry.gravity(angle) * RobotMap.armFeedForwardFactor;
 
-            // we need to adjust the sign to show that the arm has normal and inverted sides  
-            if (angle >= 180 && angle < 360) {
-                feedForward = -feedForward;
-            }
-
             // moving to a height
             targetAngle = angleFromHeight(targetHeight, facingNormal);
             targetClicks = clicksFromAngle(targetAngle);
 
-            // compare the error degrees to 90 degrees for a percentage
-            double error = ((targetClicks - encoder.getPosition()) / RobotMap.armEncoderClicksPerDegree) / 90;
-            power = Geometry.clip(feedForward + (error * RobotMap.armKpFactor), -1, 1);
+            // apply an (P)id error correction
+            double errorClicks = targetClicks - encoder.getPosition();
+            double correctionP = errorClicks * RobotMap.armKpFactor;
+            power = Geometry.clip(feedForward + correctionP, -1, 1);
 
             // always ensure that we never use rotation. i.e. both arm motors should move as one not try to fight each other
             controller.arcadeDrive(power, 0, false);
@@ -190,13 +186,13 @@ public class Arm {
 
     private void putTelemetry() {
         telemetry.putString("State", state.toString());
-        telemetry.putDouble("TargetHeight", targetHeight);
         telemetry.putDouble("Angle", getAngle());
+        telemetry.putDouble("Power", power);
         telemetry.putDouble("Clicks", encoder.getPosition());
+        telemetry.putDouble("TargetHeight", targetHeight);
         telemetry.putDouble("TargetAngle", targetAngle);
         telemetry.putDouble("TargetClicks", targetClicks);
         telemetry.putDouble("FeedForward", feedForward);
-        telemetry.putDouble("Power", power);
         telemetry.putString("Version", "1.0.0");
     }
 
