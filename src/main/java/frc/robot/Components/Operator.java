@@ -2,7 +2,6 @@
 package frc.robot.Components;
 
 import common.instrumentation.Telemetry;
-//import common.oiHelpers.JoystickButton;
 import common.oiHelpers.ToggleButton;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
@@ -13,7 +12,7 @@ public class Operator {
     // -- setup and cleanup ===
     Telemetry telemetry = new Telemetry("Robot/Operator");
     
-    public XboxController xboxController;
+    public XboxController driveXboxController;
     public ToggleButton driveFacing;
     
     public Joystick armJoystick; 
@@ -53,7 +52,7 @@ public class Operator {
 
     public Operator(RobotMap robotMap) {
 
-        xboxController = robotMap.xboxController;
+        driveXboxController = robotMap.driveXboxController;
 
 //        driveFacing = new ToggleButton(xboxController., 2);        // thumb reverses direction
         
@@ -79,8 +78,8 @@ public class Operator {
 
     public void putTelemetry() {
         telemetry.putBoolean("Drive Facing (toggle)", driveFacing.toggleOn());
-        telemetry.putDouble("Speed (forward|back)", xboxController.getY());
-        telemetry.putDouble("Turn (left|right)", xboxController.getX());
+        telemetry.putDouble("Speed (forward|back)", driveXboxController.getY());
+        telemetry.putDouble("Turn (left|right)", driveXboxController.getX());
         telemetry.putBoolean("Cargo Floor", floorCargoButton.get());
         telemetry.putBoolean("Cargo Rocket1", rocketCargo1Button.get());
         telemetry.putBoolean("Cargo Rocket2", rocketCargo2Button.get());

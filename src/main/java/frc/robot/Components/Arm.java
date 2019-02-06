@@ -91,6 +91,10 @@ public class Arm {
         return targetAngle;
     }
     
+    public void setFacingNormal(boolean facingNormal) {
+        this.facingNormal = facingNormal;
+    }
+
     public void moveManual(double move, boolean facingNormal) {
         state = States.MovingManual;
         if (targetHeight < FieldMap.heightFloorCargo) {

@@ -1,9 +1,8 @@
 package frc.robot;
 
-import common.oiHelpers.ToggleButton;
 import common.util.Geometry;
 import edu.wpi.first.wpilibj.*;
-import edu.wpi.first.wpilibj.buttons.*;
+import edu.wpi.first.wpilibj.GenericHID.Hand;
 import frc.robot.Components.*;
 
 public class Robot extends TimedRobot {
@@ -88,72 +87,95 @@ public class Robot extends TimedRobot {
 
     public void run() {
         if (this.isAutonomous() || this.isOperatorControl()) {
+            // arm facing
+            if (operator.normalFacingButton.get()) {
+                arm.setFacingNormal(true);
+            }
+            if (operator.invertedFacingButton.get()) {
+                arm.setFacingNormal(false);
+            }
 
-        // update components
-        drive.setFacing(operator.driveFacing.toggleOn());
-        drive.move(-operator.xboxController.getY(), operator.xboxController.getX(), false);
+            // arm height
+            if (operator.floorCargoButton.get()) {
+                arm.moveFloorCargo(arm.getFacingNormal());
+                wrist.moveAligned();
+            }
+            if (operator.rocketCargo1Button.get()) {
+                arm.moveRocketCargo1(arm.getFacingNormal());
+                wrist.moveAligned();
+            }
+            if (operator.rocketCargo2Button.get()) {
+                arm.moveRocketCargo2(arm.getFacingNormal());
+                wrist.moveAligned();
+            }
+            if (operator.rocketCargo3Button.get()) {
+                arm.moveRocketCargo3(arm.getFacingNormal());
+                wrist.moveAligned();
+            }
+            if (operator.shipCargoButton.get()) {
+                arm.moveShipCargo(arm.getFacingNormal());
+                wrist.moveAligned();
+            }
+            if (operator.stationCargoButton.get()) {
+                arm.moveStationCargo(arm.getFacingNormal());
+                wrist.moveAligned();
+            }
 
+            if (operator.rocketHatch1Button.get()) {
+                arm.moveRocketHatch1(arm.getFacingNormal());
+                wrist.moveAligned();
+            }
+            if (operator.rocketHatch2Button.get()) {
+                arm.moveRocketHatch2(arm.getFacingNormal());
+                wrist.moveAligned();
+            }
+            if (operator.rocketHatch3Button.get()) {
+                arm.moveRocketHatch3(arm.getFacingNormal());
+                wrist.moveAligned();
+            }
+            if (operator.shipHatchButton.get()) {
+                arm.moveShipHatch(arm.getFacingNormal());
+                wrist.moveAligned();
+            }
+            if (operator.stationHatchButton.get()) {
+                arm.moveStationHatch(arm.getFacingNormal());
+                wrist.moveAligned();
+            }
 
+            // drive facing
+            drive.setFacing(operator.driveFacing.toggleOn());
 
-        if (operator.floorCargoButton.get()) {
-            arm.moveFloorCargo(arm.getFacingNormal());
-            wrist.moveAligned();
-        }
-        if (operator.rocketCargo1Button.get()) {
-            arm.moveRocketCargo1(arm.getFacingNormal());
-            wrist.moveAligned();
-        }
-        if (operator.rocketCargo2Button.get()) {
-            arm.moveRocketCargo2(arm.getFacingNormal());
-            wrist.moveAligned();
-        }
-        if (operator.rocketCargo3Button.get()) {
-            arm.moveRocketCargo3(arm.getFacingNormal());
-            wrist.moveAligned();
-        }
-        if (operator.shipCargoButton.get()) {
-            arm.moveShipCargo(arm.getFacingNormal());
-            wrist.moveAligned();
-        }
-        if (operator.stationCargoButton.get()) {
-            arm.moveStationCargo(arm.getFacingNormal());
-            wrist.moveAligned();
+            // driver set up default move - may be overwritten by other elements
+            drive.move(-operator.driveXboxController.getY(), operator.driveXboxController.getX(), false);
+
+            // assist in straight driving? add turbo function?
+            if (operator.driveXboxController.getBumper(Hand.kLeft)) {
+                drive.assistStraight();
+            }
+
+            // assist in turning to target?
+            if (operator.driveXboxController.getBumper(Hand.kRight)) {
+                // if (pixy2.hasVector()) {
+                //     drive.assistLineup(pixy2.mainVector());
+                // }
+            }
         }
 
-        if (operator.rocketHatch1Button.get()) {
-            arm.moveRocketHatch1(arm.getFacingNormal());
-            wrist.moveAligned();
-        }
-        if (operator.rocketHatch2Button.get()) {
-            arm.moveRocketHatch2(arm.getFacingNormal());
-            wrist.moveAligned();
-        }
-        if (operator.rocketHatch3Button.get()) {
-            arm.moveRocketHatch3(arm.getFacingNormal());
-            wrist.moveAligned();
-        }
-        if (operator.shipHatchButton.get()) {
-            arm.moveShipHatch(arm.getFacingNormal());
-            wrist.moveAligned();
-        }
-        if (operator.stationHatchButton.get()) {
-            arm.moveStationHatch(arm.getFacingNormal());
-            wrist.moveAligned();
-        }
-    }
+        if (this.isTest() || this.isAutonomous() || this.isOperatorControl()) {
+            // joystick moves arm manually overwriting previous height selection - only to correct for placing
+            arm.moveManual(-operator.armJoystick.getY(), arm.getFacingNormal());
 
-    if (this.isTest()) {
-        arm.moveManual(-operator.armJoystick.getY(), arm.getFacingNormal());
-        wrist.moveManual(Geometry.getYFromAngle(operator.armJoystick.getPOV(0)));
-    }
+            // POV moves wrist manually overwriting previous position selection - only to correct for placing
+            wrist.moveManual(Geometry.getXFromAngle(operator.armJoystick.getPOV()));
+        }
 
-    // apply component changes
-    drive.run();
-    arm.run();
-    wrist.run();
-    grabber.run();
+        // apply component changes
+        drive.run();
+        arm.run();
+        wrist.run();
+        grabber.run();
 
-    putTelemetry();
+        putTelemetry();
     }
 
     private void putTelemetry() {
