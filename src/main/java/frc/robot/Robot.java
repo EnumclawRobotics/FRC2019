@@ -4,15 +4,18 @@ import common.util.Geometry;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import frc.robot.Components.*;
+import io.github.pseudoresonance.pixy2api.*;
 
 public class Robot extends TimedRobot {
-    public RobotMap robotMap;
+    private RobotMap robotMap;
 
-    public Operator operator;
-    public Drive drive;
-    public Arm arm;
-    public Wrist wrist;
-    public Grabber grabber;
+    private Operator operator;
+    private Drive drive;
+    private Arm arm;
+    private Wrist wrist;
+    private Grabber grabber;
+    private Pixy2 pixy2Normal;
+    private Pixy2 pixy2Inverted;
 
     @Override
     public void robotInit() {
@@ -27,6 +30,10 @@ public class Robot extends TimedRobot {
         arm = new Arm(robotMap);
         wrist = new Wrist(robotMap, arm);
         grabber = new Grabber(robotMap);
+
+        // vision
+        pixy2Normal = robotMap.pixy2Normal;
+        pixy2Inverted = robotMap.pixy2Inverted;
     }
 
     // === Modes ===

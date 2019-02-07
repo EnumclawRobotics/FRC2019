@@ -37,5 +37,10 @@ public class Geometry {
     public static double clip(double value, double min, double max) {
         return Math.min(Math.max(value, min), max);
     }
+
+    // get a slope from two points
+    public static double slope(double x1, double y1, double x2, double y2) {
+        return (y2-y1)/(x2-x1);
+    }
 }
 
