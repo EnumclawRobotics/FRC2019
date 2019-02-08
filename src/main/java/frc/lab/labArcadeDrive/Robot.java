@@ -7,12 +7,13 @@
 package frc.lab.labArcadeDrive;
 
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import edu.wpi.first.wpilibj.Spark;
+import edu.wpi.first.wpilibj.Spark;
 
 import common.instrumentation.*;
 
@@ -23,16 +24,12 @@ public class Robot extends TimedRobot {
   Telemetry telemetry = new Telemetry("Robot/LabArcadeDrive");  
 
   private DifferentialDrive differentialDrive;
-  private Joystick joystick;
+  private XboxController xboxController;
 
   @Override
   public void robotInit() {
-    joystick = new Joystick(0);                                                             // USB
-    differentialDrive = new DifferentialDrive(new SpeedControllerGroup(new CANSparkMax(1, MotorType.kBrushless), 
-                                                                        new CANSparkMax(2, MotorType.kBrushless)), 
-                                              new SpeedControllerGroup(new CANSparkMax(3, MotorType.kBrushless), 
-                                                                        new CANSparkMax(4, MotorType.kBrushless)));
-      
+    xboxController = new XboxController(0);                                                             // USB
+    differentialDrive = new DifferentialDrive(new Spark(0), new Spark(1));   
   }
 
   /*
@@ -46,13 +43,13 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
-    differentialDrive.arcadeDrive(-joystick.getY(), joystick.getX());
+    differentialDrive.arcadeDrive(-xboxController.getY(Hand.kLeft), xboxController.getX(Hand.kRight));
     putTelemetry();
   }
 
   private void putTelemetry() {
-    telemetry.putDouble("Joystick.getY (Forward/Back)", joystick.getY());
-    telemetry.putDouble("Joystick.getX (rotation)", joystick.getY());
+    telemetry.putDouble("Joystick.getY (Forward/Back)", xboxController.getY(Hand.kLeft));
+    telemetry.putDouble("Joystick.getX (rotation)", xboxController.getY(Hand.kRight));
     telemetry.putString("Version", "1.0.0");
   }
 }

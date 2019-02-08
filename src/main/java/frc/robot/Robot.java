@@ -14,7 +14,7 @@ public class Robot extends TimedRobot {
     private Arm arm;
     private Wrist wrist;
     private Grabber grabber;
-    private Pixy2 pixy2Normal;
+    private Pixy2 pixy2Normal;                  // TODO: Implement the Pixy2 Assist
     private Pixy2 pixy2Inverted;
 
     @Override

@@ -8,9 +8,8 @@
 package frc.lab.labMRColorSensor;
 
 import edu.wpi.first.wpilibj.TimedRobot;
-
+import frc.robot.FieldMap;
 import common.instrumentation.*;
-import common.util.Similarity;
 import common.i2cSensors.*;
 
 /**
@@ -18,7 +17,7 @@ import common.i2cSensors.*;
 * Turn encoder by hand to see SmartDashboard value change 
 */
 public class Robot extends TimedRobot {
-  Telemetry telemetry = new Telemetry("Robot/LabColorSensor");  
+  Telemetry telemetry = new Telemetry("Robot/LabMRColorSensor");  
 
   MRColorSensor colorSensor;
   int[] cargoColor;
@@ -27,8 +26,6 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     colorSensor = new MRColorSensor();        // Roborio i2c port
-    cargoColor = colorSensor.createColor( 256, 256, 256, 256);    // fill real cargo values in RGBW order
-    isMatchThreshold = .1d;
   }
 
   /*
@@ -47,11 +44,7 @@ public class Robot extends TimedRobot {
 
   private void putTelemetry() {
     telemetry.putDouble("Color Number", colorSensor.getColorNumber());
-    telemetry.putDouble("Normalized Red", colorSensor.getRed());
-    telemetry.putDouble("Normalized Green", colorSensor.getGreen());
-    telemetry.putDouble("Normalized Blue", colorSensor.getBlue());
-    telemetry.putDouble("Normalized White", colorSensor.getWhite());
-    telemetry.putBoolean("IsMatch to CargoColor", Similarity.isMatch(colorSensor.getColor(), cargoColor, isMatchThreshold));
+    telemetry.putBoolean("IsMatch to CargoColor", Math.abs(colorSensor.getColorNumber() - FieldMap.cargoColorNumber) < FieldMap.cargoColorNumberVariance);
     telemetry.putDouble("IsMatch Threshold", isMatchThreshold);
     telemetry.putString("Version", "1.0.0");
   } 

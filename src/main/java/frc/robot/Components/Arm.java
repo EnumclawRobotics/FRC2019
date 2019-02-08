@@ -1,10 +1,8 @@
 package frc.robot.Components;
 
-import com.revrobotics.*;
 import common.instrumentation.Telemetry;
 import common.util.Geometry;
 import edu.wpi.first.wpilibj.*;
-import edu.wpi.first.wpilibj.drive.*;
 import frc.robot.*;
 
 /**
@@ -16,9 +14,10 @@ public class Arm {
     private Telemetry telemetry = new Telemetry("Robot/Arm");
 
     // parts of this subsystem
-    private DifferentialDrive controller;               // NOTE: we will never run this differentially. Using it for default safety enabled             
-    private CANEncoder encoder; 
-    private DigitalInput limitSwitch;                   // TODO: Implement handling 
+    private SpeedController leftSpeedController;
+    private GenericEncoder leftEncoder; 
+    private SpeedController rightSpeedController; 
+    private DigitalInput limitSwitch; 
     
     // set through command
     private double targetHeight = 0;
@@ -47,28 +46,36 @@ public class Arm {
 
     // Constructor that saves controller and sensor references
     public Arm(RobotMap robotMap) {
-        controller = new DifferentialDrive(robotMap.leftArmSpeedController, 
-                                            robotMap.rightArmSpeedController);
-        controller.setExpiration(RobotMap.safetyExpiration);
-        controller.setSafetyEnabled(true);
-        controller.setRightSideInverted(true);                 // ensure that both motors work in the same direction
-        controller.setDeadband(0);                             // even supply little amounts of power
+        leftSpeedController = robotMap.leftArmSpeedController; 
+        rightSpeedController = robotMap.rightArmSpeedController; 
 
-        encoder = robotMap.armEncoder;
+        ((MotorSafety)leftSpeedController).setSafetyEnabled(true);
+        ((MotorSafety)leftSpeedController).setExpiration(RobotMap.safetyExpiration);
+        robotMap.rightArmSpeedController.setInverted(true);
+        ((MotorSafety)rightSpeedController).setSafetyEnabled(true);
+        ((MotorSafety)rightSpeedController).setExpiration(RobotMap.safetyExpiration);
+
+        leftEncoder = robotMap.armEncoder;
         limitSwitch = robotMap.armLimitSwitch;
 
         stop();
     }
 
     public void init() {
-        baseClicks = encoder.getPosition();
+        baseClicks = leftEncoder.get();
     }
 
     // not triggerable by user 
     public void stop() {
         state = States.Stopped;
         power = 0;
-        controller.arcadeDrive(power, 0, false);
+        set(power);
+    }
+
+    // right motor is inverted sice it faces 180 degrees from left motor
+    private void set(double power) {
+        leftSpeedController.set(power);
+        rightSpeedController.set(power);
     }
 
     // === PER CYCLE ===
@@ -83,7 +90,7 @@ public class Arm {
 
     // degrees 0 - 360
     public double getAngle() {
-        return angleFromClicks(encoder.getPosition());
+        return angleFromClicks(leftEncoder.get());
     }    
 
     // degrees
@@ -178,12 +185,19 @@ public class Arm {
             targetClicks = clicksFromAngle(targetAngle);
 
             // apply an (P)id error correction
-            double errorClicks = targetClicks - encoder.getPosition();
+            double errorClicks = targetClicks - leftEncoder.get();
             double correctionP = errorClicks * RobotMap.armKpFactor;
             power = Geometry.clip(feedForward + correctionP, -1, 1);
 
-            // always ensure that we never use rotation. i.e. both arm motors should move as one not try to fight each other
-            controller.arcadeDrive(power, 0, false);
+            // is limit switch saying we are going too far?
+            if (limitSwitch.get() 
+                && ((angle > 180 && power > 0)                  // opposite side too far 
+                    || (angle < 180 && power < 0))) {           // normal side too far
+                power = 0;
+            }
+
+            // set the power on the motors
+            set(power);
             putTelemetry();
         }
     }
@@ -192,7 +206,7 @@ public class Arm {
         telemetry.putString("State", state.toString());
         telemetry.putDouble("Angle", getAngle());
         telemetry.putDouble("Power", power);
-        telemetry.putDouble("Clicks", encoder.getPosition());
+        telemetry.putDouble("Clicks", leftEncoder.get());
         telemetry.putDouble("TargetHeight", targetHeight);
         telemetry.putDouble("TargetAngle", targetAngle);
         telemetry.putDouble("TargetClicks", targetClicks);

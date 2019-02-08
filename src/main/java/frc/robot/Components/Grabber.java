@@ -18,7 +18,7 @@ public class Grabber {
     Telemetry telemetry = new Telemetry("Robot/Grabber");
 
     SpeedController grabber;
-    Encoder grabberEncoder;
+    GenericEncoder grabberEncoder;
     DigitalInput hatchLimitSwitch;
 
     SpeedController rollers;

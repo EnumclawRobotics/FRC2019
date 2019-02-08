@@ -2,6 +2,7 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.*;
+import frc.robot.Components.*;
 import common.i2cSensors.*;
 import com.revrobotics.*;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
@@ -81,24 +82,24 @@ public class RobotMap {
   // === REFERENCES ======================
 
   // SpeedControllers
-  public Spark leftDriveSpeedController;
-  public Spark rightDriveSpeedController;
-  public CANSparkMax leftArmSpeedController; 
-  public CANSparkMax rightArmSpeedController; 
-  public PWMVictorSPX wristSpeedController;
-  public PWMVictorSPX grabberSpeedController;
-  public PWMVictorSPX cargoRollerSpeedController;                    // TODO: Set brake mode on roller controller
+  public SpeedController leftDriveSpeedController;
+  public SpeedController rightDriveSpeedController;
+  public SpeedController leftArmSpeedController; 
+  public SpeedController rightArmSpeedController; 
+  public SpeedController wristSpeedController;
+  public SpeedController grabberSpeedController;
+  public SpeedController cargoRollerSpeedController;                    // TODO: Set brake mode on roller controller
 
   // sensors
   public ADXRS450_Gyro driveGyro;
   
-  public CANEncoder armEncoder;
+  public GenericEncoder armEncoder;
   public DigitalInput armLimitSwitch;
 
-  public Encoder wristEncoder;
+  public GenericEncoder wristEncoder;
   public DigitalInput wristLimitSwitch;
 
-  public Encoder grabberEncoder;
+  public GenericEncoder grabberEncoder;
   public DigitalInput grabberLimitSwitch;
   
   public DigitalInput hatchLimitSwitch;                 // TODO: Use two limit switches on physical bot just linked together
@@ -128,17 +129,17 @@ public class RobotMap {
     // arm
     leftArmSpeedController = new CANSparkMax(leftArmCan, MotorType.kBrushless);
     rightArmSpeedController = new CANSparkMax(rightArmCan, MotorType.kBrushless);
-    armEncoder = new CANEncoder(leftArmSpeedController);
+    armEncoder = new GenericEncoder(new CANEncoder((CANSparkMax)leftArmSpeedController));
     armLimitSwitch = new DigitalInput(armLimitSwitchDio);
 
     // wrist
     wristSpeedController = new PWMVictorSPX(wristPwm); 
-    wristEncoder = new Encoder(wristEncoderADio, wristEncoderBDio);
+    wristEncoder = new GenericEncoder(new Encoder(wristEncoderADio, wristEncoderBDio));
     wristLimitSwitch = new DigitalInput(wristLimitSwitchDio);
 
     // grabber
     grabberSpeedController = new PWMVictorSPX(grabberPwm);
-    grabberEncoder = new Encoder(grabberEncoderADio, grabberEncoderBDio);
+    grabberEncoder = new GenericEncoder(new Encoder(grabberEncoderADio, grabberEncoderBDio));
     grabberLimitSwitch = new DigitalInput(grabberLimitSwitchDio);
 
     // cargo handler

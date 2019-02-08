@@ -17,10 +17,10 @@ public class Wrist {
     private Arm arm;
 
     // equipment
-    private PWMSpeedController controller;          // controller for moving the joint
-    private Encoder encoder;                        // counts clicks of rotation for the joint 
+    private SpeedController controller;                // controller for moving the joint
+    private GenericEncoder encoder;                 // counts clicks of rotation for the joint 
     private DigitalInput limitSwitch;               // determines when we're going to turn too far
-                                                    // TODO: Implement limit switch handling
+                                                    
     // start condition
     double baseClicks = 0;                          // where did encoder start at init?  0 is straight up
 
@@ -45,8 +45,8 @@ public class Wrist {
     // Constructor holds onto motor controller and sensor references
     public Wrist(RobotMap robotMap, Arm arm) {
         controller = robotMap.wristSpeedController;
-        controller.setExpiration(RobotMap.safetyExpiration);
-        controller.setSafetyEnabled(true);
+        ((MotorSafety)controller).setExpiration(RobotMap.safetyExpiration);
+        ((MotorSafety)controller).setSafetyEnabled(true);
 
         encoder = robotMap.wristEncoder;
     }
@@ -114,8 +114,9 @@ public class Wrist {
             }
 
             // current angle implies how much force gravity applies
+            double angle = getAngle();
             double armAngle = arm.getAngle();
-            double gravityAngle = (getAngle() - 180) + armAngle;       // wrist angle is 180 degrees ahead of arm in orientation
+            double gravityAngle = (angle - 180) + armAngle;       // wrist angle is 180 degrees ahead of arm in orientation
             feedForward = Geometry.gravity(gravityAngle) * RobotMap.wristFeedForwardFactor;
 
             // moving to an angle
@@ -125,6 +126,13 @@ public class Wrist {
             double error = targetClicks - (double)encoder.get();
             double correctionP = error * RobotMap.wristKpFactor;
             power = Geometry.clip(feedForward + correctionP, -1, 1);
+
+            // is limit switch saying we are going too far?
+            if (limitSwitch.get() 
+                && ((angle > 180 && power > 0)                  // opposite side too far 
+                    || (angle < 180 && power < 0))) {           // normal side too far
+                power = 0;
+            }
 
             // apply the correction to move towards the target
             controller.set(power);

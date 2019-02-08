@@ -1,5 +1,6 @@
-package common.util;
+package frc.robot.Components;
 
+import common.util.*;
 import java.awt.Point;
 
 public class Mapper {
