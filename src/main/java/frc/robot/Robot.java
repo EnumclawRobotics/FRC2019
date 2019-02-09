@@ -14,6 +14,8 @@ public class Robot extends TimedRobot {
     private Arm arm;
     private Wrist wrist;
     private Grabber grabber;
+
+    private Mapper mapper;
     private Pixy2 pixy2Normal;                  // TODO: Implement the Pixy2 Assist
     private Pixy2 pixy2Inverted;
 
@@ -32,6 +34,7 @@ public class Robot extends TimedRobot {
         grabber = new Grabber(robotMap);
 
         // vision
+        mapper = new Mapper(robotMap);
         pixy2Normal = robotMap.pixy2Normal;
         pixy2Inverted = robotMap.pixy2Inverted;
     }
@@ -162,6 +165,10 @@ public class Robot extends TimedRobot {
 
             // assist in turning to target?
             if (operator.driveXboxController.getBumper(Hand.kRight)) {
+                
+
+                
+
                 // if (pixy2.hasVector()) {
                 //     drive.assistLineup(pixy2.mainVector());
                 // }

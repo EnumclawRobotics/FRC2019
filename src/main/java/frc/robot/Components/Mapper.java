@@ -1,18 +1,26 @@
 package frc.robot.Components;
 
 import common.util.*;
-import java.awt.Point;
+import frc.robot.RobotMap;
+
+import java.awt.geom.Point2D;
 
 public class Mapper {
-    double cameraHeight;            // [Height from floor];
-    double cameraPitch;             //[Angle of depression];
-    double cameraFieldOfView;       // [If 1:1 aspect ratio, use this]; 
-    //Pixy2 color object resolution: 316-208, field of view is 60-40, both of which ~3:2 ratio
+    private double cameraElevation;         // Camera height from floor;
+    private double cameraAngle;             // Angle between vertical and camera facing in degrees;
+    private double aspectX;                 // X pixel to X FOV conversion
+    private double aspectY;                 // X pixel to Y FOV conversion
+    private double centerX;                 // center coordinate
+    private double centerY;                 // center coordinate
 
-    public Mapper(double cameraHeight, double cameraPitch, double cameraFieldOfView) {
-        this.cameraHeight = cameraHeight;
-        this.cameraPitch = cameraPitch;
-        this.cameraFieldOfView = cameraFieldOfView;
+    //Pixy2 color object resolution: 316-208, field of view is 60-40, both of which ~3:2 ratio
+    public Mapper(RobotMap robotMap) {
+        this.cameraElevation = robotMap.cameraElevation;
+        this.cameraAngle = robotMap.cameraAngle;
+        this.aspectX = robotMap.cameraFovX / robotMap.cameraMaxX;
+        this.aspectY = robotMap.cameraFovY / robotMap.cameraMaxY;
+        this.centerX = robotMap.cameraMaxX * .5d;
+        this.centerY = robotMap.cameraMaxY * .5d;
     }
 
     /**
@@ -20,30 +28,44 @@ public class Mapper {
      * viewPortLocation [0-1 Percent of object detection point];
      * NOTE: PIXY docs suggest white line endpoints will be in a 0-75 by 0-59 grid. 
      */
-    public Point PixyToFieldCoords(Point viewPortLocation) {
-        double verticalAngleOffset = cameraFieldOfView * (viewPortLocation.y - 0.5d);
-        double horizontalAngleOffset = cameraFieldOfView * (viewPortLocation.x - 0.5d);
+    public Point2D.Double CameraPointToFieldPoint(Point2D.Double viewPortPoint) {
+        double x = viewPortPoint.x;
+        double y = viewPortPoint.y;
+        double xAngle;
+        double yAngle;
+        double forward;
+        double sideways;
 
-        double forwardTranslation = cameraHeight * Math.tan(Math.toRadians(verticalAngleOffset + cameraPitch - 90));
+        // translate the point so that center of screen (vanishing point) is at 0,0 coords   
+        x = (x - centerX);
+        y = (y - centerY);
 
-        double sidewaysTranslation = -Math.sin(Math.toRadians(cameraPitch)) * (cameraHeight * Math.tan(Math.toRadians(horizontalAngleOffset)));
+        // get angles represented in the view coordinates
+        xAngle = x * aspectX;
+        yAngle = y * aspectY;
 
-        sidewaysTranslation += Math.cos(Math.toRadians(cameraPitch)) * ((Math.PI/2) * (viewPortLocation.getX() - 0.5d) * forwardTranslation * Math.tan(Math.toRadians(cameraFieldOfView / 2)));
-
-        return new Point((int)sidewaysTranslation, (int)forwardTranslation);
+        // get distance in front of bot - note yangle is offset to camera angle 
+        forward = cameraElevation / Math.tan(Math.toRadians(cameraAngle + yAngle));
+        
+        // get distance sideways - note xangle is signed for left and right   
+        sideways = forward / Math.tan(Math.toRadians(xAngle));
+       
+        // not a perfect translation but good enough approximation for us 
+        return new Point2D.Double(sideways, forward);
     }
 
-    // given start and end coords of white line and current speed 
+    // given start and end coords of a white line and current speed 
     // generate a rotation value to help the bot line up on the white line
-    public static double getRotation(double x2, double y2, double x3, double y3, double speed) {
+    public static double getRotation(Point2D.Double point2, Point2D.Double point3, double speed) {
         // algorithm:
         // assume bot is facing along zero axis and the white line coordinates use the same reference
-        // get the slope of white line
-        // calculate the function that will describe a curve to end up aligned with the white line
-        // pick a waypoint xw spot ahead based on speed and use the xw as an input into the function and get the yw out
-        // figure out the rotation angle described by the arctan of yw/xw
+        // get the slope of white line starting at pint2 and going to point3
+        // calculate the function that will describe a curve to end up aligned with the white line slope when at point2
+        // pick a waypoint xw spot just ahead based on speed and use the xw as an input into the function above and get the yw out
+        // figure out the rotation angle needed described by the arctan of yw/xw
         // divide the angle by 90 to get into the range = [-1,1]
-        // return this rotation 
+        // return this rotation to try and follow the path
+        // repeat each clock cycle with updated data
 
         /**
         *
@@ -70,17 +92,17 @@ public class Mapper {
 
         */
 
-        double m2 = Geometry.slope(x2, y2, x3, y3);
+        double m2 = Geometry.slope(point2.x, point2.y, point3.x, point3.y);
 
-        double a = (m2 * x2 - 2 *y2)/Math.pow(x2,3);
-        double b = (3*y2 - m2*x2)/Math.pow(x2,2);
+        double a = (m2 * point2.x - 2 * point2.y)/Math.pow(point2.x, 3);
+        double b = (3 * point2.y - m2 * point2.x)/Math.pow(point2.x, 2);
 
         // planning forward waypoint at 60 cycles/sec. full speed is 50"/sec  
-        double xw = 50/60 * speed;
-        double yw = a*Math.pow(xw,3) + b*Math.pow(xw,2);
+        double xw = 50d/60d * speed;
+        double yw = a * Math.pow(xw, 3) + b * Math.pow(xw, 2);
 
-        // rotation needed where range -90:90 mapped to -1:1 
-        double rotation = Math.toDegrees(Math.atan(yw/xw)) / 90d;
+        // rotation needed where range -90:90 mapped to -1:1
+        double rotation = Math.toDegrees(Math.atan(yw / xw)) / 90d;
 
         return rotation;
     }
