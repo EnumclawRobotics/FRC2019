@@ -4,6 +4,7 @@ import common.instrumentation.Telemetry;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.drive.*;
 import frc.robot.*;
+import common.pixy2Api.*;
 
 /**
  * Drive base that requires constant motive direction from either joystick or sensor assist
@@ -99,28 +100,15 @@ public class Drive {
         this.rotation = (headingError * .1d);                         // proportional correction based on drift. change value
     }
 
-    // Expects x,y distances in terms of current bot facing and center of the bot.
-    // Figures out rotation needed based on current speed in order to line up best 
-    public void assistLineup(double x1, double y1, double x2, double y2) {
+    // Figures out rotation needed based on current speed in order to line up with primary white line found 
+    public void assistRotation(Vector vector) {
         if (state != States.AssistingTurn) {
             state = States.AssistingTurn;
         }
 
-        // TODO: Get our white line navigation working
-
-        // which point is the waypoint and which is endpoint? assume waypoint closest by distance.
-        // make waypoint 6" further away from endpoint.
-
-        // if center of bot is within 6" of waypoint then target turning to endpoint
-            // how to use points to plot a curve to end up at endpoint and perfectly facing endpoint?
-        // else target turning toward waypoint
-            // how to use points to plot a curve to end up at waypoint and facing endpoint?
-        
-        // how to adjust for current speed? Needed? Pathmarker software? Quick approximation?
-
-        this.rotation = headingError * .1d;  
+        // can camera find a primary while line? then supply some rotation help
+        if (vector != null) {
+            rotation = Mapper.getRotation(vector, speed);
+        }
     }
-
-    // === Internally Trigerrable States ===
-
 }
