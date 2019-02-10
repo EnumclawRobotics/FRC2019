@@ -1,6 +1,7 @@
 package frc.robot.Components;
 
 import common.util.*;
+import common.pixy2Api.*;
 import frc.robot.RobotMap;
 
 import java.awt.geom.Point2D;
@@ -23,14 +24,19 @@ public class Mapper {
         this.centerY = robotMap.cameraMaxY * .5d;
     }
 
+    public Vector CameraVectorToFieldVector(Vector vector) {
+        Point2D.Double start = CameraPointToFieldPoint(vector.getX0(), vector.getY0());
+        Point2D.Double arrow = CameraPointToFieldPoint(vector.getX1(), vector.getY1());
+
+        return new Vector(start.x, start.y, arrow.x, arrow.y, vector.getIndex(), vector.getFlags());
+    }
+
     /**
      * converts object coordinates seen by the Pixy2 into floor coordinates relative to the camera
      * viewPortLocation [0-1 Percent of object detection point];
      * NOTE: PIXY docs suggest white line endpoints will be in a 0-75 by 0-59 grid. 
      */
-    public Point2D.Double CameraPointToFieldPoint(Point2D.Double viewPortPoint) {
-        double x = viewPortPoint.x;
-        double y = viewPortPoint.y;
+    public Point2D.Double CameraPointToFieldPoint(double x, double y) {
         double xAngle;
         double yAngle;
         double forward;
@@ -56,7 +62,7 @@ public class Mapper {
 
     // given start and end coords of a white line and current speed 
     // generate a rotation value to help the bot line up on the white line
-    public static double getRotation(Point2D.Double point2, Point2D.Double point3, double speed) {
+    public static double getRotation(Vector vector, double speed) {
         // algorithm:
         // assume bot is facing along zero axis and the white line coordinates use the same reference
         // get the slope of white line starting at pint2 and going to point3
@@ -92,10 +98,10 @@ public class Mapper {
 
         */
 
-        double m2 = Geometry.slope(point2.x, point2.y, point3.x, point3.y);
+        double m2 = Geometry.slope(vector.getX0(), vector.getY0(), vector.getX1(), vector.getY1());
 
-        double a = (m2 * point2.x - 2 * point2.y)/Math.pow(point2.x, 3);
-        double b = (3 * point2.y - m2 * point2.x)/Math.pow(point2.x, 2);
+        double a = (m2 * vector.getX0() - 2 * vector.getY0())/Math.pow(vector.getX0(), 3);
+        double b = (3 * vector.getY0() - m2 * vector.getX0())/Math.pow(vector.getX0(), 2);
 
         // planning forward waypoint at 60 cycles/sec. full speed is 50"/sec  
         double xw = 50d/60d * speed;

@@ -6,8 +6,8 @@ import frc.robot.Components.*;
 import common.i2cSensors.*;
 import com.revrobotics.*;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-import io.github.pseudoresonance.pixy2api.links.*;
-import io.github.pseudoresonance.pixy2api.Pixy2;
+import common.pixy2Api.*;
+import common.pixy2Api.Pixy2;
 
 // Hardware specifics 
 // NOTE: Components will use super classes to hide the hardware specifics.

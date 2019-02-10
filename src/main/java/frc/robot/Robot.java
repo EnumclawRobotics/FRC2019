@@ -4,7 +4,7 @@ import common.util.Geometry;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import frc.robot.Components.*;
-import io.github.pseudoresonance.pixy2api.*;
+import common.pixy2Api.*;
 
 public class Robot extends TimedRobot {
     private RobotMap robotMap;
