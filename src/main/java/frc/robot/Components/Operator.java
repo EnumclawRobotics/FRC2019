@@ -13,7 +13,7 @@ public class Operator {
     Telemetry telemetry = new Telemetry("Robot/Operator");
     
     public XboxController driveXboxController;
-    public ToggleButton driveFacing;
+    public ToggleButton driveFacingToggleButton;
     
     public Joystick armJoystick; 
     public Joystick armButtons; 
@@ -77,7 +77,7 @@ public class Operator {
     }
 
     public void putTelemetry() {
-        telemetry.putBoolean("Drive Facing (toggle)", driveFacing.toggleOn());
+        telemetry.putBoolean("Drive Facing (toggle)", driveFacingToggleButton.toggleOn());
         telemetry.putDouble("Speed (forward|back)", driveXboxController.getY());
         telemetry.putDouble("Turn (left|right)", driveXboxController.getX());
         telemetry.putBoolean("Cargo Floor", floorCargoButton.get());

@@ -1,12 +1,21 @@
 package frc.robot.Components;
 
 import common.util.*;
+import common.instrumentation.Telemetry;
 import common.pixy2Api.*;
 import frc.robot.RobotMap;
 
 import java.awt.geom.Point2D;
 
 public class Mapper {
+    Telemetry telemetry = new Telemetry("Robot/Mapper");
+
+    private Pixy2 pixy2Normal;
+    private Pixy2 pixy2Inverted;
+    private boolean facingNormal;
+    private Vector vector;
+    private double rotation; 
+
     private double cameraElevation;         // Camera height from floor;
     private double cameraAngle;             // Angle between vertical and camera facing in degrees;
     private double aspectX;                 // X pixel to X FOV conversion
@@ -16,6 +25,17 @@ public class Mapper {
 
     //Pixy2 color object resolution: 316-208, field of view is 60-40, both of which ~3:2 ratio
     public Mapper(RobotMap robotMap) {
+        this.pixy2Normal = robotMap.pixy2Normal;
+        this.pixy2Inverted = robotMap.pixy2Inverted;
+ 
+        // start line tracking program - uses a 0-79, 0-59 grid
+        this.pixy2Normal.getLine().setMode(Pixy2Line.LINE_MODE_WHITE_LINE);
+        this.pixy2Inverted.getLine().setMode(Pixy2Line.LINE_MODE_WHITE_LINE);
+
+        // face forward at start
+        facingNormal = true;
+ 
+        // get the settings right so we can translate coords
         this.cameraElevation = robotMap.cameraElevation;
         this.cameraAngle = robotMap.cameraAngle;
         this.aspectX = robotMap.cameraFovX / robotMap.cameraMaxX;
@@ -24,6 +44,36 @@ public class Mapper {
         this.centerY = robotMap.cameraMaxY * .5d;
     }
 
+    public boolean getFacing() {
+        return facingNormal;
+    }
+
+    public void setFacing(boolean facingNormal) {
+        this.facingNormal = facingNormal;
+    }
+
+    // current pixy to listen to
+    private Pixy2 getPixy() {
+        return (facingNormal ? pixy2Normal : pixy2Inverted);
+    } 
+
+    // do we have a main white line?
+    public Vector getVector() {
+        vector = null;
+
+        Pixy2 pixy2 = getPixy();
+        Pixy2Line pixy2Line = pixy2.getLine();
+        pixy2Line.getFeatures(Pixy2Line.LINE_GET_MAIN_FEATURES, Pixy2Line.LINE_VECTOR, true); 
+        Vector[] vectors = pixy2Line.getVectors(); 
+
+        if (vectors.length > 0) {
+            vector = vectors[0];
+        }
+
+        return vector;
+    }
+
+    // figure out relative floor coords of white line seen by Pixy2
     public Vector CameraVectorToFieldVector(Vector vector) {
         Point2D.Double start = CameraPointToFieldPoint(vector.getX0(), vector.getY0());
         Point2D.Double arrow = CameraPointToFieldPoint(vector.getX1(), vector.getY1());
@@ -32,9 +82,7 @@ public class Mapper {
     }
 
     /**
-     * converts object coordinates seen by the Pixy2 into floor coordinates relative to the camera
-     * viewPortLocation [0-1 Percent of object detection point];
-     * NOTE: PIXY docs suggest white line endpoints will be in a 0-75 by 0-59 grid. 
+     * figure out relative floor coord of a coord seen by Pixy2
      */
     public Point2D.Double CameraPointToFieldPoint(double x, double y) {
         double xAngle;
@@ -60,8 +108,8 @@ public class Mapper {
         return new Point2D.Double(sideways, forward);
     }
 
-    // given start and end coords of a white line and current speed 
-    // generate a rotation value to help the bot line up on the white line
+    // given floor coords of a white line and current speed 
+    // generate a rotation value to help the bot line up on the white line when it gets there
     public static double getRotation(Vector vector, double speed) {
         // algorithm:
         // assume bot is facing along zero axis and the white line coordinates use the same reference
@@ -112,4 +160,53 @@ public class Mapper {
 
         return rotation;
     }
+
+    public void run() {
+        putTelemetry();
+    }
+
+    public void putTelemetry() {
+        telemetry.putDouble("Rotation", rotation);
+        telemetry.putString("Version", "1.0.0");
+    }
+
+
+    // // expects form "vector: a,b - c,d"
+    // public static Point2D.Double[] convertVector(String vector) {
+    //     Point2D.Double[] result = null;
+
+    //     if (!vector.isEmpty()) {
+    //         vector = vector.replace("vector: ", "");
+    //         String[] points = vector.split(" - ", 0);
+
+    //         if (points.length == 2) {
+    //             Point2D.Double startPoint = convertPoint(points[0]);
+    //             Point2D.Double endPoint = convertPoint(points[1]);
+
+    //             if (startPoint != null && endPoint != null) {
+    //                 result = new Point2D.Double[] { startPoint, endPoint};
+    //             }
+    //         }
+    //     }
+
+    //     return result;
+    // }
+
+    // // expects form "a,b"
+    // public static Point2D.Double convertPoint(String point) {
+    //     Point2D.Double result = null;
+
+    //     String[] values = point.split(",", 0);
+    //     if (values.length == 2) {
+    //         Double x = Double.valueOf(values[0]);
+    //         Double y = Double.valueOf(values[1]);
+    //         if (!x.isNaN() && !y.isNaN()) {
+    //             result = new Point2D.Double(x, y);
+    //         }
+    //     } 
+
+    //     return result;
+    // } 
+
 }
+

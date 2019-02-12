@@ -4,7 +4,6 @@ import common.util.Geometry;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import frc.robot.Components.*;
-import common.pixy2Api.*;
 
 public class Robot extends TimedRobot {
     private RobotMap robotMap;
@@ -151,7 +150,7 @@ public class Robot extends TimedRobot {
             }
 
             // drive facing
-            drive.setFacing(operator.driveFacing.toggleOn());
+            drive.setFacing(operator.driveFacingToggleButton.toggleOn());
 
             // driver set up default move - may be overwritten by other elements
             drive.move(-operator.driveXboxController.getY(), operator.driveXboxController.getX(), false);
@@ -163,7 +162,7 @@ public class Robot extends TimedRobot {
 
             // assist in turning to target?
             if (operator.driveXboxController.getBumper(Hand.kRight)) {
-                drive.assistRotation(cameraManager.getVector());
+                drive.assistRotation(mapper.getVector());
             }
         }
 

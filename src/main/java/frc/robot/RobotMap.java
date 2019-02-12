@@ -1,7 +1,17 @@
 package frc.robot;
 
-import edu.wpi.cscore.VideoCamera;
-import edu.wpi.first.wpilibj.*;
+import edu.wpi.cscore.UsbCamera;
+import edu.wpi.first.wpilibj.SpeedController;
+import edu.wpi.first.wpilibj.ADXRS450_Gyro;
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.PWMVictorSPX;
+import edu.wpi.first.wpilibj.Spark;
+import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.cameraserver.*;
+import edu.wpi.cscore.UsbCamera;
+
 import frc.robot.Components.*;
 import common.i2cSensors.*;
 import com.revrobotics.*;
@@ -122,8 +132,8 @@ public class RobotMap {
     public Pixy2 pixy2Normal;
     public Pixy2 pixy2Inverted;
 
-    public VideoCamera cameraNormal;
-    public VideoCamera cameraInverted;
+    public UsbCamera cameraNormal;
+    public UsbCamera cameraInverted;
 
     // usb driver station
     public XboxController driveXboxController;
@@ -166,8 +176,8 @@ public class RobotMap {
         hatchLimitSwitch = new DigitalInput(hatchLimitSwitchDio);
 
         // cameras
-        // cameraNormal = new VideoCamera(0);
-        // cameraInverted = new VideoCamera(1); 
+        cameraNormal = new UsbCamera("USB Camera 0", cameraNormalUsb);
+        cameraInverted = new UsbCamera("USB Camera 1", cameraInvertedUsb);
 
         // Pixy2
         pixy2Normal = Pixy2.createInstance(new I2CLink());

@@ -16,6 +16,7 @@ public class Drive {
 
     DifferentialDrive differentialDrive; 
     ADXRS450_Gyro gyro;
+    Mapper mapper;
 
     double speed = 0;
     double rotation = 0;
@@ -106,9 +107,9 @@ public class Drive {
             state = States.AssistingTurn;
         }
 
-        // can camera find a primary while line? then supply some rotation help
+        // can camera find a primary while line? then supply some rotation help, otherwise ignore
         if (vector != null) {
-            rotation = Mapper.getRotation(vector, speed);
+            this.rotation = Mapper.getRotation(vector, speed);
         }
     }
 }
