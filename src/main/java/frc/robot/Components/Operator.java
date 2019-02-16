@@ -15,82 +15,72 @@ public class Operator {
     public XboxController driveXboxController;
     public ToggleButton driveFacingToggleButton;
     
-    public Joystick armJoystick; 
+    public XboxController armXboxController; 
+    public ToggleButton armFacingToggleButton;
     public Joystick armButtons; 
 
-    private final int floorCargoButtonNumber = 1;
-    private final int rocketCargo1ButtonNumber = 2;
-    private final int rocketCargo2ButtonNumber = 3;
-    private final int rocketCargo3ButtonNumber = 4;
-    private final int shipCargoButtonNumber = 5; 
-    private final int stationCargoButtonNumber = 6; 
+    private final int cargoFloorButtonNumber = 1;
+    private final int cargoRocket1ButtonNumber = 2;
+    private final int cargoRocket2ButtonNumber = 3;
+    private final int cargoRocket3ButtonNumber = 4;
+    private final int cargoShipButtonNumber = 5; 
+    private final int cargoStationButtonNumber = 6; 
 
-    private final int rocketHatch1ButtonNumber = 7;
-    private final int rocketHatch2ButtonNumber = 8;
-    private final int rocketHatch3ButtonNumber = 9;
-    private final int shipHatchButtonNumber = 10; 
-    private final int stationHatchButtonNumber = 11; 
+    private final int hatchRocket1ButtonNumber = 7;
+    private final int hatchRocket2ButtonNumber = 8;
+    private final int hatchRocket3ButtonNumber = 9;
+    private final int hatchShipButtonNumber = 10; 
+    private final int hatchStationButtonNumber = 11; 
 
-    private final int normalFacingButtonNumber = 11;
-    private final int invertedFacingButtonNumber = 12;
+    public JoystickButton cargoFloorButton;
+    public JoystickButton cargoRocket1Button;
+    public JoystickButton cargoRocket2Button;
+    public JoystickButton cargoRocket3Button;
+    public JoystickButton cargoShipButton; 
+    public JoystickButton cargoStationButton; 
 
-    public JoystickButton floorCargoButton;
-    public JoystickButton rocketCargo1Button;
-    public JoystickButton rocketCargo2Button;
-    public JoystickButton rocketCargo3Button;
-    public JoystickButton shipCargoButton; 
-    public JoystickButton stationCargoButton; 
-
-    public JoystickButton rocketHatch1Button;
-    public JoystickButton rocketHatch2Button;
-    public JoystickButton rocketHatch3Button;
-    public JoystickButton shipHatchButton; 
-    public JoystickButton stationHatchButton;
+    public JoystickButton hatchRocket1Button;
+    public JoystickButton hatchRocket2Button;
+    public JoystickButton hatchRocket3Button;
+    public JoystickButton hatchShipButton; 
+    public JoystickButton hatchStationButton;
     
-    public JoystickButton normalFacingButton;
-    public JoystickButton invertedFacingButton;
-
     public Operator(RobotMap robotMap) {
 
         driveXboxController = robotMap.driveXboxController;
-
-//        driveFacing = new ToggleButton(xboxController., 2);        // thumb reverses direction
+//        driveFacingToggleButton = new ToggleButton(robotMap.driveXboxController, 2);        // Y? reverses direction
         
-        armJoystick = robotMap.armJoystick;
+        armXboxController = robotMap.armXboxController;
+//        armFacingToggleButton = new ToggleButton(armJoystick, 2);        // thumb? reverses direction
         armButtons = robotMap.armButtons;
         
-        floorCargoButton = new JoystickButton(armButtons, floorCargoButtonNumber);
-        rocketCargo1Button = new JoystickButton(armButtons, rocketCargo1ButtonNumber);
-        rocketCargo2Button = new JoystickButton(armButtons, rocketCargo2ButtonNumber);
-        rocketCargo3Button = new JoystickButton(armButtons, rocketCargo3ButtonNumber);
-        shipCargoButton = new JoystickButton(armButtons, shipCargoButtonNumber);
-        stationCargoButton = new JoystickButton(armButtons, stationCargoButtonNumber);
+        cargoFloorButton = new JoystickButton(armButtons, cargoFloorButtonNumber);
+        cargoRocket1Button = new JoystickButton(armButtons, cargoRocket1ButtonNumber);
+        cargoRocket2Button = new JoystickButton(armButtons, cargoRocket2ButtonNumber);
+        cargoRocket3Button = new JoystickButton(armButtons, cargoRocket3ButtonNumber);
+        cargoShipButton = new JoystickButton(armButtons, cargoShipButtonNumber);
+        cargoStationButton = new JoystickButton(armButtons, cargoStationButtonNumber);
 
-        rocketHatch1Button = new JoystickButton(armButtons, rocketHatch1ButtonNumber);
-        rocketHatch2Button = new JoystickButton(armButtons, rocketHatch2ButtonNumber);
-        rocketHatch3Button = new JoystickButton(armButtons, rocketHatch3ButtonNumber);
-        shipHatchButton = new JoystickButton(armButtons, shipHatchButtonNumber);
-        stationHatchButton = new JoystickButton(armButtons, stationHatchButtonNumber);
-        
-        normalFacingButton = new JoystickButton(armButtons, normalFacingButtonNumber);
-        invertedFacingButton = new JoystickButton(armButtons, invertedFacingButtonNumber);
+        hatchRocket1Button = new JoystickButton(armButtons, hatchRocket1ButtonNumber);
+        hatchRocket2Button = new JoystickButton(armButtons, hatchRocket2ButtonNumber);
+        hatchRocket3Button = new JoystickButton(armButtons, hatchRocket3ButtonNumber);
+        hatchShipButton = new JoystickButton(armButtons, hatchShipButtonNumber);
+        hatchStationButton = new JoystickButton(armButtons, hatchStationButtonNumber);
     }
 
     public void putTelemetry() {
         telemetry.putBoolean("Drive Facing (toggle)", driveFacingToggleButton.toggleOn());
         telemetry.putDouble("Speed (forward|back)", driveXboxController.getY());
         telemetry.putDouble("Turn (left|right)", driveXboxController.getX());
-        telemetry.putBoolean("Cargo Floor", floorCargoButton.get());
-        telemetry.putBoolean("Cargo Rocket1", rocketCargo1Button.get());
-        telemetry.putBoolean("Cargo Rocket2", rocketCargo2Button.get());
-        telemetry.putBoolean("Cargo Rocket3", rocketCargo3Button.get());
-        telemetry.putBoolean("Cargo Ship", shipCargoButton.get());
-        telemetry.putBoolean("Cargo Station", stationCargoButton.get());
-        telemetry.putBoolean("Hatch Rocket1", rocketHatch1Button.get());
-        telemetry.putBoolean("Hatch Rocket2", rocketHatch2Button.get());
-        telemetry.putBoolean("Hatch Rocket3", rocketHatch3Button.get());
-        telemetry.putBoolean("Hatch Ship", shipHatchButton.get());
-        telemetry.putBoolean("Hatch Station", stationHatchButton.get());
+        telemetry.putBoolean("Cargo Floor", cargoFloorButton.get());
+        telemetry.putBoolean("Cargo Rocket1", cargoRocket1Button.get());
+        telemetry.putBoolean("Cargo Rocket2", cargoRocket2Button.get());
+        telemetry.putBoolean("Cargo Rocket3", cargoRocket3Button.get());
+        telemetry.putBoolean("Cargo Ship", cargoShipButton.get());
+        telemetry.putBoolean("Cargo Station", cargoStationButton.get());
+        telemetry.putBoolean("Hatch Rocket1 | Hatch Ship | Hatch Station", hatchRocket1Button.get());
+        telemetry.putBoolean("Hatch Rocket2", hatchRocket2Button.get());
+        telemetry.putBoolean("Hatch Rocket3", hatchRocket3Button.get());
         telemetry.putString("Version", "1.0.0");
     }
 }

@@ -39,7 +39,7 @@ public class Drive {
     }
     
     public Drive(RobotMap robotMap) {
-        differentialDrive = new DifferentialDrive(robotMap.leftDriveSpeedController, robotMap.rightDriveSpeedController);
+        differentialDrive = new DifferentialDrive(robotMap.driveLeftSpeedController, robotMap.driveRightSpeedController);
         differentialDrive.setExpiration(RobotMap.safetyExpiration);
         differentialDrive.setSafetyEnabled(true);
 

@@ -46,12 +46,12 @@ public class Arm {
 
     // Constructor that saves controller and sensor references
     public Arm(RobotMap robotMap) {
-        leftSpeedController = robotMap.leftArmSpeedController; 
-        rightSpeedController = robotMap.rightArmSpeedController; 
+        leftSpeedController = robotMap.armLeftSpeedController; 
+        rightSpeedController = robotMap.armRightSpeedController; 
 
         ((MotorSafety)leftSpeedController).setSafetyEnabled(true);
         ((MotorSafety)leftSpeedController).setExpiration(RobotMap.safetyExpiration);
-        robotMap.rightArmSpeedController.setInverted(true);
+        robotMap.armRightSpeedController.setInverted(true);
         ((MotorSafety)rightSpeedController).setSafetyEnabled(true);
         ((MotorSafety)rightSpeedController).setExpiration(RobotMap.safetyExpiration);
 
@@ -98,7 +98,7 @@ public class Arm {
         return targetAngle;
     }
     
-    public void setFacingNormal(boolean facingNormal) {
+    public void setFacing(boolean facingNormal) {
         this.facingNormal = facingNormal;
     }
 
@@ -233,24 +233,24 @@ public class Arm {
 
         // figure angle about pivot point given reach points in the vertical plane
         if (facingNormal) {
-            if (RobotMap.heightArmPivot >= targetHeight) { 
+            if (RobotMap.armPivotHeight >= targetHeight) { 
                 // reaching low on start side - height is cos
-                height = (RobotMap.heightArmPivot - targetHeight)/RobotMap.armLength;
+                height = (RobotMap.armPivotHeight - targetHeight)/RobotMap.armLength;
                 angle = Math.toDegrees(Math.acos(height));
             } else {
                 // reaching high on start side - height is sin 
-                height = (targetHeight - RobotMap.heightArmPivot)/RobotMap.armLength;
+                height = (targetHeight - RobotMap.armPivotHeight)/RobotMap.armLength;
                 angle = Math.toDegrees(Math.asin(height)) + 90;
             }
         }
         else {
-            if (RobotMap.heightArmPivot >= targetHeight) { 
+            if (RobotMap.armPivotHeight >= targetHeight) { 
                 // reaching low on opposite side - height is sin
-                height = (RobotMap.heightArmPivot - targetHeight)/RobotMap.armLength;
+                height = (RobotMap.armPivotHeight - targetHeight)/RobotMap.armLength;
                 angle = Math.toDegrees(Math.asin(height)) + 270;
             } else {
                 // reaching high on opposite side - height is cos
-                height = (RobotMap.heightArmPivot - targetHeight)/RobotMap.armLength;
+                height = (RobotMap.armPivotHeight - targetHeight)/RobotMap.armLength;
                 angle = Math.toDegrees(Math.acos(height)) + 180;
             }
         }

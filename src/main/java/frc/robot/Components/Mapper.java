@@ -161,6 +161,9 @@ public class Mapper {
         return rotation;
     }
 
+    public void stop() {
+    }
+
     public void run() {
         putTelemetry();
     }

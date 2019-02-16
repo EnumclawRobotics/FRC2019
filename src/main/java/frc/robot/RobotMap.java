@@ -28,16 +28,20 @@ public class RobotMap {
     // === ADDRESSES/PLUGINS ============================
 
     // PWM Ports
-    final int leftDrivePwm = 0;            // 40AMP x2 pwm group - use Y split to signal both front and back motor controller
-    final int rightDrivePwm = 1;           // 40AMP x2 pwm group - use Y split to signal both front and back motor controller
+    final int driveLeftPwm = 0;            // 40amp x2 pwm group - use Y split to signal both front and back motor controller
+    final int driveRightPwm = 1;           // 40amp x2 pwm group - use Y split to signal both front and back motor controller
 
-    final int wristPwm = 3;                // 30AMP
-    final int grabberPwm = 4;              // 30AMP
-    final int cargoRollerPwm = 5;          // 30AMP depending on motor size can Y split the power to both motors 
+    final int wristPwm = 3;                // 30amp
+    final int grabberPwm = 4;              // 30amp
+    final int cargoRollerPwm = 5;          // 30amp depending on motor size can Y split the power to both motors 
+
+    final int liftFrontPwm = 7;             // 30amp
+    final int liftBackPwm = 8;              // 30amp
+    final int liftMoverPwm = 9;             // 30amp 
 
     // CAN Device IDs
-    final int leftArmCan = 2;                 // 40AMP SparkMax-Neo requires CAN otherwise buggy
-    final int rightArmCan = 3;                // 40AMP SparkMax-Neo requires CAN otherwise buggy
+    final int armLeftCan = 2;               // 40AMP SparkMax-Neo requires CAN otherwise buggy
+    final int armRightCan = 3;              // 40AMP SparkMax-Neo requires CAN otherwise buggy
 
     // DIO Ports
     final int armLimitSwitchDio = 0;
@@ -62,11 +66,11 @@ public class RobotMap {
 
     // USB Ports (driver station)
     final int driveXboxControllerUsb = 0;
-    final int armJoystickUsb = 1;
+    final int armXboxControllerUsb = 1;
     final int armButtonsUsb = 2;
 
-
     // TODO: Add buttons to control height
+ 
 
     // === TUNING CONSTANTS =====================================
 
@@ -75,7 +79,7 @@ public class RobotMap {
 
     // arm geometries (in inches)
     public final static double armLength = 38d; 
-    public final static double heightArmPivot = 45d;
+    public final static double armPivotHeight = 45d;
     public final static double armFeedForwardFactor = .5d;                    // hold at horizontal power. find by testing
     public final static double armKpFactor = .1d;                             // PID kP correction factor 
     public final static double armEncoderClicksPerDegree = 4200d/360d;        // NEO gearbox output shaft include gear reduction  
@@ -101,17 +105,24 @@ public class RobotMap {
     public double cameraMaxX = 80d;                // Max X resolution
     public double cameraMaxY = 60d;                // Max Y resolution
 
+    // lift 
+    public double liftHeight = 20;                 // inches to raise bot
+    public double liftRoll = 9;                     // inches to roll forward
+
 
     // === REFERENCES ======================
 
     // SpeedControllers
-    public SpeedController leftDriveSpeedController;
-    public SpeedController rightDriveSpeedController;
-    public SpeedController leftArmSpeedController; 
-    public SpeedController rightArmSpeedController; 
+    public SpeedController driveLeftSpeedController;
+    public SpeedController driveRightSpeedController;
+    public SpeedController armLeftSpeedController; 
+    public SpeedController armRightSpeedController; 
     public SpeedController wristSpeedController;
     public SpeedController grabberSpeedController;
     public SpeedController cargoRollerSpeedController;        // TODO: Set brake mode on roller controller
+    public SpeedController liftFrontSpeedController;
+    public SpeedController liftBackSpeedController;
+    public SpeedController liftMoverSpeedController;
 
     // sensors
     public ADXRS450_Gyro driveGyro;
@@ -137,25 +148,25 @@ public class RobotMap {
 
     // usb driver station
     public XboxController driveXboxController;
-    public Joystick armJoystick;  
+    public XboxController armXboxController;  
     public Joystick armButtons;  
 
     // setup subsystems
     public RobotMap() {
         // operator
         driveXboxController = new XboxController(driveXboxControllerUsb);
-        armJoystick = new Joystick(armJoystickUsb);
+        armXboxController = new XboxController(armXboxControllerUsb);
         armButtons = new Joystick(armButtonsUsb);
 
         // drive 
-        leftDriveSpeedController = new Spark(leftDrivePwm);
-        rightDriveSpeedController = new Spark(rightDrivePwm);
+        driveLeftSpeedController = new Spark(driveLeftPwm);
+        driveRightSpeedController = new Spark(driveRightPwm);
         driveGyro = new ADXRS450_Gyro();
 
         // arm
-        leftArmSpeedController = new CANSparkMax(leftArmCan, MotorType.kBrushless);
-        rightArmSpeedController = new CANSparkMax(rightArmCan, MotorType.kBrushless);
-        armEncoder = new GenericEncoder(new CANEncoder((CANSparkMax)leftArmSpeedController));
+        armLeftSpeedController = new CANSparkMax(armLeftCan, MotorType.kBrushless);
+        armRightSpeedController = new CANSparkMax(armRightCan, MotorType.kBrushless);
+        armEncoder = new GenericEncoder(new CANEncoder((CANSparkMax)armLeftSpeedController));
         armLimitSwitch = new DigitalInput(armLimitSwitchDio);
 
         // wrist
@@ -174,6 +185,11 @@ public class RobotMap {
 
         // hatch handler
         hatchLimitSwitch = new DigitalInput(hatchLimitSwitchDio);
+
+        // lift
+        liftFrontSpeedController = new PWMVictorSPX(liftFrontPwm);
+        liftBackSpeedController = new PWMVictorSPX(liftBackPwm);
+        liftMoverSpeedController = new PWMVictorSPX(liftMoverPwm);
 
         // cameras
         cameraNormal = new UsbCamera("USB Camera 0", cameraNormalUsb);

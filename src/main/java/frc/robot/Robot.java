@@ -1,6 +1,6 @@
 package frc.robot;
 
-import common.util.Geometry;
+//import common.util.Geometry;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import frc.robot.Components.*;
@@ -8,14 +8,15 @@ import frc.robot.Components.*;
 public class Robot extends TimedRobot {
     private RobotMap robotMap;
 
+    private CameraManager cameraManager;
+    private Mapper mapper;
+
     private Operator operator;
     private Drive drive;
     private Arm arm;
     private Wrist wrist;
     private Grabber grabber;
-
-    private CameraManager cameraManager;
-    private Mapper mapper;
+    private Lifter lifter;
 
     @Override
     public void robotInit() {
@@ -24,16 +25,17 @@ public class Robot extends TimedRobot {
         // setup hardware specific stuff
         robotMap = new RobotMap();
 
+        // vision
+        cameraManager = new CameraManager(robotMap);
+        mapper = new Mapper(robotMap);
+        
         // setup logical subsystem components
         operator = new Operator(robotMap);
         drive = new Drive(robotMap);
         arm = new Arm(robotMap);
         wrist = new Wrist(robotMap, arm);
         grabber = new Grabber(robotMap);
-
-        // vision
-        cameraManager = new CameraManager(robotMap);
-        mapper = new Mapper(robotMap);
+        lifter = new Lifter(robotMap);
     }
 
     // === Modes ===
@@ -90,70 +92,75 @@ public class Robot extends TimedRobot {
         arm.stop();
         wrist.stop();
         grabber.stop();
+        lifter.stop();
+        mapper.stop();
+        cameraManager.stop();
     }
 
     public void run() {
+        // get situation changes
         if (this.isAutonomous() || this.isOperatorControl()) {
-            // arm facing
-            if (operator.normalFacingButton.get()) {
-                arm.setFacingNormal(true);
-            }
-            if (operator.invertedFacingButton.get()) {
-                arm.setFacingNormal(false);
-            }
+            // drive facing
+            drive.setFacing(operator.driveFacingToggleButton.toggleOn());
 
+            // arm facing
+            arm.setFacing(operator.armFacingToggleButton.toggleOn());
+        }
+
+        // get any informational component changes
+        cameraManager.run();
+        mapper.run();
+
+        if (this.isAutonomous() || this.isOperatorControl()) {
             // arm height
-            if (operator.floorCargoButton.get()) {
+            if (operator.cargoFloorButton.get()) {
                 arm.moveFloorCargo(arm.getFacingNormal());
                 wrist.moveAligned();
             }
-            if (operator.rocketCargo1Button.get()) {
+            if (operator.cargoRocket1Button.get()) {
                 arm.moveRocketCargo1(arm.getFacingNormal());
                 wrist.moveAligned();
             }
-            if (operator.rocketCargo2Button.get()) {
+            if (operator.cargoRocket2Button.get()) {
                 arm.moveRocketCargo2(arm.getFacingNormal());
                 wrist.moveAligned();
             }
-            if (operator.rocketCargo3Button.get()) {
+            if (operator.cargoRocket3Button.get()) {
                 arm.moveRocketCargo3(arm.getFacingNormal());
                 wrist.moveAligned();
             }
-            if (operator.shipCargoButton.get()) {
+            if (operator.cargoShipButton.get()) {
                 arm.moveShipCargo(arm.getFacingNormal());
                 wrist.moveAligned();
             }
-            if (operator.stationCargoButton.get()) {
+            if (operator.cargoStationButton.get()) {
                 arm.moveStationCargo(arm.getFacingNormal());
                 wrist.moveAligned();
             }
 
-            if (operator.rocketHatch1Button.get()) {
+            if (operator.hatchRocket1Button.get()) {
                 arm.moveRocketHatch1(arm.getFacingNormal());
                 wrist.moveAligned();
             }
-            if (operator.rocketHatch2Button.get()) {
+            if (operator.hatchRocket2Button.get()) {
                 arm.moveRocketHatch2(arm.getFacingNormal());
                 wrist.moveAligned();
             }
-            if (operator.rocketHatch3Button.get()) {
+            if (operator.hatchRocket3Button.get()) {
                 arm.moveRocketHatch3(arm.getFacingNormal());
                 wrist.moveAligned();
             }
-            if (operator.shipHatchButton.get()) {
-                arm.moveShipHatch(arm.getFacingNormal());
-                wrist.moveAligned();
-            }
-            if (operator.stationHatchButton.get()) {
-                arm.moveStationHatch(arm.getFacingNormal());
-                wrist.moveAligned();
-            }
-
-            // drive facing
-            drive.setFacing(operator.driveFacingToggleButton.toggleOn());
+            // if (operator.hatchShipButton.get()) {
+            //     arm.moveShipHatch(arm.getFacingNormal());
+            //     wrist.moveAligned();
+            // }
+            // if (operator.hatchStationButton.get()) {
+            //     arm.moveStationHatch(arm.getFacingNormal());
+            //     wrist.moveAligned();
+            // }
 
             // driver set up default move - may be overwritten by other elements
-            drive.move(-operator.driveXboxController.getY(), operator.driveXboxController.getX(), false);
+            drive.move(-operator.driveXboxController.getY(Hand.kLeft), operator.driveXboxController.getX(Hand.kRight), false);
 
             // assist in straight driving? add turbo function?
             if (operator.driveXboxController.getBumper(Hand.kLeft)) {
@@ -168,17 +175,33 @@ public class Robot extends TimedRobot {
 
         if (this.isTest() || this.isAutonomous() || this.isOperatorControl()) {
             // joystick moves arm manually overwriting previous height selection - only to correct for placing
-            arm.moveManual(-operator.armJoystick.getY(), arm.getFacingNormal());
+            arm.moveManual(-operator.armXboxController.getY(Hand.kLeft), arm.getFacingNormal());
 
             // POV moves wrist manually overwriting previous position selection - only to correct for placing
-            wrist.moveManual(Geometry.getXFromAngle(operator.armJoystick.getPOV()));
+            wrist.moveManual(-operator.armXboxController.getY(Hand.kRight));
+
+            // lifter 
+            // lifting back up 
+            // TODO: Put a protection in that we cant lift up but can go down if going too fast
+            lifter.moveBackLift((operator.armXboxController.getBumper(Hand.kRight) ? 1 : 0) 
+                                - operator.armXboxController.getTriggerAxis(Hand.kRight));
+
+            // lifting front up 
+            // TODO: Put a protection in that we cant lift up but can go down if going too fast
+            lifter.moveFrontLift((operator.armXboxController.getBumper(Hand.kLeft) ? 1 : 0) 
+                                - operator.armXboxController.getTriggerAxis(Hand.kLeft));
+
+            // rolling forward / back
+            lifter.move(operator.armXboxController.getXButtonPressed() ? -1 : 0);
+            lifter.move(operator.armXboxController.getYButtonPressed() ? 1 : 0);
         }
 
-        // apply component changes
+        // apply component changes in order
         drive.run();
         arm.run();
         wrist.run();
         grabber.run();
+        lifter.run();
 
         putTelemetry();
     }
