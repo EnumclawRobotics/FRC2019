@@ -8,23 +8,23 @@
 package frc.lab.labLifter;
 
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.MotorSafety;
 import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.TimedRobot;
 
 import common.instrumentation.*;
+import common.util.Geometry;
 
 /**
  * Use for testing the Lifter Assembly
  * Behavior
  * Brake to hold in place. Is feed forward required?
  * Use of StartButton to go into Lifter Mode
- * Joystick left trigger for lifting power
- * Forward motor to roll 6 inches forward
- * Use of Right Bumper to retract forward lift
- * Use of Left Bumper to retract back lift
+ * left pov for lifting power up and down 
+ * forward motor to roll 6 inches forward - dampened power on actual wheels
+ * Use of X to only do forward lift
+ * Use of Y to only do back lift
  * Use of Back Button to leave Lifter Mode 
  */
 public class Robot extends TimedRobot {
@@ -36,9 +36,16 @@ public class Robot extends TimedRobot {
     XboxController xboxController;
 
     boolean lifterModeEnabled;
-    boolean lifting;
-    boolean retractingFront;
-    boolean retractingBack;
+    
+    boolean liftingFront;
+    double liftingFrontPower;
+
+    boolean liftingBack;
+    double liftingBackPower;
+    
+    double liftGravity = .25d;
+
+    double moverPower = .25d;
 
     @Override
     public void robotInit() {
@@ -72,56 +79,49 @@ public class Robot extends TimedRobot {
     public void teleopPeriodic() {
         if (xboxController.getStartButton()) {
             lifterModeEnabled = true;
-            lifting = true;
-            retractingFront = false;
-            retractingBack = false;
+            liftingFront = true;
+            liftingBack = true;
         }
 
         if (xboxController.getBackButton()) {
             lifterModeEnabled = false;
-            lifting = false;
-            retractingFront = false;
-            retractingBack = false;
+            liftingFront = false;
+            liftingBack = false;
+            motorControllerFront.stopMotor();
+            motorControllerBack.stopMotor();
+            motorControllerMove.stopMotor();
         }
 
-        if (lifting) {
-            if (xboxController.getAButton()) {
-                retractingFront = true;
+        if (lifterModeEnabled) {
+            if (xboxController.getYButton()) {
+                liftingFront = true;
+                liftingBack = false;
             }
 
-            if (xboxController.getBButton()) {
-                retractingFront = false;
-                retractingBack = true;
+            if (xboxController.getXButton()) {
+                liftingFront = false;
+                liftingBack = true;
             }
 
-            if (xboxController.getTriggerAxis(Hand.kLeft) > 0) {
-                if (!retractingFront) {
-                    motorControllerFront.set(xboxController.getTriggerAxis(Hand.kLeft));
-                } else {
-                    motorControllerFront.set(-.10);
-                }
-                if (!retractingBack) {
-                    motorControllerBack.set(xboxController.getTriggerAxis(Hand.kLeft));
-                } else {
-                    motorControllerBack.set(-.10);
-                }
-            }
+            liftingFrontPower = liftingFront ? Geometry.getYFromAngle(xboxController.getPOV()) : 0;
+            liftingBackPower = liftingBack ? Geometry.getYFromAngle(xboxController.getPOV()) : 0;
 
-            if (!retractingBack) {
-                motorControllerMove.set(1d);
-            } else {
-                motorControllerMove.stopMotor();
-            }
+            motorControllerFront.set(Geometry.clip(liftingFrontPower + liftGravity, -1, 1));
+            motorControllerBack.set(Geometry.clip(liftingFrontPower + liftGravity, -1, 1));
+            motorControllerMove.set(moverPower);
 
-            putTelemetry();
+            // try to roll forward while lifting enabled 
+            motorControllerMove.set(1d);
         }
+
+        putTelemetry();
     }
 
     private void putTelemetry() {
-        telemetry.putBoolean("Lifting Mode (Start)", lifting);
-        telemetry.putDouble("XboxController.getTrigger(Left)", xboxController.getTriggerAxis(Hand.kLeft));
-        telemetry.putBoolean("Retracting Front", retractingFront);
-        telemetry.putBoolean("Retracting Back", retractingBack);
+        telemetry.putBoolean("Lifting Front", liftingFront);
+        telemetry.putDouble("Lifting Front Power", liftingFrontPower);
+        telemetry.putBoolean("Lifting Back", liftingBack);
+        telemetry.putDouble("Lifting Back Power", liftingBackPower);
         telemetry.putString("Version", "1.0.0");
     }
 }

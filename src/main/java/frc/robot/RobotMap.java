@@ -106,9 +106,9 @@ public class RobotMap {
     public double cameraMaxY = 60d;                // Max Y resolution
 
     // lift 
-    public double liftHeight = 20;                 // inches to raise bot
-    public double liftRoll = 9;                     // inches to roll forward
-
+    public double liftHeight = 20d;                 // inches to raise bot
+    public double liftMoverSpeed = 1d;              // power to roll forward
+    public double liftFeedForward = .25d;           // station keeping lift power
 
     // === REFERENCES ======================
 

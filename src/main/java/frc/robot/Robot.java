@@ -1,5 +1,6 @@
 package frc.robot;
 
+import common.util.Geometry;
 //import common.util.Geometry;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
@@ -180,20 +181,22 @@ public class Robot extends TimedRobot {
             // POV moves wrist manually overwriting previous position selection - only to correct for placing
             wrist.moveManual(-operator.armXboxController.getY(Hand.kRight));
 
-            // lifter 
-            // lifting back up 
-            // TODO: Put a protection in that we cant lift up but can go down if going too fast
-            lifter.moveBackLift((operator.armXboxController.getBumper(Hand.kRight) ? 1 : 0) 
-                                - operator.armXboxController.getTriggerAxis(Hand.kRight));
-
-            // lifting front up 
-            // TODO: Put a protection in that we cant lift up but can go down if going too fast
-            lifter.moveFrontLift((operator.armXboxController.getBumper(Hand.kLeft) ? 1 : 0) 
-                                - operator.armXboxController.getTriggerAxis(Hand.kLeft));
-
-            // rolling forward / back
-            lifter.move(operator.armXboxController.getXButtonPressed() ? -1 : 0);
-            lifter.move(operator.armXboxController.getYButtonPressed() ? 1 : 0);
+            // handle lifting by overloading the drive controller
+            if (operator.driveXboxController.getStartButton()) {
+                lifter.setLiftingActive();
+            }
+            if (operator.driveXboxController.getYButton()) {
+                lifter.setFrontActive();
+            }
+            if (operator.driveXboxController.getXButton()) {
+                lifter.setBackActive();
+            }
+            if (lifter.getLiftingActive()) {
+                lifter.move(Geometry.getYFromAngle(operator.driveXboxController.getPOV()));
+            } 
+            if (operator.driveXboxController.getBackButton()) {
+                lifter.stop();
+            }
         }
 
         // apply component changes in order

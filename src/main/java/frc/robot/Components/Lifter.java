@@ -1,73 +1,96 @@
 package frc.robot.Components;
 
 import common.instrumentation.Telemetry;
+import common.util.Geometry;
 import edu.wpi.first.wpilibj.*;
 import frc.robot.*;
 
 public class Lifter {
     private Telemetry telemetry = new Telemetry("Robot/Lifter");
 
-    private SpeedController liftFrontSpeedController;
-    private SpeedController liftBackSpeedController;
-    private SpeedController liftMoverSpeedController;
+    private SpeedController frontSpeedController;
+    private SpeedController backSpeedController;
+    private SpeedController moverSpeedController;
 
-//    private Encoder liftFrontEncoder;
-//    private Encoder liftBackEncoder;
+    private boolean liftingActive;
+    private boolean frontActive;
+    private boolean backActive;
 
-    private double liftFrontSpeed;
-    private double liftBackSpeed;
-    private double liftMoverSpeed;
+    private double frontSpeed;
+    private double backSpeed;
+    private double moverSpeed;
+
+    private double feedForward;
 
     public Lifter(RobotMap robotMap) {
-        liftFrontSpeedController = robotMap.liftFrontSpeedController;
-        liftBackSpeedController = robotMap.liftBackSpeedController;
-        liftMoverSpeedController = robotMap.liftMoverSpeedController;
+        frontSpeedController = robotMap.liftFrontSpeedController;
+        backSpeedController = robotMap.liftBackSpeedController;
+        moverSpeedController = robotMap.liftMoverSpeedController;
 
-        ((MotorSafety)liftFrontSpeedController).setExpiration(RobotMap.safetyExpiration);
-        ((MotorSafety)liftFrontSpeedController).setSafetyEnabled(true);
+        ((MotorSafety)frontSpeedController).setExpiration(RobotMap.safetyExpiration);
+        ((MotorSafety)frontSpeedController).setSafetyEnabled(true);
 
-        ((MotorSafety)liftBackSpeedController).setExpiration(RobotMap.safetyExpiration);
-        ((MotorSafety)liftBackSpeedController).setSafetyEnabled(true);
+        ((MotorSafety)backSpeedController).setExpiration(RobotMap.safetyExpiration);
+        ((MotorSafety)backSpeedController).setSafetyEnabled(true);
+
+        feedForward = robotMap.liftFeedForward;
+        moverSpeed = robotMap.liftMoverSpeed;
     }
 
-    // public double getBackClicks() {
-    //     return liftBackEncoder.get();
-    // }
-
-    // public double getFrontClicks() {
-    //     return liftFrontEncoder.get();
-    // }
-
-    public void moveFrontLift(double speed) {
-        liftFrontSpeed = speed;
+    public boolean getLiftingActive() {
+        return liftingActive;
     }
 
-    public void moveBackLift(double speed) {
-        liftBackSpeed = speed;
+    public void setLiftingActive() {
+        liftingActive = true;
+        frontActive = true;
+        backActive = true;
+    }
+
+    public void setFrontActive() {
+        liftingActive = true;
+        frontActive = true;
+        backActive = false;
+    }
+
+    public void setBackActive() {
+        liftingActive = true;
+        frontActive = false;
+        backActive = true;
     }
 
     public void move(double speed) {
-        liftMoverSpeed = speed;
+        frontSpeed = (frontActive ? speed : 0);
+        backSpeed = (backActive ? speed : 0);
     }
 
     public void run() {
-        liftFrontSpeedController.set(liftFrontSpeed);        
-        liftBackSpeedController.set(liftBackSpeed);
-        liftMoverSpeedController.set(liftMoverSpeed);
+        if (liftingActive) {
+            frontSpeedController.set(Geometry.clip(frontSpeed + feedForward , -1, 1));        
+            backSpeedController.set(Geometry.clip(backSpeed + feedForward , -1, 1));
+            moverSpeedController.set(moverSpeed);
+        }
+        else {
+            stop();
+        }
+
+        putTelemetry();
     }
 
     public void stop() {
-        liftFrontSpeedController.stopMotor();
-        liftBackSpeedController.stopMotor();
-        liftMoverSpeedController.stopMotor();
+        liftingActive = false;
+        frontActive = false;
+        backActive = false;
+
+        frontSpeedController.stopMotor();
+        backSpeedController.stopMotor();
+        moverSpeedController.stopMotor();
     }
 
     private void putTelemetry() {
-        telemetry.putDouble("Front Power", liftFrontSpeed);
-//        telemetry.putDouble("Front Clicks", getFrontClicks());
-        telemetry.putDouble("Back Power", liftBackSpeed);
-//        telemetry.putDouble("Back Clicks", getBackClicks());
+        telemetry.putDouble("Front Power", frontSpeed);
+        telemetry.putDouble("Back Power", backSpeed);
+        telemetry.putDouble("Move Power", moverSpeed);
         telemetry.putString("Version", "1.0.0");
     }
-
 }
