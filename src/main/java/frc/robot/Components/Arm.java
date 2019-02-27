@@ -14,9 +14,8 @@ public class Arm {
     private Telemetry telemetry = new Telemetry("Robot/Arm");
 
     // parts of this subsystem
-    private SpeedController leftSpeedController;
-    private GenericEncoder leftEncoder; 
-    private SpeedController rightSpeedController; 
+    private SpeedController speedController;
+    private GenericEncoder encoder; 
     private DigitalInput limitSwitch; 
     
     // set through command
@@ -46,36 +45,25 @@ public class Arm {
 
     // Constructor that saves controller and sensor references
     public Arm(RobotMap robotMap) {
-        leftSpeedController = robotMap.armLeftSpeedController; 
-        rightSpeedController = robotMap.armRightSpeedController; 
+        speedController = robotMap.armSpeedController; 
+        ((MotorSafety)speedController).setSafetyEnabled(true);
+        ((MotorSafety)speedController).setExpiration(RobotMap.safetyExpiration);
 
-        ((MotorSafety)leftSpeedController).setSafetyEnabled(true);
-        ((MotorSafety)leftSpeedController).setExpiration(RobotMap.safetyExpiration);
-        robotMap.armRightSpeedController.setInverted(true);
-        ((MotorSafety)rightSpeedController).setSafetyEnabled(true);
-        ((MotorSafety)rightSpeedController).setExpiration(RobotMap.safetyExpiration);
-
-        leftEncoder = robotMap.armEncoder;
+        encoder = robotMap.armEncoder;
         limitSwitch = robotMap.armLimitSwitch;
 
         stop();
     }
 
     public void init() {
-        baseClicks = leftEncoder.get();
+        baseClicks = encoder.get();
     }
 
     // not triggerable by user 
     public void stop() {
         state = States.Stopped;
         power = 0;
-        set(power);
-    }
-
-    // right motor is inverted sice it faces 180 degrees from left motor
-    private void set(double power) {
-        leftSpeedController.set(power);
-        rightSpeedController.set(power);
+        speedController.stopMotor();
     }
 
     // === PER CYCLE ===
@@ -90,7 +78,7 @@ public class Arm {
 
     // degrees 0 - 360
     public double getAngle() {
-        return angleFromClicks(leftEncoder.get());
+        return angleFromClicks(encoder.get());
     }    
 
     // degrees
@@ -185,7 +173,7 @@ public class Arm {
             targetClicks = clicksFromAngle(targetAngle);
 
             // apply an (P)id error correction
-            double errorClicks = targetClicks - leftEncoder.get();
+            double errorClicks = targetClicks - encoder.get();
             double correctionP = errorClicks * RobotMap.armKpFactor;
             power = Geometry.clip(feedForward + correctionP, -1, 1);
 
@@ -197,7 +185,7 @@ public class Arm {
             }
 
             // set the power on the motors
-            set(power);
+            speedController.set(power);
             putTelemetry();
         }
     }
@@ -206,7 +194,7 @@ public class Arm {
         telemetry.putString("State", state.toString());
         telemetry.putDouble("Angle", getAngle());
         telemetry.putDouble("Power", power);
-        telemetry.putDouble("Clicks", leftEncoder.get());
+        telemetry.putDouble("Clicks", encoder.get());
         telemetry.putDouble("TargetHeight", targetHeight);
         telemetry.putDouble("TargetAngle", targetAngle);
         telemetry.putDouble("TargetClicks", targetClicks);
@@ -257,5 +245,4 @@ public class Arm {
 
         return angle;
     }
-
 }

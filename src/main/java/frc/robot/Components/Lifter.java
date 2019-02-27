@@ -8,32 +8,32 @@ import frc.robot.*;
 public class Lifter {
     private Telemetry telemetry = new Telemetry("Robot/Lifter");
 
-    private SpeedController frontSpeedController;
-    private SpeedController backSpeedController;
+    private SpeedController maroonSpeedController;
+    private SpeedController goldSpeedController;
     private SpeedController moverSpeedController;
 
     private boolean liftingActive;
-    private boolean frontActive;
-    private boolean backActive;
+    private boolean maroonActive;
+    private boolean goldActive;
 
-    private double frontSpeed;
-    private double backSpeed;
+    private double maroonSpeed;
+    private double goldSpeed;
     private double moverSpeed;
 
-    private double feedForward;
+    private double gravity;
 
     public Lifter(RobotMap robotMap) {
-        frontSpeedController = robotMap.liftFrontSpeedController;
-        backSpeedController = robotMap.liftBackSpeedController;
+        maroonSpeedController = robotMap.liftMaroonSpeedController;
+        goldSpeedController = robotMap.liftGoldSpeedController;
         moverSpeedController = robotMap.liftMoverSpeedController;
 
-        ((MotorSafety)frontSpeedController).setExpiration(RobotMap.safetyExpiration);
-        ((MotorSafety)frontSpeedController).setSafetyEnabled(true);
+        ((MotorSafety)maroonSpeedController).setExpiration(RobotMap.safetyExpiration);
+        ((MotorSafety)maroonSpeedController).setSafetyEnabled(true);
 
-        ((MotorSafety)backSpeedController).setExpiration(RobotMap.safetyExpiration);
-        ((MotorSafety)backSpeedController).setSafetyEnabled(true);
+        ((MotorSafety)goldSpeedController).setExpiration(RobotMap.safetyExpiration);
+        ((MotorSafety)goldSpeedController).setSafetyEnabled(true);
 
-        feedForward = robotMap.liftFeedForward;
+        gravity = robotMap.liftGravity;
         moverSpeed = robotMap.liftMoverSpeed;
     }
 
@@ -43,31 +43,31 @@ public class Lifter {
 
     public void setLiftingActive() {
         liftingActive = true;
-        frontActive = true;
-        backActive = true;
+        maroonActive = true;
+        goldActive = true;
     }
 
-    public void setFrontActive() {
+    public void setMaroonActive() {
         liftingActive = true;
-        frontActive = true;
-        backActive = false;
+        maroonActive = true;
+        goldActive = false;
     }
 
-    public void setBackActive() {
+    public void setGoldActive() {
         liftingActive = true;
-        frontActive = false;
-        backActive = true;
+        maroonActive = false;
+        goldActive = true;
     }
 
     public void move(double speed) {
-        frontSpeed = (frontActive ? speed : 0);
-        backSpeed = (backActive ? speed : 0);
+        maroonSpeed = (maroonActive ? speed : 0);
+        goldSpeed = (goldActive ? speed : 0);
     }
 
     public void run() {
         if (liftingActive) {
-            frontSpeedController.set(Geometry.clip(frontSpeed + feedForward , -1, 1));        
-            backSpeedController.set(Geometry.clip(backSpeed + feedForward , -1, 1));
+            maroonSpeedController.set(Geometry.clip(maroonSpeed + gravity , -1, 1));        
+            goldSpeedController.set(Geometry.clip(goldSpeed + gravity , -1, 1));
             moverSpeedController.set(moverSpeed);
         }
         else {
@@ -79,17 +79,17 @@ public class Lifter {
 
     public void stop() {
         liftingActive = false;
-        frontActive = false;
-        backActive = false;
+        maroonActive = false;
+        goldActive = false;
 
-        frontSpeedController.stopMotor();
-        backSpeedController.stopMotor();
+        maroonSpeedController.stopMotor();
+        goldSpeedController.stopMotor();
         moverSpeedController.stopMotor();
     }
 
     private void putTelemetry() {
-        telemetry.putDouble("Front Power", frontSpeed);
-        telemetry.putDouble("Back Power", backSpeed);
+        telemetry.putDouble("Maroon Power", maroonSpeed);
+        telemetry.putDouble("Gold Power", goldSpeed);
         telemetry.putDouble("Move Power", moverSpeed);
         telemetry.putString("Version", "1.0.0");
     }

@@ -1,8 +1,9 @@
 package frc.robot.Components;
 
 import common.instrumentation.Telemetry;
-import edu.wpi.first.wpilibj.ADXRS450_Gyro;
-import edu.wpi.first.wpilibj.drive.*;
+//import edu.wpi.first.wpilibj.ADXRS450_Gyro;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import frc.robot.*;
 import common.pixy2Api.*;
 
@@ -15,7 +16,7 @@ public class Drive {
     Telemetry telemetry = new Telemetry("Robot/Drive");
 
     DifferentialDrive differentialDrive; 
-    ADXRS450_Gyro gyro;
+//    ADXRS450_Gyro gyro;
     Mapper mapper;
 
     double speed = 0;
@@ -23,15 +24,18 @@ public class Drive {
     boolean squareInputs = false;
     boolean facingNormal = true;
 
-    double headingTarget = 0;
-    double distanceTarget = 0;
+//    double headingTarget = 0;
+//    double distanceTarget = 0;
+ 
     double headingError = 0;
     double distanceError = 0; 
 
     States state = States.Stopped;
 
     public enum States {
-        Stopped, Moving, AssistingStraight, AssistingTurn
+        Stopped, Moving, 
+        // AssistingStraight, 
+        AssistingTurn
     }
 
     public States getState() {
@@ -39,11 +43,19 @@ public class Drive {
     }
     
     public Drive(RobotMap robotMap) {
-        differentialDrive = new DifferentialDrive(robotMap.driveLeftSpeedController, robotMap.driveRightSpeedController);
+        // need to invert
+        robotMap.driveRightMaroonSpeedController.setInverted(true);
+        robotMap.driveRightGoldSpeedController.setInverted(true);
+
+        // set up drive
+        differentialDrive = new DifferentialDrive(new SpeedControllerGroup(robotMap.driveLeftMaroonSpeedController, 
+                                                                            robotMap.driveLeftGoldSpeedController), 
+                                                new SpeedControllerGroup(robotMap.driveRightMaroonSpeedController, 
+                                                                            robotMap.driveRightGoldSpeedController));
         differentialDrive.setExpiration(RobotMap.safetyExpiration);
         differentialDrive.setSafetyEnabled(true);
 
-        gyro = robotMap.driveGyro;
+        // gyro = robotMap.driveGyro;
         stop();
     }
 
@@ -59,9 +71,9 @@ public class Drive {
 
     private void putTelemetry() {
         telemetry.putString("State", state.toString());
-        telemetry.putDouble("Distance Target", distanceTarget);
-        telemetry.putDouble("Heading", gyro.getAngle());
-        telemetry.putDouble("Heading Target", headingTarget);
+//        telemetry.putDouble("Distance Target", distanceTarget);
+//        telemetry.putDouble("Heading", gyro.getAngle());
+//        telemetry.putDouble("Heading Target", headingTarget);
         telemetry.putBoolean("Facing Normal (bot)", facingNormal);
         telemetry.putDouble("Speed (forward|back)", speed);
         telemetry.putDouble("Rotation (turn left|right)", rotation);
@@ -90,16 +102,16 @@ public class Drive {
         this.squareInputs = squareInputs;
     }
 
-    // layered onto Move to help drive straight according to gyro
-    public void assistStraight() {
-        if (state != States.AssistingStraight) {
-            state = States.AssistingStraight;
-            headingTarget = gyro.getAngle();
-        }
-
-        headingError = (gyro.getAngle() - headingTarget);
-        this.rotation = (headingError * .1d);                         // proportional correction based on drift. change value
-    }
+    // // layered onto Move to help drive straight according to gyro
+    // public void assistStraight() {
+    //     if (state != States.AssistingStraight) {
+    //         state = States.AssistingStraight;
+    //         headingTarget = gyro.getAngle();
+    //     }
+    //
+    //     headingError = (gyro.getAngle() - headingTarget);
+    //     this.rotation = (headingError * .1d);                         // proportional correction based on drift. change value
+    // }
 
     // Figures out rotation needed based on current speed in order to line up with primary white line found 
     public void assistRotation(Vector vector) {

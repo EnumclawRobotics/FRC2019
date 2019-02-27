@@ -17,19 +17,14 @@ public class Grabber {
     // === setup and cleanup ===
     Telemetry telemetry = new Telemetry("Robot/Grabber");
 
-    SpeedController grabber;
-    GenericEncoder grabberEncoder;
-    DigitalInput hatchLimitSwitch;
-
-    SpeedController rollers;
-    double rollerPower;
-
-    MRColorSensor cargoSensor;
-
     States state = States.Stopped;
-    int baseClicks;                                      // assumes closed at robotStart
-    int targetClicks;
-    double power;
+    SpeedController grabber;
+    double grabberPower;
+    double moveExpiration = 0;
+
+    SpeedController rollerMaroonSpeedController;
+    SpeedController rollerGoldSpeedController;
+    double rollerPower;
 
     public enum States {
         Stopped, OpeningHatch, OpeningCargo, Closing
@@ -39,53 +34,38 @@ public class Grabber {
         return state;
     }
 
-    public boolean isHatchHeld() {
-        return (hatchLimitSwitch.get());
-    }
-
-    public boolean isCargoHeld() {
-        return Math.abs(cargoSensor.getColorNumber() - FieldMap.cargoColorNumber) < FieldMap.cargoColorNumberVariance; 
-        // return Similarity.isMatch(cargoSensor.getColor(), cargoColor, cargoColorThreshold); 
-    }
-
     public Grabber(RobotMap robotMap) {
         grabber = robotMap.grabberSpeedController;
-        grabberEncoder = robotMap.grabberEncoder;
-        baseClicks = grabberEncoder.get();
 
-        hatchLimitSwitch = robotMap.hatchLimitSwitch;
-        
-        rollers = robotMap.cargoRollerSpeedController;          
-        cargoSensor = robotMap.cargoColorSensor;
+        rollerMaroonSpeedController = robotMap.rollerMaroonSpeedController;          
+        rollerGoldSpeedController = robotMap.rollerGoldSpeedController;          
 
         stop();
     }
 
     // === Executing per Period ===
-    private int clicksPerOpeningSize(double opening) {
-        double sine = (opening/2)/RobotMap.grabberLength;
-        return (int)(Math.toDegrees(Math.asin(sine)) * RobotMap.grabberEncoderClicksPerDegree);
-    }
-    
     public void openHatch() {
         this.state = States.OpeningHatch;
-        targetClicks = baseClicks + clicksPerOpeningSize(FieldMap.hatchHoleDiameter);
+        grabberPower = .5d;
+        moveExpiration = Timer.getFPGATimestamp() + .5;
     }
 
     public void openCargo() {
         this.state = States.OpeningCargo;
-        targetClicks = baseClicks + clicksPerOpeningSize(FieldMap.cargoDiameter);
+        grabberPower = .5d;
+        moveExpiration = Timer.getFPGATimestamp() + .75;
     }
 
     public void close() {
         state = States.Stopped;
-        targetClicks = baseClicks;
+        grabberPower = -.5d;
+        moveExpiration = Timer.getFPGATimestamp() + .75;
     }
 
     public void stop() {
         state = States.Stopped;
-        power = 0;
-        rollerPower = 0;
+        grabberPower = 0d;
+        rollerPower = 0d;
     }
 
     // full grab. Touch it! Own it!
@@ -101,24 +81,22 @@ public class Grabber {
     // RUN is only place to set motor values
     public void run() {
         if (state != States.Stopped) {
-            int error = grabberEncoder.get() - targetClicks;
-            power = Geometry.clip(error * .5d, -1, 1) ;          // PID  
+            if (Timer.getFPGATimestamp() > moveExpiration) {
+                grabberPower = .1d;    // holding power
+            }
 
-            grabber.set(power);
-            rollers.set(rollerPower);
+            grabber.set(grabberPower);
+            rollerMaroonSpeedController.set(rollerPower);
+            rollerGoldSpeedController.set(rollerPower);
+
             putTelemetry();
         }
     }
 
     public void putTelemetry() {
         telemetry.putString("State", state.toString());
-        telemetry.putDouble("Base Clicks", baseClicks);
-        telemetry.putDouble("Target Clicks", targetClicks);
-        telemetry.putDouble("Grabber Clicks", grabberEncoder.get());
-        telemetry.putDouble("Grabber Power", power);
+        telemetry.putDouble("Grabber Power", grabberPower);
         telemetry.putDouble("Roller Power (intake|expell)", rollerPower);
-        telemetry.putBoolean("Cargo Held", isCargoHeld());
-        telemetry.putBoolean("Hatch Held", isHatchHeld());
         telemetry.putString("Version", "1.0.0");
     }
 }

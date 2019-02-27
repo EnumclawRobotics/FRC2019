@@ -1,7 +1,6 @@
 package frc.robot;
 
 import common.util.Geometry;
-//import common.util.Geometry;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import frc.robot.Components.*;
@@ -66,6 +65,7 @@ public class Robot extends TimedRobot {
     public void autonomousInit() {
         arm.init();
         wrist.init();
+        cameraManager.init();
     }
 
     @Override
@@ -163,10 +163,10 @@ public class Robot extends TimedRobot {
             // driver set up default move - may be overwritten by other elements
             drive.move(-operator.driveXboxController.getY(Hand.kLeft), operator.driveXboxController.getX(Hand.kRight), false);
 
-            // assist in straight driving? add turbo function?
-            if (operator.driveXboxController.getBumper(Hand.kLeft)) {
-                drive.assistStraight();
-            }
+            // // assist in straight driving? add turbo function?
+            // if (operator.driveXboxController.getBumper(Hand.kLeft)) {
+            //     drive.assistStraight();
+            // }
 
             // assist in turning to target?
             if (operator.driveXboxController.getBumper(Hand.kRight)) {
@@ -186,10 +186,10 @@ public class Robot extends TimedRobot {
                 lifter.setLiftingActive();
             }
             if (operator.driveXboxController.getYButton()) {
-                lifter.setFrontActive();
+                lifter.setMaroonActive();
             }
             if (operator.driveXboxController.getXButton()) {
-                lifter.setBackActive();
+                lifter.setGoldActive();
             }
             if (lifter.getLiftingActive()) {
                 lifter.move(Geometry.getYFromAngle(operator.driveXboxController.getPOV()));
