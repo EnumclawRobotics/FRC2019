@@ -1,7 +1,6 @@
 package frc.robot;
 
 import edu.wpi.cscore.UsbCamera;
-import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.VictorSP;
 //import edu.wpi.first.wpilibj.SpeedControllerGroup;
 //import edu.wpi.first.wpilibj.ADXRS450_Gyro;
@@ -16,9 +15,6 @@ import edu.wpi.cscore.UsbCamera;
 
 import frc.robot.Components.*;
 import common.i2cSensors.*;
-
-import com.ctre.phoenix.motorcontrol.can.VictorSPX;
-import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
 import com.revrobotics.*;
 import com.revrobotics.CANEncoder;
@@ -42,18 +38,18 @@ public class RobotMap {
 
     // CAN Device IDs
     final int driveLeftMaroonCan = 1;               // 40amp / VictorSPX / CIM / ToughBox 
-    final int driveLeftGoldCan = 2;                 // 40amp / VictorSPX / CIM / ToughBox
+    final int driveLeftBlackCan = 2;                 // 40amp / VictorSPX / CIM / ToughBox
     final int driveRightMaroonCan = 3;              // 40amp / VictorSPX / CIM / ToughBox
-    final int driveRightGoldCan = 4;                // 40amp / VictorSPX / CIM / ToughBox 
+    final int driveRightBlackCan = 4;                // 40amp / VictorSPX / CIM / ToughBox 
 
-    final int armCan = 1;                           // 40amp / SparkMax / NEO / CimSport 100:1
-    final int wristCan = 6;                         // 40amp / SparkMax / NEO / CimSport 100:1
+    final int armCan = 6;                           // 40amp / SparkMax / NEO / CimSport 100:1
+    final int wristCan = 1;                         // 40amp / SparkMax / NEO / CimSport 100:1
     final int liftMaroonCan = 7;                    // 40amp / SparkMax / NEO / CimSport 12:1
-    final int liftGoldCan = 6;                      // 40amp / SparkMax / NEO / CimSport 12:1
+    final int liftBlackCan = 6;                      // 40amp / SparkMax / NEO / CimSport 12:1
 
     final int grabberCan = 1;                       // 30amp / TalonSRX / 775 / CimSport 12:1
     final int rollerMaroonCan = 2;                  // 30amp / TalonSRX / 775 / CimSport 4:1
-    final int rollerGoldCan = 3;                    // 30amp / TalonSRX / 775 / CimSport 4:1
+    final int rollerBlackCan = 3;                    // 30amp / TalonSRX / 775 / CimSport 4:1
 
     // DIO Ports
     final int armLimitSwitchDio = 0;                // Rev Magnetic limit switch
@@ -111,33 +107,34 @@ public class RobotMap {
     // lift 
     public double liftHeight = 20d;                 // inches to raise bot
     public double liftMoverSpeed = 1d;              // power to roll forward
-    public double liftGravity = .25d;           // station keeping lift power
+    public double liftGravity = .25d;               // station keeping lift power
 
     // === REFERENCES ======================
 
     // SpeedControllers
-    public SpeedController driveLeftMaroonSpeedController;      // set coast
-    public SpeedController driveLeftGoldSpeedController;        // set coast
-    public SpeedController driveRightMaroonSpeedController;     // set coast
-    public SpeedController driveRightGoldSpeedController;       // set coast
+    public CANVictorSPX driveLeftMaroonSpeedController;            // set coast
+    public CANVictorSPX driveLeftBlackSpeedController;              // set coast
+    public CANVictorSPX driveRightMaroonSpeedController;           // set coast
+    public CANVictorSPX driveRightBlackSpeedController;             // set coast
 
-    public SpeedController armSpeedController;                  // set brake 
-    public SpeedController wristSpeedController;                // set brake
-    public SpeedController grabberSpeedController;              // set brake
-    public SpeedController rollerMaroonSpeedController;         // set brake
-    public SpeedController rollerGoldSpeedController;           // set brake
+    public CANSparkMax armSpeedController;                      // set brake 
+    public CANSparkMax wristSpeedController;                    // set brake
+
+    public CANTalonSRX grabberSpeedController;                     // set brake
+    public CANTalonSRX rollerMaroonSpeedController;                // set brake
+    public CANTalonSRX rollerBlackSpeedController;                  // set brake
     
-    public SpeedController liftMaroonSpeedController;           // set brake
-    public SpeedController liftGoldSpeedController;             // set brake
-    public SpeedController liftMoverSpeedController;            // set brake
+    public CANSparkMax liftMaroonSpeedController;               // set brake
+    public CANSparkMax liftBlackSpeedController;                 // set brake
+    public VictorSP liftMoverSpeedController;                   // set brake
 
     // sensors
     //    public ADXRS450_Gyro driveGyro;                           // ROBORIO mounted wrong for this
 
-    public GenericEncoder armEncoder;
+    public CANEncoder2 armEncoder;
     public DigitalInput armLimitSwitch;
 
-    public GenericEncoder wristEncoder;
+    public CANEncoder2 wristEncoder;
     public DigitalInput wristLimitSwitch;
 //    public GenericEncoder grabberEncoder;
 //    public DigitalInput grabberLimitSwitch;
@@ -165,40 +162,40 @@ public class RobotMap {
         armButtons = new Joystick(armButtonsUsb);
 
         // drive 
-        driveLeftMaroonSpeedController = new CANSparkMax(driveLeftMaroonCan, MotorType.kBrushless);
-        driveLeftGoldSpeedController = new CANSparkMax(driveLeftGoldCan, MotorType.kBrushless);
-        driveRightMaroonSpeedController = new CANSparkMax(driveRightMaroonCan, MotorType.kBrushless);
-        driveRightGoldSpeedController = new CANSparkMax(driveRightGoldCan, MotorType.kBrushless);
+        driveLeftMaroonSpeedController = new CANVictorSPX(driveLeftMaroonCan);
+        driveLeftBlackSpeedController = new CANVictorSPX(driveLeftBlackCan);
+        driveRightMaroonSpeedController = new CANVictorSPX(driveRightMaroonCan);
+        driveRightBlackSpeedController = new CANVictorSPX(driveRightBlackCan);
 
         // driveGyro = new ADXRS450_Gyro();
 
         // arm
         armSpeedController = new CANSparkMax(armCan, MotorType.kBrushless);
-        armEncoder = new GenericEncoder(new CANEncoder((CANSparkMax)armSpeedController));
+        armEncoder = new CANEncoder2(armSpeedController);
         armLimitSwitch = new DigitalInput(armLimitSwitchDio);
 
         // wrist
         wristSpeedController =  new CANSparkMax(wristCan, MotorType.kBrushless);
-        wristEncoder = new GenericEncoder(new CANEncoder((CANSparkMax)wristSpeedController));
+        wristEncoder = new CANEncoder2(wristSpeedController);
  //       wristLimitSwitch = new DigitalInput(wristLimitSwitchDio);
 
         // grabber
-        grabberSpeedController = (SpeedController)new TalonSRX(grabberCan);
+        grabberSpeedController = new CANTalonSRX(grabberCan);
 //        grabberEncoder = new GenericEncoder(new Encoder(grabberEncoderADio, grabberEncoderBDio));
 //        grabberLimitSwitch = new DigitalInput(grabberLimitSwitchDio);
 
         // cargo handler
-        rollerMaroonSpeedController = (SpeedController)new VictorSPX(rollerMaroonCan);
-        rollerGoldSpeedController = (SpeedController)new VictorSPX(rollerGoldCan);
+        rollerMaroonSpeedController = new CANTalonSRX(rollerMaroonCan);
+        rollerBlackSpeedController = new CANTalonSRX(rollerBlackCan);
 //        cargoColorSensor = new MRColorSensor();
 
         // hatch handler
 //        hatchLimitSwitch = new DigitalInput(hatchLimitSwitchDio);
 
         // lift
-        liftMaroonSpeedController = new CANSparkMax(liftMaroonCan, MotorType.kBrushless);
-        liftGoldSpeedController = new CANSparkMax(liftMaroonCan, MotorType.kBrushless);
-        liftMoverSpeedController = new VictorSP(liftMoverPwm);
+//        liftMaroonSpeedController = new CANSparkMax(liftMaroonCan, MotorType.kBrushless);
+//        liftBlackSpeedController = new CANSparkMax(liftMaroonCan, MotorType.kBrushless);
+//        liftMoverSpeedController = new VictorSP(liftMoverPwm);
 
         // cameras
         cameraNormal = new UsbCamera("USB Camera 0", cameraNormalUsb);

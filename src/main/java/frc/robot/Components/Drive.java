@@ -43,15 +43,17 @@ public class Drive {
     }
     
     public Drive(RobotMap robotMap) {
-        // need to invert
+        // we need to invert the right hand side motors
         robotMap.driveRightMaroonSpeedController.setInverted(true);
-        robotMap.driveRightGoldSpeedController.setInverted(true);
+        robotMap.driveRightBlackSpeedController.setInverted(true);
 
         // set up drive
         differentialDrive = new DifferentialDrive(new SpeedControllerGroup(robotMap.driveLeftMaroonSpeedController, 
-                                                                            robotMap.driveLeftGoldSpeedController), 
+                                                                            robotMap.driveLeftBlackSpeedController), 
                                                 new SpeedControllerGroup(robotMap.driveRightMaroonSpeedController, 
-                                                                            robotMap.driveRightGoldSpeedController));
+                                                                            robotMap.driveRightBlackSpeedController));
+
+        // ensure that motors get stopped if runaway
         differentialDrive.setExpiration(RobotMap.safetyExpiration);
         differentialDrive.setSafetyEnabled(true);
 
@@ -91,6 +93,8 @@ public class Drive {
         speed = 0;
         rotation = 0;
         squareInputs = false;
+        
+        differentialDrive.stopMotor();
     }
 
     // should be default command - user joystick inputs

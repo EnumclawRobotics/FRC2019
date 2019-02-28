@@ -3,14 +3,14 @@ plugins {
     id "edu.wpi.first.GradleRIO" version "2019.2.1"
 }
 
-//def ROBOT_MAIN_CLASS = "frc.robot.Main"
+def ROBOT_MAIN_CLASS = "frc.robot.Main"
 //def ROBOT_MAIN_CLASS = "frc.lab.labADXRSGyro.Main"
 //def ROBOT_MAIN_CLASS = "frc.lab.labArcadeDrive.Main"
 //def ROBOT_MAIN_CLASS = "frc.lab.labCanSparkMaxNeo.Main"
 //def ROBOT_MAIN_CLASS = "frc.lab.labDriveToDistance.Main"
 //def ROBOT_MAIN_CLASS = "frc.lab.labEncoder.Main"
 //def ROBOT_MAIN_CLASS = "frc.lab.labLimitSwitch.Main"
-def ROBOT_MAIN_CLASS = "frc.lab.labMotor.Main"
+//def ROBOT_MAIN_CLASS = "frc.lab.labMotor.Main"
 //def ROBOT_MAIN_CLASS = "frc.lab.labMotorEncoder.Main"
 //def ROBOT_MAIN_CLASS = "frc.lab.labMRColorSensor.Main"
 //def ROBOT_MAIN_CLASS = "frc.lab.labMRGyro.Main"

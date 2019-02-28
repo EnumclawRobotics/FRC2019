@@ -19,18 +19,18 @@ public class Operator {
     public ToggleButton armFacingToggleButton;
     public Joystick armButtons; 
 
-    private final int cargoFloorButtonNumber = 1;
-    private final int cargoRocket1ButtonNumber = 2;
-    private final int cargoRocket2ButtonNumber = 3;
-    private final int cargoRocket3ButtonNumber = 4;
-    private final int cargoShipButtonNumber = 5; 
-    private final int cargoStationButtonNumber = 6; 
+    private final int cargoFloorButtonNumber = 7;
+    private final int cargoRocket1ButtonNumber = 4;
+    private final int cargoRocket2ButtonNumber = 5;
+    private final int cargoRocket3ButtonNumber = 6;
+    private final int cargoShipButtonNumber = 8; 
+    private final int cargoStationButtonNumber = 9; 
 
-    private final int hatchRocket1ButtonNumber = 7;
-    private final int hatchRocket2ButtonNumber = 8;
-    private final int hatchRocket3ButtonNumber = 9;
-    private final int hatchShipButtonNumber = 10; 
-    private final int hatchStationButtonNumber = 11; 
+    private final int hatchRocket1ButtonNumber = 1;
+    private final int hatchRocket2ButtonNumber = 2;
+    private final int hatchRocket3ButtonNumber = 3;
+    private final int hatchShipButtonNumber = 1; 
+    private final int hatchStationButtonNumber = 1; 
 
     public JoystickButton cargoFloorButton;
     public JoystickButton cargoRocket1Button;

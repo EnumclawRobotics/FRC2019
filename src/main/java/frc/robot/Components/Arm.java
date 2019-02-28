@@ -15,7 +15,7 @@ public class Arm {
 
     // parts of this subsystem
     private SpeedController speedController;
-    private GenericEncoder encoder; 
+    private CANEncoder2 encoder; 
     private DigitalInput limitSwitch; 
     
     // set through command
@@ -46,8 +46,9 @@ public class Arm {
     // Constructor that saves controller and sensor references
     public Arm(RobotMap robotMap) {
         speedController = robotMap.armSpeedController; 
-        ((MotorSafety)speedController).setSafetyEnabled(true);
-        ((MotorSafety)speedController).setExpiration(RobotMap.safetyExpiration);
+
+        //((MotorSafety)speedController).setSafetyEnabled(true);
+        //((MotorSafety)speedController).setExpiration(RobotMap.safetyExpiration);
 
         encoder = robotMap.armEncoder;
         limitSwitch = robotMap.armLimitSwitch;

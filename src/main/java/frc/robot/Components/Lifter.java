@@ -9,32 +9,32 @@ public class Lifter {
     private Telemetry telemetry = new Telemetry("Robot/Lifter");
 
     private SpeedController maroonSpeedController;
-    private SpeedController goldSpeedController;
+    private SpeedController blackSpeedController;
     private SpeedController moverSpeedController;
 
     private boolean liftingActive;
     private boolean maroonActive;
-    private boolean goldActive;
+    private boolean blackActive;
 
-    private double maroonSpeed;
-    private double goldSpeed;
-    private double moverSpeed;
+    private double maroonPower;
+    private double blackPower;
+    private double moverPower;
 
     private double gravity;
 
     public Lifter(RobotMap robotMap) {
         maroonSpeedController = robotMap.liftMaroonSpeedController;
-        goldSpeedController = robotMap.liftGoldSpeedController;
+        blackSpeedController = robotMap.liftBlackSpeedController;
         moverSpeedController = robotMap.liftMoverSpeedController;
 
-        ((MotorSafety)maroonSpeedController).setExpiration(RobotMap.safetyExpiration);
-        ((MotorSafety)maroonSpeedController).setSafetyEnabled(true);
+        // ((MotorSafety)maroonSpeedController).setExpiration(RobotMap.safetyExpiration);
+        // ((MotorSafety)maroonSpeedController).setSafetyEnabled(true);
 
-        ((MotorSafety)goldSpeedController).setExpiration(RobotMap.safetyExpiration);
-        ((MotorSafety)goldSpeedController).setSafetyEnabled(true);
+        // ((MotorSafety)blackSpeedController).setExpiration(RobotMap.safetyExpiration);
+        // ((MotorSafety)blackSpeedController).setSafetyEnabled(true);
 
         gravity = robotMap.liftGravity;
-        moverSpeed = robotMap.liftMoverSpeed;
+        moverPower = robotMap.liftMoverSpeed;
     }
 
     public boolean getLiftingActive() {
@@ -44,31 +44,31 @@ public class Lifter {
     public void setLiftingActive() {
         liftingActive = true;
         maroonActive = true;
-        goldActive = true;
+        blackActive = true;
     }
 
     public void setMaroonActive() {
         liftingActive = true;
         maroonActive = true;
-        goldActive = false;
+        blackActive = false;
     }
 
     public void setGoldActive() {
         liftingActive = true;
         maroonActive = false;
-        goldActive = true;
+        blackActive = true;
     }
 
     public void move(double speed) {
-        maroonSpeed = (maroonActive ? speed : 0);
-        goldSpeed = (goldActive ? speed : 0);
+        maroonPower = (maroonActive ? speed : 0);
+        blackPower = (blackActive ? speed : 0);
     }
 
     public void run() {
         if (liftingActive) {
-            maroonSpeedController.set(Geometry.clip(maroonSpeed + gravity , -1, 1));        
-            goldSpeedController.set(Geometry.clip(goldSpeed + gravity , -1, 1));
-            moverSpeedController.set(moverSpeed);
+            maroonSpeedController.set(Geometry.clip(maroonPower + gravity , -1, 1));        
+            blackSpeedController.set(Geometry.clip(blackPower + gravity , -1, 1));
+            moverSpeedController.set(moverPower);
         }
         else {
             stop();
@@ -80,17 +80,17 @@ public class Lifter {
     public void stop() {
         liftingActive = false;
         maroonActive = false;
-        goldActive = false;
+        blackActive = false;
 
         maroonSpeedController.stopMotor();
-        goldSpeedController.stopMotor();
+        blackSpeedController.stopMotor();
         moverSpeedController.stopMotor();
     }
 
     private void putTelemetry() {
-        telemetry.putDouble("Maroon Power", maroonSpeed);
-        telemetry.putDouble("Gold Power", goldSpeed);
-        telemetry.putDouble("Move Power", moverSpeed);
+        telemetry.putDouble("Maroon Power", maroonPower);
+        telemetry.putDouble("Gold Power", blackPower);
+        telemetry.putDouble("Move Power", moverPower);
         telemetry.putString("Version", "1.0.0");
     }
 }

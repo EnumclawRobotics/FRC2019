@@ -1,8 +1,6 @@
 package frc.robot.Components;
 
 import common.instrumentation.Telemetry;
-import common.i2cSensors.*;
-import common.util.*;
 import edu.wpi.first.wpilibj.*;
 import frc.robot.*;
 
@@ -23,7 +21,7 @@ public class Grabber {
     double moveExpiration = 0;
 
     SpeedController rollerMaroonSpeedController;
-    SpeedController rollerGoldSpeedController;
+    SpeedController rollerBlackSpeedController;
     double rollerPower;
 
     public enum States {
@@ -38,7 +36,7 @@ public class Grabber {
         grabber = robotMap.grabberSpeedController;
 
         rollerMaroonSpeedController = robotMap.rollerMaroonSpeedController;          
-        rollerGoldSpeedController = robotMap.rollerGoldSpeedController;          
+        rollerBlackSpeedController = robotMap.rollerBlackSpeedController;          
 
         stop();
     }
@@ -87,8 +85,8 @@ public class Grabber {
 
             grabber.set(grabberPower);
             rollerMaroonSpeedController.set(rollerPower);
-            rollerGoldSpeedController.set(rollerPower);
-
+            rollerBlackSpeedController.set(rollerPower);
+            
             putTelemetry();
         }
     }

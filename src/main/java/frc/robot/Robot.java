@@ -8,15 +8,15 @@ import frc.robot.Components.*;
 public class Robot extends TimedRobot {
     private RobotMap robotMap;
 
-    private CameraManager cameraManager;
-    private Mapper mapper;
+//    private CameraManager cameraManager;
+//    private Mapper mapper;
 
     private Operator operator;
     private Drive drive;
     private Arm arm;
     private Wrist wrist;
     private Grabber grabber;
-    private Lifter lifter;
+//    private Lifter lifter;
 
     @Override
     public void robotInit() {
@@ -26,8 +26,8 @@ public class Robot extends TimedRobot {
         robotMap = new RobotMap();
 
         // vision
-        cameraManager = new CameraManager(robotMap);
-        mapper = new Mapper(robotMap);
+//        cameraManager = new CameraManager(robotMap);
+//        mapper = new Mapper(robotMap);
         
         // setup logical subsystem components
         operator = new Operator(robotMap);
@@ -35,7 +35,7 @@ public class Robot extends TimedRobot {
         arm = new Arm(robotMap);
         wrist = new Wrist(robotMap, arm);
         grabber = new Grabber(robotMap);
-        lifter = new Lifter(robotMap);
+ //       lifter = new Lifter(robotMap);
     }
 
     // === Modes ===
@@ -65,7 +65,7 @@ public class Robot extends TimedRobot {
     public void autonomousInit() {
         arm.init();
         wrist.init();
-        cameraManager.init();
+//        cameraManager.init();
     }
 
     @Override
@@ -93,9 +93,9 @@ public class Robot extends TimedRobot {
         arm.stop();
         wrist.stop();
         grabber.stop();
-        lifter.stop();
-        mapper.stop();
-        cameraManager.stop();
+//        lifter.stop();
+//        mapper.stop();
+//        cameraManager.stop();
     }
 
     public void run() {
@@ -108,9 +108,9 @@ public class Robot extends TimedRobot {
             arm.setFacing(operator.armFacingToggleButton.toggleOn());
         }
 
-        // get any informational component changes
-        cameraManager.run();
-        mapper.run();
+        // // get any informational component changes
+        // cameraManager.run();
+        // mapper.run();
 
         if (this.isAutonomous() || this.isOperatorControl()) {
             // arm height
@@ -168,10 +168,10 @@ public class Robot extends TimedRobot {
             //     drive.assistStraight();
             // }
 
-            // assist in turning to target?
-            if (operator.driveXboxController.getBumper(Hand.kRight)) {
-                drive.assistRotation(mapper.getVector());
-            }
+            // // assist in turning to target?
+            // if (operator.driveXboxController.getBumper(Hand.kRight)) {
+            //     drive.assistRotation(mapper.getVector());
+            // }
         }
 
         if (this.isTest() || this.isAutonomous() || this.isOperatorControl()) {
@@ -181,22 +181,24 @@ public class Robot extends TimedRobot {
             // POV moves wrist manually overwriting previous position selection - only to correct for placing
             wrist.moveManual(-operator.armXboxController.getY(Hand.kRight));
 
-            // handle lifting by overloading the drive controller
-            if (operator.driveXboxController.getStartButton()) {
-                lifter.setLiftingActive();
-            }
-            if (operator.driveXboxController.getYButton()) {
-                lifter.setMaroonActive();
-            }
-            if (operator.driveXboxController.getXButton()) {
-                lifter.setGoldActive();
-            }
-            if (lifter.getLiftingActive()) {
-                lifter.move(Geometry.getYFromAngle(operator.driveXboxController.getPOV()));
-            } 
-            if (operator.driveXboxController.getBackButton()) {
-                lifter.stop();
-            }
+            // // handle lifting by overloading the drive controller
+            // if (operator.driveXboxController.getStartButton()) {
+            //     lifter.setLiftingActive();
+            // }
+            // if (operator.driveXboxController.getYButton()) {
+            //     lifter.setMaroonActive();
+            // }
+            // if (operator.driveXboxController.getXButton()) {
+            //     lifter.setGoldActive();
+            // }
+            // if (lifter.getLiftingActive()) {
+            //    if (operator.driveXboxController.getPOV() != -1) {
+            //        lifter.move(Geometry.getYFromAngle(operator.driveXboxController.getPOV()));
+            //    }
+            // } 
+            // if (operator.driveXboxController.getBackButton()) {
+            //     lifter.stop();
+            // }
         }
 
         // apply component changes in order
@@ -204,7 +206,7 @@ public class Robot extends TimedRobot {
         arm.run();
         wrist.run();
         grabber.run();
-        lifter.run();
+//        lifter.run();
 
         putTelemetry();
     }

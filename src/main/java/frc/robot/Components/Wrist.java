@@ -17,8 +17,8 @@ public class Wrist {
     private Arm arm;
 
     // equipment
-    private SpeedController controller;                // controller for moving the joint
-    private GenericEncoder encoder;                 // counts clicks of rotation for the joint 
+    private SpeedController controller;             // controller for moving the joint
+    private CANEncoder2 encoder;                    // counts clicks of rotation for the joint 
     private DigitalInput limitSwitch;               // determines when we're going to turn too far
                                                     
     // start condition
@@ -45,8 +45,9 @@ public class Wrist {
     // Constructor holds onto motor controller and sensor references
     public Wrist(RobotMap robotMap, Arm arm) {
         controller = robotMap.wristSpeedController;
-        ((MotorSafety)controller).setExpiration(RobotMap.safetyExpiration);
-        ((MotorSafety)controller).setSafetyEnabled(true);
+        
+        //((MotorSafety)controller).setExpiration(RobotMap.safetyExpiration);
+        //((MotorSafety)controller).setSafetyEnabled(true);
 
         encoder = robotMap.wristEncoder;
     }
