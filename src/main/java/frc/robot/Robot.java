@@ -87,6 +87,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void testPeriodic() {
+        run();
     }
 
     // === Executing per Period ===
@@ -118,6 +119,22 @@ public class Robot extends TimedRobot {
         // // get any informational component changes
         // cameraManager.run();
         // mapper.run();
+
+
+        if (this.isAutonomous() || this.isOperatorControl()) {
+            // driver set up default move - may be overwritten by other elements
+            drive.move(-operator.driveXboxController.getY(Hand.kLeft), operator.driveXboxController.getX(Hand.kRight), false);
+
+            // // assist in straight driving? add turbo function?
+            // if (operator.driveXboxController.getBumper(Hand.kLeft)) {
+            //     drive.assistStraight();
+            // }
+
+            // // assist in turning to target?
+            // if (operator.driveXboxController.getBumper(Hand.kRight)) {
+            //     drive.assistRotation(mapper.getVector());
+            // }
+        }
 
         if (this.isAutonomous() || this.isOperatorControl()) {
             // arm height
@@ -158,19 +175,6 @@ public class Robot extends TimedRobot {
                 arm.moveRocketHatch3(arm.getFacingNormal());
                 wrist.moveAligned();
             }
-
-            // driver set up default move - may be overwritten by other elements
-            drive.move(-operator.driveXboxController.getY(Hand.kLeft), operator.driveXboxController.getX(Hand.kRight), false);
-
-            // // assist in straight driving? add turbo function?
-            // if (operator.driveXboxController.getBumper(Hand.kLeft)) {
-            //     drive.assistStraight();
-            // }
-
-            // // assist in turning to target?
-            // if (operator.driveXboxController.getBumper(Hand.kRight)) {
-            //     drive.assistRotation(mapper.getVector());
-            // }
         }
 
         if (this.isTest() || this.isAutonomous() || this.isOperatorControl()) {
@@ -179,7 +183,25 @@ public class Robot extends TimedRobot {
 
             // POV moves wrist manually overwriting previous position selection - only to correct for placing
             wrist.moveManual(-operator.armXboxController.getY(Hand.kRight));
+        }
 
+        if (this.isTest() || this.isAutonomous() || this.isOperatorControl()) {
+            if (operator.armXboxController.getBumper(Hand.kRight)) {
+                grabber.expell();
+            } else if (operator.armXboxController.getBumper(Hand.kLeft)) {
+                grabber.intake();
+            } else {
+                grabber.hold();
+            }
+            if (operator.armXboxController.getXButton()) {
+                grabber.openCargo();
+            }
+            if (operator.armXboxController.getYButton()) {
+                grabber.close();
+            }
+        }
+
+        if (this.isTest() || this.isAutonomous() || this.isOperatorControl()) {
             // // handle lifting by overloading the drive controller
             // if (operator.driveXboxController.getStartButton()) {
             //     lifter.setLiftingActive();

@@ -44,7 +44,7 @@ public class RobotMap {
 
     final int grabberCan = 1;                       // 30amp / TalonSRX / 775 / CimSport 12:1
     final int rollerMaroonCan = 2;                  // 30amp / TalonSRX / 775 / CimSport 4:1
-    final int rollerBlackCan = 3;                    // 30amp / TalonSRX / 775 / CimSport 4:1
+    final int rollerBlackCan = 3;                   // 30amp / TalonSRX / 775 / CimSport 4:1
 
     // DIO Ports
     final int armLimitSwitchDio = 0;                // Rev Magnetic limit switch

@@ -76,6 +76,11 @@ public class Grabber {
         rollerPower = -.3d;
     }
 
+    // just hold when not intaking or expelling
+    public void hold() {
+        rollerPower = 0;
+    }
+
     // RUN is only place to set motor values
     public void run() {
         if (state != States.Stopped) {
