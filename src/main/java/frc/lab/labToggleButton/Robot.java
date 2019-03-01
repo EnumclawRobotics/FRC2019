@@ -11,7 +11,7 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 
 import common.instrumentation.*;
-import common.oiHelpers.ToggleButton;
+import common.oiHelpers.JoystickToggleButton;
 
 /**
  * Use for testing a Motor with a built in Encoder
@@ -20,13 +20,13 @@ import common.oiHelpers.ToggleButton;
 public class Robot extends TimedRobot {
   Telemetry telemetry = new Telemetry("Robot/LabToggleButton");  
 
-  ToggleButton toggleButton8;
+  JoystickToggleButton toggleButton8;
   Joystick joystick;
 
   @Override
   public void robotInit() {
     joystick = new Joystick(0);                                     // USB
-    toggleButton8 = new ToggleButton(joystick, 8, .5d);            // joystick, raw Button number, and debounce period
+    toggleButton8 = new JoystickToggleButton(joystick, 8, .5d);            // joystick, raw Button number, and debounce period
   }
 
    /*

@@ -44,12 +44,10 @@ public class Wrist {
 
     // Constructor holds onto motor controller and sensor references
     public Wrist(RobotMap robotMap, Arm arm) {
-        controller = robotMap.wristSpeedController;
-        
-        //((MotorSafety)controller).setExpiration(RobotMap.safetyExpiration);
-        //((MotorSafety)controller).setSafetyEnabled(true);
-
-        encoder = robotMap.wristEncoder;
+        this.controller = robotMap.wristSpeedController;
+        this.encoder = robotMap.wristEncoder;
+        this.limitSwitch = robotMap.wristLimitSwitch;
+        this.arm = arm;
     }
 
     // assumes we will not move the wrist after this and before the start of autonomous 
@@ -84,9 +82,9 @@ public class Wrist {
     public void moveManual(double move) {
         if (state != States.MovingManual) {
             targetAngle = angleFromClicks(encoder.get());    
+            state = States.MovingManual; 
         }
         targetAngle += (arm.getFacingNormal() ? move : - move);
-        state = States.MovingManual; 
     }
 
     // keep wrist straight aligned with arm

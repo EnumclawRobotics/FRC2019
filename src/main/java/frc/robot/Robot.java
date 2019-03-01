@@ -1,11 +1,14 @@
 package frc.robot;
 
+import common.instrumentation.Telemetry;
 import common.util.Geometry;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import frc.robot.Components.*;
 
 public class Robot extends TimedRobot {
+    private Telemetry telemetry = new Telemetry("Robot");
+    
     private RobotMap robotMap;
 
 //    private CameraManager cameraManager;
@@ -99,13 +102,17 @@ public class Robot extends TimedRobot {
     }
 
     public void run() {
-        // get situation changes
+        // get changes in situation
         if (this.isAutonomous() || this.isOperatorControl()) {
             // drive facing
-            drive.setFacing(operator.driveFacingToggleButton.toggleOn());
+            if (operator.driveXboxController.getYButton()) {
+                drive.setFacing(true);
+            } else if (operator.driveXboxController.getXButton()) {
+                drive.setFacing(false);
+            }
 
             // arm facing
-            arm.setFacing(operator.armFacingToggleButton.toggleOn());
+            arm.setFacing(arm.getAngle() < 180);
         }
 
         // // get any informational component changes
@@ -151,14 +158,6 @@ public class Robot extends TimedRobot {
                 arm.moveRocketHatch3(arm.getFacingNormal());
                 wrist.moveAligned();
             }
-            // if (operator.hatchShipButton.get()) {
-            //     arm.moveShipHatch(arm.getFacingNormal());
-            //     wrist.moveAligned();
-            // }
-            // if (operator.hatchStationButton.get()) {
-            //     arm.moveStationHatch(arm.getFacingNormal());
-            //     wrist.moveAligned();
-            // }
 
             // driver set up default move - may be overwritten by other elements
             drive.move(-operator.driveXboxController.getY(Hand.kLeft), operator.driveXboxController.getX(Hand.kRight), false);
@@ -176,7 +175,7 @@ public class Robot extends TimedRobot {
 
         if (this.isTest() || this.isAutonomous() || this.isOperatorControl()) {
             // joystick moves arm manually overwriting previous height selection - only to correct for placing
-            arm.moveManual(-operator.armXboxController.getY(Hand.kLeft), arm.getFacingNormal());
+            arm.moveManual(-operator.armXboxController.getY(Hand.kLeft));
 
             // POV moves wrist manually overwriting previous position selection - only to correct for placing
             wrist.moveManual(-operator.armXboxController.getY(Hand.kRight));
@@ -212,5 +211,6 @@ public class Robot extends TimedRobot {
     }
 
     private void putTelemetry() {
+        telemetry.putString("Version", "1.0.0");
     }
 }

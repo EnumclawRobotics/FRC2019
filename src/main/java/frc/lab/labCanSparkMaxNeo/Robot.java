@@ -7,9 +7,8 @@
 
 package frc.lab.labCanSparkMaxNeo;
 
-import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.Timer;
 
 import com.revrobotics.*;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
@@ -24,14 +23,13 @@ public class Robot extends TimedRobot {
   Telemetry telemetry = new Telemetry("Robot/LabMotorEncoder");  
 
   double debounceTarget = 0; 
-  int deviceId = 3;
+  int deviceId = 1;
   CANEncoder quadratureEncoder;
   CANSparkMax motorController;
-  Joystick joystick = new Joystick(0);
+  XboxController xboxController = new XboxController(0);
 
   @Override
   public void robotInit() {
-    joystick = new Joystick(0);                 // USB
   }
 
    /*
@@ -40,21 +38,6 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotPeriodic() {
-    // if not teleop then allow user to cycle the CAN device id by clicking the trigger
-    if (!this.isOperatorControl()) {
-      if (joystick.getRawButton(1)) {
-        if (Timer.getFPGATimestamp() >= debounceTarget) {
-          debounceTarget = Timer.getFPGATimestamp() + .5;
-          if (deviceId > 9) {
-            deviceId = 1;
-          } else {
-            deviceId ++;
-          }
-        }
-      }
-    }
-  
-    putTelemetry();
   }
 
   @Override
@@ -76,18 +59,18 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
-    motorController.set(-joystick.getY());
+    motorController.set(-xboxController.getY());
     putTelemetry();
   }
 
   private void putTelemetry() {
     telemetry.putDouble("Device ID", deviceId);
-    telemetry.putDouble("Joystick.getY", joystick.getY());
+    telemetry.putDouble("Joystick.getY", -xboxController.getY());
     if (quadratureEncoder != null) {
       telemetry.putDouble("Encoder Position", quadratureEncoder.getPosition());
       telemetry.putDouble("Encoder Velocity", quadratureEncoder.getVelocity());
     }
-    telemetry.putString("Version", "1.0.1");
+    telemetry.putString("Version", "1.0.2");
   }
 
 }

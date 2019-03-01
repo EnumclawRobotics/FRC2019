@@ -2,22 +2,17 @@ package frc.robot;
 
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.wpilibj.VictorSP;
-//import edu.wpi.first.wpilibj.SpeedControllerGroup;
 //import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.Joystick;
-//import edu.wpi.first.wpilibj.PWMVictorSPX;
-//import edu.wpi.first.wpilibj.Spark;
-//import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.cameraserver.*;
 import edu.wpi.cscore.UsbCamera;
 
 import frc.robot.Components.*;
 import common.i2cSensors.*;
 
-import com.revrobotics.*;
-import com.revrobotics.CANEncoder;
+import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import common.pixy2Api.*;
@@ -177,7 +172,7 @@ public class RobotMap {
         // wrist
         wristSpeedController =  new CANSparkMax(wristCan, MotorType.kBrushless);
         wristEncoder = new CANEncoder2(wristSpeedController);
- //       wristLimitSwitch = new DigitalInput(wristLimitSwitchDio);
+        wristLimitSwitch = new DigitalInput(wristLimitSwitchDio);
 
         // grabber
         grabberSpeedController = new CANTalonSRX(grabberCan);

@@ -15,7 +15,7 @@ public class Arm {
 
     // parts of this subsystem
     private SpeedController speedController;
-    private CANEncoder2 encoder; 
+    private CANEncoder2 encoder;
     private DigitalInput limitSwitch; 
     
     // set through command
@@ -91,16 +91,20 @@ public class Arm {
         this.facingNormal = facingNormal;
     }
 
-    public void moveManual(double move, boolean facingNormal) {
+    public void moveManual(double power) {
         state = States.MovingManual;
-        if (targetHeight < FieldMap.heightFloorCargo) {
-            targetHeight = FieldMap.heightFloorCargo;
-        } else if (targetHeight > FieldMap.heightRocketCargo3) {
-            targetHeight = FieldMap.heightRocketCargo3;
-        } else {
-            targetHeight += move;     
-        }
-        this.facingNormal = facingNormal;
+
+        this.power = power;
+
+        // if (targetHeight < FieldMap.heightFloorCargo) {
+        //     targetHeight = FieldMap.heightFloorCargo;
+        // } else if (targetHeight > FieldMap.heightRocketCargo3) {
+        //     targetHeight = FieldMap.heightRocketCargo3;
+        // } else {
+        //     targetHeight += move;     
+        // }
+        // this.facingNormal = facingNormal;
+
     }
 
     public void moveRocketHatch1(boolean facingNormal) {
@@ -165,24 +169,26 @@ public class Arm {
 
     public void run() {
         if (state != States.Stopped) {
-            // current angle implies how much force gravity applies and so what we need to make neutral
-            double angle = getAngle();
-            feedForward = Geometry.gravity(angle) * RobotMap.armFeedForwardFactor;
+            if (state != States.MovingManual) {
+                // current angle implies how much force gravity applies and so what we need to make neutral
+                double angle = getAngle();
+                feedForward = Geometry.gravity(angle) * RobotMap.armFeedForwardFactor;
 
-            // moving to a height
-            targetAngle = angleFromHeight(targetHeight, facingNormal);
-            targetClicks = clicksFromAngle(targetAngle);
+                // moving to a height
+                targetAngle = angleFromHeight(targetHeight, facingNormal);
+                targetClicks = clicksFromAngle(targetAngle);
 
-            // apply an (P)id error correction
-            double errorClicks = targetClicks - encoder.get();
-            double correctionP = errorClicks * RobotMap.armKpFactor;
-            power = Geometry.clip(feedForward + correctionP, -1, 1);
+                // apply an (P)id error correction
+                double errorClicks = targetClicks - encoder.get();
+                double correctionP = errorClicks * RobotMap.armKpFactor;
+                power = Geometry.clip(feedForward + correctionP, -1, 1);
 
-            // is limit switch saying we are going too far?
-            if (limitSwitch.get() 
-                && ((angle > 180 && power > 0)                  // opposite side too far 
-                    || (angle < 180 && power < 0))) {           // normal side too far
-                power = 0;
+                // is limit switch saying we are going too far?
+                if (limitSwitch.get() 
+                    && ((angle > 180 && power > 0)                  // opposite side too far 
+                        || (angle < 180 && power < 0))) {           // normal side too far
+                    power = 0;
+                }
             }
 
             // set the power on the motors
@@ -200,7 +206,7 @@ public class Arm {
         telemetry.putDouble("TargetAngle", targetAngle);
         telemetry.putDouble("TargetClicks", targetClicks);
         telemetry.putDouble("FeedForward", feedForward);
-        telemetry.putString("Version", "1.0.0");
+        telemetry.putString("Version", "1.1.0");
     }
 
     // === Helpers ===

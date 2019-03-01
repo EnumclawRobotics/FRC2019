@@ -2,7 +2,7 @@
 package frc.robot.Components;
 
 import common.instrumentation.Telemetry;
-import common.oiHelpers.ToggleButton;
+import common.oiHelpers.XboxToggleButton;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.buttons.JoystickButton;
@@ -13,10 +13,7 @@ public class Operator {
     Telemetry telemetry = new Telemetry("Robot/Operator");
     
     public XboxController driveXboxController;
-    public ToggleButton driveFacingToggleButton;
-    
     public XboxController armXboxController; 
-    public ToggleButton armFacingToggleButton;
     public Joystick armButtons; 
 
     private final int cargoFloorButtonNumber = 7;
@@ -47,11 +44,8 @@ public class Operator {
     
     public Operator(RobotMap robotMap) {
 
-        driveXboxController = robotMap.driveXboxController;
-//        driveFacingToggleButton = new ToggleButton(robotMap.driveXboxController, 2);        // Y? reverses direction
-        
+        driveXboxController = robotMap.driveXboxController;        
         armXboxController = robotMap.armXboxController;
-//        armFacingToggleButton = new ToggleButton(armJoystick, 2);        // thumb? reverses direction
         armButtons = robotMap.armButtons;
         
         cargoFloorButton = new JoystickButton(armButtons, cargoFloorButtonNumber);
@@ -69,7 +63,6 @@ public class Operator {
     }
 
     public void putTelemetry() {
-        telemetry.putBoolean("Drive Facing (toggle)", driveFacingToggleButton.toggleOn());
         telemetry.putDouble("Speed (forward|back)", driveXboxController.getY());
         telemetry.putDouble("Turn (left|right)", driveXboxController.getX());
         telemetry.putBoolean("Cargo Floor", cargoFloorButton.get());

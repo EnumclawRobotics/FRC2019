@@ -44,8 +44,8 @@ public class Drive {
     
     public Drive(RobotMap robotMap) {
         // we need to invert the right hand side motors
-        robotMap.driveRightMaroonSpeedController.setInverted(true);
-        robotMap.driveRightBlackSpeedController.setInverted(true);
+//        robotMap.driveRightMaroonSpeedController.setInverted(true);
+//        robotMap.driveRightBlackSpeedController.setInverted(true);
 
         // set up drive
         differentialDrive = new DifferentialDrive(new SpeedControllerGroup(robotMap.driveLeftMaroonSpeedController, 
@@ -54,8 +54,8 @@ public class Drive {
                                                                             robotMap.driveRightBlackSpeedController));
 
         // ensure that motors get stopped if runaway
-        differentialDrive.setExpiration(RobotMap.safetyExpiration);
-        differentialDrive.setSafetyEnabled(true);
+//        differentialDrive.setExpiration(RobotMap.safetyExpiration);
+//        differentialDrive.setSafetyEnabled(true);
 
         // gyro = robotMap.driveGyro;
         stop();

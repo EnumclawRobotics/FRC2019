@@ -12,7 +12,7 @@ import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.TimedRobot;
 
 import common.instrumentation.*;
-import common.oiHelpers.ToggleButton;
+import common.oiHelpers.JoystickToggleButton;
 
 /**
  * Use for testing a Motor with a built in Encoder
