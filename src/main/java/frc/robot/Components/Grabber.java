@@ -18,14 +18,14 @@ public class Grabber {
     States state = States.Stopped;
     SpeedController grabber;
     double grabberPower;
-    double moveExpiration = 0;
+ //   double moveExpiration = 0;
 
     SpeedController rollerMaroonSpeedController;
     SpeedController rollerBlackSpeedController;
     double rollerPower;
 
     public enum States {
-        Stopped, OpeningHatch, OpeningCargo, Closing
+        Stopped, OpeningHatch, OpeningCargo, Closing, Gripping
     }
 
     public States getState() {
@@ -44,20 +44,25 @@ public class Grabber {
     // === Executing per Period ===
     public void openHatch() {
         this.state = States.OpeningHatch;
-        grabberPower = .5d;
-        moveExpiration = Timer.getFPGATimestamp() + .5;
+        grabberPower = -.5d;
+//        moveExpiration = Timer.getFPGATimestamp() + .5d;
     }
 
     public void openCargo() {
         this.state = States.OpeningCargo;
-        grabberPower = .5d;
-        moveExpiration = Timer.getFPGATimestamp() + .75;
+        grabberPower = -.5d;
+//        moveExpiration = Timer.getFPGATimestamp() + .75d;
     }
+
+    public void grip() {
+        this.state = States.Gripping;
+        grabberPower = 0d;
+    } 
 
     public void close() {
         state = States.Stopped;
-        grabberPower = -.5d;
-        moveExpiration = Timer.getFPGATimestamp() + .75;
+        grabberPower = .5d;
+//        moveExpiration = Timer.getFPGATimestamp() + .75d;
     }
 
     public void stop() {
@@ -84,9 +89,10 @@ public class Grabber {
     // RUN is only place to set motor values
     public void run() {
         if (state != States.Stopped) {
-            if (Timer.getFPGATimestamp() > moveExpiration) {
-                grabberPower = .1d;    // holding power
-            }
+            // if (Timer.getFPGATimestamp() > moveExpiration) {
+            //     //grabberPower = .1d;    // holding power
+            //     grabberPower = 0d;
+            // }
 
             grabber.set(grabberPower);
             rollerMaroonSpeedController.set(rollerPower);

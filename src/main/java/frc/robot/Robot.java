@@ -194,10 +194,11 @@ public class Robot extends TimedRobot {
                 grabber.hold();
             }
             if (operator.armXboxController.getXButton()) {
-                grabber.openCargo();
-            }
-            if (operator.armXboxController.getYButton()) {
                 grabber.close();
+            } else if (operator.armXboxController.getYButton()) {
+                grabber.openCargo();
+            } else {
+                grabber.grip();
             }
         }
 

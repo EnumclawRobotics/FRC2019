@@ -8,10 +8,12 @@
 package frc.lab.labCanSparkMaxNeo;
 
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.TimedRobot;
 
-import com.revrobotics.*;
+import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import com.revrobotics.CANEncoder;
 
 import common.instrumentation.*;
 
@@ -20,13 +22,14 @@ import common.instrumentation.*;
  * Joystick forward and back should turn it
  */
 public class Robot extends TimedRobot {
-  Telemetry telemetry = new Telemetry("Robot/LabMotorEncoder");  
+  Telemetry telemetry = new Telemetry("Robot/LabCanSparkMaxNeo");  
 
   double debounceTarget = 0; 
-  int deviceId = 1;
+  int deviceId = 6;
   CANEncoder quadratureEncoder;
   CANSparkMax motorController;
   XboxController xboxController = new XboxController(0);
+  double power;
 
   @Override
   public void robotInit() {
@@ -59,18 +62,20 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
-    motorController.set(-xboxController.getY());
+    power = -xboxController.getY(Hand.kLeft);
+    motorController.set(power);
+
     putTelemetry();
   }
 
   private void putTelemetry() {
     telemetry.putDouble("Device ID", deviceId);
-    telemetry.putDouble("Joystick.getY", -xboxController.getY());
+    telemetry.putDouble("-Joystick(0).getY(Left)", power);
     if (quadratureEncoder != null) {
       telemetry.putDouble("Encoder Position", quadratureEncoder.getPosition());
       telemetry.putDouble("Encoder Velocity", quadratureEncoder.getVelocity());
     }
-    telemetry.putString("Version", "1.0.2");
+    telemetry.putString("Version", "1.0.3");
   }
 
 }

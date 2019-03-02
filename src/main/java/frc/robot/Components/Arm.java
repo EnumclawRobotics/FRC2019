@@ -168,33 +168,33 @@ public class Arm {
     }
 
     public void run() {
-        if (state != States.Stopped) {
-            if (state != States.MovingManual) {
-                // current angle implies how much force gravity applies and so what we need to make neutral
-                double angle = getAngle();
-                feedForward = Geometry.gravity(angle) * RobotMap.armFeedForwardFactor;
+        // if (state != States.Stopped) {
+        //     if (state != States.MovingManual) {
+        //         // current angle implies how much force gravity applies and so what we need to make neutral
+        //         double angle = getAngle();
+        //         feedForward = Geometry.gravity(angle) * RobotMap.armFeedForwardFactor;
 
-                // moving to a height
-                targetAngle = angleFromHeight(targetHeight, facingNormal);
-                targetClicks = clicksFromAngle(targetAngle);
+        //         // moving to a height
+        //         targetAngle = angleFromHeight(targetHeight, facingNormal);
+        //         targetClicks = clicksFromAngle(targetAngle);
 
-                // apply an (P)id error correction
-                double errorClicks = targetClicks - encoder.get();
-                double correctionP = errorClicks * RobotMap.armKpFactor;
-                power = Geometry.clip(feedForward + correctionP, -1, 1);
+        //         // apply an (P)id error correction
+        //         double errorClicks = targetClicks - encoder.get();
+        //         double correctionP = errorClicks * RobotMap.armKpFactor;
+        //         power = Geometry.clip(feedForward + correctionP, -1, 1);
 
-                // is limit switch saying we are going too far?
-                if (limitSwitch.get() 
-                    && ((angle > 180 && power > 0)                  // opposite side too far 
-                        || (angle < 180 && power < 0))) {           // normal side too far
-                    power = 0;
-                }
-            }
+        //         // is limit switch saying we are going too far?
+        //         if (limitSwitch.get() 
+        //             && ((angle > 180 && power > 0)                  // opposite side too far 
+        //                 || (angle < 180 && power < 0))) {           // normal side too far
+        //             power = 0;
+        //         }
+        //     }
 
             // set the power on the motors
             speedController.set(power);
             putTelemetry();
-        }
+//        }
     }
 
     private void putTelemetry() {
