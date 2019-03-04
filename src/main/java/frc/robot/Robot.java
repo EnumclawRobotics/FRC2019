@@ -111,9 +111,6 @@ public class Robot extends TimedRobot {
             } else if (operator.driveXboxController.getXButton()) {
                 drive.setFacing(false);
             }
-
-            // arm facing
-            arm.setFacing(arm.getAngle() < 180);
         }
 
         // // get any informational component changes
@@ -139,40 +136,40 @@ public class Robot extends TimedRobot {
         if (this.isAutonomous() || this.isOperatorControl()) {
             // arm height
             if (operator.cargoFloorButton.get()) {
-                arm.moveFloorCargo(arm.getFacingNormal());
+                arm.moveFloorCargo();
                 wrist.moveAligned();
             }
             if (operator.cargoRocket1Button.get()) {
-                arm.moveRocketCargo1(arm.getFacingNormal());
+                arm.moveRocketCargo1();
                 wrist.moveAligned();
             }
             if (operator.cargoRocket2Button.get()) {
-                arm.moveRocketCargo2(arm.getFacingNormal());
+                arm.moveRocketCargo2();
                 wrist.moveAligned();
             }
             if (operator.cargoRocket3Button.get()) {
-                arm.moveRocketCargo3(arm.getFacingNormal());
+                arm.moveRocketCargo3();
                 wrist.moveAligned();
             }
             if (operator.cargoShipButton.get()) {
-                arm.moveShipCargo(arm.getFacingNormal());
+                arm.moveShipCargo();
                 wrist.moveAligned();
             }
             if (operator.cargoStationButton.get()) {
-                arm.moveStationCargo(arm.getFacingNormal());
+                arm.moveStationCargo();
                 wrist.moveAligned();
             }
 
             if (operator.hatchRocket1Button.get()) {
-                arm.moveRocketHatch1(arm.getFacingNormal());
+                arm.moveRocketHatch1();
                 wrist.moveAligned();
             }
             if (operator.hatchRocket2Button.get()) {
-                arm.moveRocketHatch2(arm.getFacingNormal());
+                arm.moveRocketHatch2();
                 wrist.moveAligned();
             }
             if (operator.hatchRocket3Button.get()) {
-                arm.moveRocketHatch3(arm.getFacingNormal());
+                arm.moveRocketHatch3();
                 wrist.moveAligned();
             }
         }

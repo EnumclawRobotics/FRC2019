@@ -72,20 +72,25 @@ public class RobotMap {
     public final static double safetyExpiration = .25d;
 
     // arm geometries (in inches)
-    public final static double armLength = 19d; 
-    public final static double armPivotHeight = 37.25d;
-    public final static double armFeedForwardFactor = 0d;                     // hold at horizontal power. find by testing
-    public final static double armKpFactor = .1d;                             // PID kP correction factor 
-    public final static double armEncoderClicksPerDegree = 4200d/360d;        // NEO gearbox output shaft include gear reduction  
-    public final static double armStartDegree = 5d;                           // starting angle for arm  
+    public final static double armPivotHeight = 37.25d;                     // pivot above ground
+    public final static double armLength = 19d;                             // pivot to pivot
+    public final static double armRampFactor = .04;                         // ramp change power limit per cycle (50hz) 
+    public final static double armFeedForwardFactor = 0d;                   // hold at horizontal power. find by testing
+    public final static double armKpFactor = 0;                             // PID kP correction factor 
+    public final static double armKiFactor = 0;                             // PID kI correction factor 
+    public final static double armKdFactor = 0;                             // PID kD correction factor 
+    public final static double armEncoderClicksPerDegree = 4200d/360d;      // NEO gearbox output shaft include gear reduction  
+    public final static double armStowedAngle = 5d;                         // starting angle for arm  
 
     // wrist
     public final static double wristLength = 7.75d; 
-    public final static double wristEncoderClicksPerDegree = 4200d/360d;      // NEO gearbox output shaft include gear reduction
-    public final static double wristFeedForwardFactor = 0d;                   // hold at horizontal power. find by testing
-    public final static double wristKpFactor = .5d;                           // PID kP correction factor
-    public final static double wristHeldAngle = 10d;                          // angle to fold back the grabber for protection
-    public final static double wristStartDegree = 5d;                         // starting angle for wrist
+    public final static double wristRampFactor = .04d;                      // ramp change power limit per cycle (50hz)
+    public final static double wristFeedForwardFactor = 0d;                 // hold at horizontal power. find by testing
+    public final static double wristKpFactor = 0;                           // PID kP correction factor
+    public final static double wristKiFactor = 0;                           // PID kI correction factor
+    public final static double wristKdFactor = 0;                           // PID kD correction factor
+    public final static double wristEncoderClicksPerDegree = 4200d/360d;    // NEO gearbox output shaft include gear reduction
+    public final static double wristStowedAngle = 5d;                       // angle to fold back the grabber for protection
 
     // grabber
     public final static double grabberLength = 10d;

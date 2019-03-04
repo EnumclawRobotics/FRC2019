@@ -4,30 +4,32 @@ import common.instrumentation.Telemetry;
 import common.util.Geometry;
 import edu.wpi.first.wpilibj.*;
 import frc.robot.*;
+import common.util.PID;
 
 /**
 * Arm/shoulder for holding up wrist 
 *  DESIGNED TO ONLY APPLY CHANGES IN RUN()
 */
 public class Arm {
+    PID pidController;
+
     // -- setup and cleanup ===
     private Telemetry telemetry = new Telemetry("Robot/Arm");
 
     // parts of this subsystem
-    private SpeedController speedController;
+    private RampSpeedController speedController;
     private CANEncoder2 encoder;
     private DigitalInput limitSwitch; 
     
-    // set through command
+    // set/derived through command
     private double targetHeight = 0;
-    private boolean facingNormal = true;                // Seperate setting from which end is front on the bot 
+    private double targetAngle = 0;
+    private double targetClicks = 0;
 
     // set at autonomous init
     private double baseClicks = 0;
     
     // derived as needed and stored for reporting
-    private double targetAngle = 0;
-    private double targetClicks = 0;
     private double feedForward = 0;
     private double power = 0;
 
@@ -35,6 +37,7 @@ public class Arm {
 
     public enum States {
         Stopped,
+        MovingStowed,
         MovingManual,
         MovingFloorCargo, 
         MovingStationHatch, MovingStationCargo,
@@ -45,19 +48,23 @@ public class Arm {
 
     // Constructor that saves controller and sensor references
     public Arm(RobotMap robotMap) {
-        speedController = robotMap.armSpeedController; 
-
-        //((MotorSafety)speedController).setSafetyEnabled(true);
-        //((MotorSafety)speedController).setExpiration(RobotMap.safetyExpiration);
-
+        pidController = new PID(RobotMap.armKpFactor, RobotMap.armKiFactor, RobotMap.armKdFactor); 
+        speedController = new RampSpeedController(robotMap.armSpeedController, RobotMap.armRampFactor); 
         encoder = robotMap.armEncoder;
         limitSwitch = robotMap.armLimitSwitch;
 
         stop();
     }
 
+    // assumes that arm is Stowed at start of autonomous
     public void init() {
         baseClicks = encoder.get();
+
+        // zero out derived fields
+        targetClicks = 0;                        
+        feedForward = 0;
+        baseClicks = 0;
+        power = 0;
     }
 
     // not triggerable by user 
@@ -73,128 +80,117 @@ public class Arm {
         return state;
     }
 
-    public boolean getFacingNormal() {
-        return facingNormal;
-    }
-
     // degrees 0 - 360
     public double getAngle() {
-        return angleFromClicks(encoder.get());
+        return angleFromClicks(getClicks());
     }    
 
-    // degrees
-    public double getTargetAngle() {
-        return targetAngle;
-    }
-    
-    public void setFacing(boolean facingNormal) {
-        this.facingNormal = facingNormal;
+    // start side goes 0-180, 
+    public boolean getFacingNormal() {
+        return (getAngle() < 180);
     }
 
-    public void moveManual(double power) {
+    // encoder clicks
+    public double getClicks() {
+        return encoder.get();
+    }
+
+    public void moveStowed() {
+        state = States.MovingStowed;
+        targetHeight = -1;
+        targetClicks = (getFacingNormal() ? baseClicks : baseClicks + RobotMap.armEncoderClicksPerDegree * (360 - 2 * RobotMap.armStowedAngle));        
+    }
+
+    public void moveManual(double offsetClicks) {
         state = States.MovingManual;
-
-        this.power = power;
-
-        // if (targetHeight < FieldMap.heightFloorCargo) {
-        //     targetHeight = FieldMap.heightFloorCargo;
-        // } else if (targetHeight > FieldMap.heightRocketCargo3) {
-        //     targetHeight = FieldMap.heightRocketCargo3;
-        // } else {
-        //     targetHeight += move;     
-        // }
-        // this.facingNormal = facingNormal;
-
+        targetHeight = -1;
+        targetClicks = getClicks() + offsetClicks;
     }
 
-    public void moveRocketHatch1(boolean facingNormal) {
+    public void moveRocketHatch1() {
         state = States.MovingRocketHatch1;
         targetHeight = FieldMap.heightRocketHatch1;
-        this.facingNormal = facingNormal;
+        targetClicks = clicksFromAngle(targetAngle);
     }
-    public void moveRocketHatch2(boolean facingNormal) {
+    public void moveRocketHatch2() {
         state = States.MovingRocketHatch2;
         targetHeight = FieldMap.heightRocketHatch2;
-        this.facingNormal = facingNormal;
+        targetClicks = clicksFromAngle(targetAngle);
     }
-    public void moveRocketHatch3(boolean facingNormal) {
+    public void moveRocketHatch3() {
         state = States.MovingRocketHatch3;
         targetHeight = FieldMap.heightRocketHatch3;
-        this.facingNormal = facingNormal;
+        targetClicks = clicksFromAngle(targetAngle);
     }
 
-    public void moveRocketCargo1(boolean facingNormal) {
+    public void moveRocketCargo1() {
         state = States.MovingRocketCargo1;
         targetHeight = FieldMap.heightRocketCargo1;
-        this.facingNormal = facingNormal;
+        targetClicks = clicksFromAngle(targetAngle);
     }
-    public void moveRocketCargo2(boolean facingNormal) {
+
+    public void moveRocketCargo2() {
         state = States.MovingRocketCargo2;
         targetHeight = FieldMap.heightRocketCargo2;
-        this.facingNormal = facingNormal;
+        targetClicks = clicksFromAngle(targetAngle);
     }
-    public void moveRocketCargo3(boolean facingNormal) {
+    public void moveRocketCargo3() {
         state = States.MovingRocketCargo3;
         targetHeight = FieldMap.heightRocketCargo3;
-        this.facingNormal = facingNormal;
+        targetClicks = clicksFromAngle(targetAngle);
     }
 
-    public void moveFloorCargo(boolean facingNormal) {
+    public void moveFloorCargo() {
         state = States.MovingFloorCargo;
         targetHeight = FieldMap.heightFloorCargo;
-        this.facingNormal = facingNormal;
+        targetClicks = clicksFromAngle(targetAngle);
     }
 
-    public void moveStationHatch(boolean facingNormal) {
+    public void moveStationHatch() {
         state = States.MovingStationHatch;
         targetHeight = FieldMap.heightStationHatch;
-        this.facingNormal = facingNormal;
+        targetClicks = clicksFromAngle(targetAngle);
     }
-    public void moveStationCargo(boolean facingNormal) {
+    public void moveStationCargo() {
         state = States.MovingStationCargo;
         targetHeight = FieldMap.heightStationCargo;
-        this.facingNormal = facingNormal;
+        targetClicks = clicksFromAngle(targetAngle);
     }
 
-    public void moveShipHatch(boolean facingNormal) {
+    public void moveShipHatch() {
         state = States.MovingShipHatch;
         targetHeight = FieldMap.heightShipHatch;
-        this.facingNormal = facingNormal;
+        targetClicks = clicksFromAngle(targetAngle);
     }
-    public void moveShipCargo(boolean facingNormal) {
+    public void moveShipCargo() {
         state = States.MovingShipCargo;
         targetHeight = FieldMap.heightShipCargo;
-        this.facingNormal = facingNormal;
+        targetClicks = clicksFromAngle(targetAngle);
     }
 
     public void run() {
-        // if (state != States.Stopped) {
-        //     if (state != States.MovingManual) {
-        //         // current angle implies how much force gravity applies and so what we need to make neutral
-        //         double angle = getAngle();
-        //         feedForward = Geometry.gravity(angle) * RobotMap.armFeedForwardFactor;
+        // current angle implies how much force gravity applies and so what we need to make neutral
+        double angle = getAngle();
+        feedForward = Geometry.gravity(angle) * RobotMap.armFeedForwardFactor;
 
-        //         // moving to a height
-        //         targetAngle = angleFromHeight(targetHeight, facingNormal);
-        //         targetClicks = clicksFromAngle(targetAngle);
+        // get PID output that is best to go towards the target clicks
+        power = pidController.update(targetClicks, encoder.get());      
 
-        //         // apply an (P)id error correction
-        //         double errorClicks = targetClicks - encoder.get();
-        //         double correctionP = errorClicks * RobotMap.armKpFactor;
-        //         power = Geometry.clip(feedForward + correctionP, -1, 1);
+        // add in bias and reduce the power to the allowed range
+        // power = Geometry.clip(feedForward + power, -1, 1);
+        // **** be safe for now until we get the settings right ***
+        power = Geometry.clip(power, -.1, .1);
 
-        //         // is limit switch saying we are going too far?
-        //         if (limitSwitch.get() 
-        //             && ((angle > 180 && power > 0)                  // opposite side too far 
-        //                 || (angle < 180 && power < 0))) {           // normal side too far
-        //             power = 0;
-        //         }
-        //     }
+        // is limit switch saying we are going too far?
+        if (limitSwitch.get() && 
+                ((angle > 180 && power > 0)                  // opposite side too far 
+                || (angle < 180 && power < 0))) {           // normal side too far
+            power = 0;
+        }
 
-            // set the power on the motors
-            speedController.set(power);
-            putTelemetry();
-//        }
+        // set the power on the motors
+        speedController.set(power);
+        putTelemetry();
     }
 
     private void putTelemetry() {
@@ -206,7 +202,7 @@ public class Arm {
         telemetry.putDouble("TargetAngle", targetAngle);
         telemetry.putDouble("TargetClicks", targetClicks);
         telemetry.putDouble("FeedForward", feedForward);
-        telemetry.putString("Version", "1.1.0");
+        telemetry.putString("Version", "1.0.0");
     }
 
     // === Helpers ===
@@ -216,7 +212,7 @@ public class Arm {
         return (((double)(clicks - baseClicks)) / RobotMap.armEncoderClicksPerDegree);
     }
     
-    // given a target angle figure out target clicks  
+    // given a target angle figure out target clicks
     private double clicksFromAngle(double angle) {
         return (angle * RobotMap.armEncoderClicksPerDegree) + baseClicks;
     }

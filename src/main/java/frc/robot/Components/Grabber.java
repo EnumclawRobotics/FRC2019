@@ -44,13 +44,13 @@ public class Grabber {
     // === Executing per Period ===
     public void openHatch() {
         this.state = States.OpeningHatch;
-        grabberPower = -.5d;
-//        moveExpiration = Timer.getFPGATimestamp() + .5d;
+        grabberPower = -.75d;
+//        moveExpiration = Timer.getFPGATimestamp() + .75d;
     }
 
     public void openCargo() {
         this.state = States.OpeningCargo;
-        grabberPower = -.5d;
+        grabberPower = -.75d;
 //        moveExpiration = Timer.getFPGATimestamp() + .75d;
     }
 
@@ -61,7 +61,7 @@ public class Grabber {
 
     public void close() {
         state = States.Stopped;
-        grabberPower = .5d;
+        grabberPower = .75d;
 //        moveExpiration = Timer.getFPGATimestamp() + .75d;
     }
 
