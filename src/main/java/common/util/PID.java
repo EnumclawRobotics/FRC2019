@@ -27,18 +27,18 @@ public class PID {
         double currentTime = Timer.getFPGATimestamp();
         double iterationTime = (priorTime == 0 ? .02 : currentTime - priorTime); 
 
-        // accumulate error - zeroed if we just overshot to eliminate any windup
+        // accumulate error - reset to current if we just overshot in order to throw away any windup
         double currentError = desired - actual;
         if (Math.signum(currentError) != Math.signum(priorError)) {
-            integral = 0;
+            integral = currentError;
         }
         integral = integral + (currentError * iterationTime);
         
         // future estimate based on most recent performance
         double derivative = (iterationTime != 0) ? (currentError - priorError)/iterationTime : 0;
 
-        // output based on experimented values
-        output = kP*currentError + kI*integral + kD*derivative;
+        // output based on experimented values - (proportional + accumulated error - future expected as a brake)
+        output = kP*currentError + kI*integral - kD*derivative;
         
         // update tracked values
         priorError = currentError;
