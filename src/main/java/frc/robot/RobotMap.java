@@ -13,6 +13,7 @@ import frc.robot.Components.*;
 import common.i2cSensors.*;
 
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import common.pixy2Api.*;
@@ -37,14 +38,16 @@ public class RobotMap {
     final int driveRightMaroonCan = 3;              // 40amp / VictorSPX / CIM / ToughBox
     final int driveRightBlackCan = 4;                // 40amp / VictorSPX / CIM / ToughBox 
 
-    final int armCan = 6;                           // 40amp / SparkMax / NEO / CimSport 100:1
-    final int wristCan = 1;                         // 40amp / SparkMax / NEO / CimSport 100:1
-    final int liftMaroonCan = 7;                    // 40amp / SparkMax / NEO / CimSport 12:1
-    final int liftBlackCan = 6;                      // 40amp / SparkMax / NEO / CimSport 12:1
+    final int armMaroonCan = 5;                     // 40amp / SparkMax / NEO / CimSport 100:1
+    final int armBlackCan = 6;                      // 40amp / SparkMax / NEO / CimSport 100:1
+    final int wristCan = 1;                         // 40amp / SparkMax / NEO / CimSport 64:1
 
-    final int grabberCan = 1;                       // 30amp / TalonSRX / 775 / CimSport 12:1
+    final int grabberCan = 1;                       // 30amp / TalonSRX / 775 / PG188 188:1
     final int rollerMaroonCan = 2;                  // 30amp / TalonSRX / 775 / CimSport 4:1
     final int rollerBlackCan = 3;                   // 30amp / TalonSRX / 775 / CimSport 4:1
+
+    final int liftMaroonCan = 7;                    // 40amp / SparkMax / NEO / CimSport 12:1
+    final int liftBlackCan = 6;                      // 40amp / SparkMax / NEO / CimSport 12:1
 
     // DIO Ports
     final int armLimitSwitchDio = 0;                // Rev Magnetic limit switch
@@ -72,60 +75,62 @@ public class RobotMap {
     public final static double safetyExpiration = .25d;
 
     // arm geometries (in inches)
-    public final static double armPivotHeight = 37.25d;                     // pivot above ground
-    public final static double armLength = 19d;                             // pivot to pivot
-    public final static double armRampFactor = .04;                         // ramp change power limit per cycle (50hz) 
-    public final static double armFeedForwardFactor = 0d;                   // hold at horizontal power. find by testing
-    public final static double armKpFactor = 0;                             // PID kP correction factor 
-    public final static double armKiFactor = 0;                             // PID kI correction factor 
-    public final static double armKdFactor = 0;                             // PID kD correction factor 
-    public final static double armEncoderClicksPerDegree = 4200d/360d;      // NEO gearbox output shaft include gear reduction  
-    public final static double armStowedAngle = 5d;                         // starting angle for arm  
+    public final static double armPivotHeight = 37.25d;                         // pivot above ground
+    public final static double armLength = 19d;                                 // pivot to pivot
+    public final static double armRampFactor = .04;                             // ramp change power limit per cycle (50hz) 
+    public final static double armFeedForwardFactor = .9d;                      // hold at horizontal power. find by testing
+    public final static double armKpFactor = .12;                               // PID kP correction factor 
+    public final static double armKiFactor = 0;                                 // PID kI correction factor 
+    public final static double armKdFactor = 0;                                 // PID kD correction factor 
+    public final static double armEncoderClicksPerDegree = (42d*100d)/360d;     // NEO gearbox output shaft include gear reduction  
+    public final static double armStowedAngle = 5d;                             // starting angle for arm  
 
     // wrist
     public final static double wristLength = 7.75d; 
-    public final static double wristRampFactor = .04d;                      // ramp change power limit per cycle (50hz)
-    public final static double wristFeedForwardFactor = 0d;                 // hold at horizontal power. find by testing
-    public final static double wristKpFactor = 0;                           // PID kP correction factor
-    public final static double wristKiFactor = 0;                           // PID kI correction factor
-    public final static double wristKdFactor = 0;                           // PID kD correction factor
-    public final static double wristEncoderClicksPerDegree = 4200d/360d;    // NEO gearbox output shaft include gear reduction
-    public final static double wristStowedAngle = 5d;                       // angle to fold back the grabber for protection
+    public final static double wristRampFactor = .04d;                          // ramp change power limit per cycle (50hz)
+    public final static double wristFeedForwardFactor = .9d;                    // hold at horizontal power. find by testing
+    public final static double wristKpFactor = .12;                             // PID kP correction factor
+    public final static double wristKiFactor = 0;                               // PID kI correction factor
+    public final static double wristKdFactor = 0;                               // PID kD correction factor
+    public final static double wristEncoderClicksPerDegree = (42d*64d)/360d;    // NEO gearbox output shaft include gear reduction
+    public final static double wristStowedAngle = 5d;                           // angle to fold back the grabber for protection
 
     // grabber
     public final static double grabberLength = 10d;
 //    public final static double grabberEncoderClicksPerDegree = 1316d/360d;    // PG188 output shaft include gear reduction
 
     // camera
-    public double cameraElevation = 35d;           // Camera height from floor;
-    public double cameraAngle = 30d;               // Angle between vertical and camera facing in degrees;
-    public double cameraFovX = 60d;                // Field of view in degrees (FOV) Pixy2
-    public double cameraFovY = 40d;                // Field of view in degrees (FOV) Pixy2
-    public double cameraMaxX = 80d;                // Max X resolution Pixy2
-    public double cameraMaxY = 60d;                // Max Y resolution Pixy2
+    public final static double cameraElevation = 35d;           // Camera height from floor;
+    public final static double cameraAngle = 30d;               // Angle between vertical and camera facing in degrees;
+    public final static double cameraFovX = 60d;                // Field of view in degrees (FOV) Pixy2
+    public final static double cameraFovY = 40d;                // Field of view in degrees (FOV) Pixy2
+    public final static double cameraMaxX = 80d;                // Max X resolution Pixy2
+    public final static double cameraMaxY = 60d;                // Max Y resolution Pixy2
 
     // lift 
-    public double liftHeight = 20d;                 // inches to raise bot
-    public double liftMoverSpeed = 1d;              // power to roll forward
-    public double liftGravity = .25d;               // station keeping lift power
+    public final static double liftHeight = 20d;                 // inches to raise bot
+    public final static double liftMoverPower = 1d;              // power to roll forward
+    public final static double liftExtend = .25d;                // the lift power to extend the elements and lift the bot
+    public final static double liftStowedPower = -.05d;          // retaining power
 
     // === REFERENCES ======================
 
     // SpeedControllers
-    public CANVictorSPX driveLeftMaroonSpeedController;            // set coast
-    public CANVictorSPX driveLeftBlackSpeedController;              // set coast
-    public CANVictorSPX driveRightMaroonSpeedController;           // set coast
-    public CANVictorSPX driveRightBlackSpeedController;             // set coast
+    public CANVictorSPX driveLeftMaroonSpeedController;         // set coast
+    public CANVictorSPX driveLeftBlackSpeedController;          // set coast
+    public CANVictorSPX driveRightMaroonSpeedController;        // set coast
+    public CANVictorSPX driveRightBlackSpeedController;         // set coast
 
-    public CANSparkMax armSpeedController;                      // set brake 
+    public CANSparkMax armMaroonSpeedController;                // set brake 
+    public CANSparkMax armBlackSpeedController;                 // set brake 
     public CANSparkMax wristSpeedController;                    // set brake
 
-    public CANTalonSRX grabberSpeedController;                     // set brake
-    public CANTalonSRX rollerMaroonSpeedController;                // set brake
-    public CANTalonSRX rollerBlackSpeedController;                  // set brake
+    public CANTalonSRX grabberSpeedController;                  // set brake
+    public CANTalonSRX rollerMaroonSpeedController;             // set brake
+    public CANTalonSRX rollerBlackSpeedController;              // set brake
     
     public CANSparkMax liftMaroonSpeedController;               // set brake
-    public CANSparkMax liftBlackSpeedController;                 // set brake
+    public CANSparkMax liftBlackSpeedController;                // set brake
     public VictorSP liftMoverSpeedController;                   // set brake
 
     // sensors
@@ -170,8 +175,9 @@ public class RobotMap {
         // driveGyro = new ADXRS450_Gyro();
 
         // arm
-        armSpeedController = new CANSparkMax(armCan, MotorType.kBrushless);
-        armEncoder = new CANEncoder2(armSpeedController);
+        armMaroonSpeedController = new CANSparkMax(armMaroonCan, MotorType.kBrushless);
+        armBlackSpeedController = new CANSparkMax(armBlackCan, MotorType.kBrushless);
+        armEncoder = new CANEncoder2(armMaroonSpeedController);
         armLimitSwitch = new DigitalInput(armLimitSwitchDio);
 
         // wrist
@@ -193,13 +199,15 @@ public class RobotMap {
 //        hatchLimitSwitch = new DigitalInput(hatchLimitSwitchDio);
 
         // lift
-//        liftMaroonSpeedController = new CANSparkMax(liftMaroonCan, MotorType.kBrushless);
-//        liftBlackSpeedController = new CANSparkMax(liftMaroonCan, MotorType.kBrushless);
-//        liftMoverSpeedController = new VictorSP(liftMoverPwm);
+        liftMaroonSpeedController = new CANSparkMax(liftMaroonCan, MotorType.kBrushless);
+        liftBlackSpeedController = new CANSparkMax(liftMaroonCan, MotorType.kBrushless);
+        liftMoverSpeedController = new VictorSP(liftMoverPwm);
 
         // cameras
-        cameraNormal = new UsbCamera("USB Camera 0", cameraNormalUsb);
-        cameraInverted = new UsbCamera("USB Camera 1", cameraInvertedUsb);
+        cameraNormal = CameraServer.getInstance().startAutomaticCapture(cameraNormalUsb);
+        cameraInverted = CameraServer.getInstance().startAutomaticCapture(cameraInvertedUsb); 
+        // cameraNormal = new UsbCamera("USB Camera 0", cameraNormalUsb);
+        // cameraInverted = new UsbCamera("USB Camera 1", cameraInvertedUsb);
 
         // Pixy2
         pixy2Normal = Pixy2.createInstance(new I2CLink());

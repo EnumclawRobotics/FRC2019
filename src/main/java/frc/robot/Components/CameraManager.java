@@ -69,7 +69,6 @@
 //             }
 
 //         }).start();
-
 //     }
 
 //     public void setFacing(boolean facingNormal) {
@@ -86,7 +85,7 @@
 //     }
 
 //     public void putTelemetry() {
-
+//         telemetry.putString("Version", "1.0.0");
 //     }
 
 // }

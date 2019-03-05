@@ -1,5 +1,7 @@
 package frc.robot.Components;
 
+import com.revrobotics.CANSparkMax.IdleMode;
+
 import common.instrumentation.Telemetry;
 import common.util.Geometry;
 import edu.wpi.first.wpilibj.*;
@@ -17,7 +19,8 @@ public class Arm {
     private Telemetry telemetry = new Telemetry("Robot/Arm");
 
     // parts of this subsystem
-    private RampSpeedController speedController;
+    private RampSpeedController maroonSpeedController;
+    private RampSpeedController blackSpeedController;
     private CANEncoder2 encoder;
     private DigitalInput limitSwitch; 
     
@@ -31,6 +34,7 @@ public class Arm {
     
     // derived as needed and stored for reporting
     private double feedForward = 0;
+    private double pidPower = 0;
     private double power = 0;
 
     private States state = States.Stopped;
@@ -49,7 +53,15 @@ public class Arm {
     // Constructor that saves controller and sensor references
     public Arm(RobotMap robotMap) {
         pidController = new PID(RobotMap.armKpFactor, RobotMap.armKiFactor, RobotMap.armKdFactor); 
-        speedController = new RampSpeedController(robotMap.armSpeedController, RobotMap.armRampFactor); 
+
+        // config motor controllers
+        robotMap.armMaroonSpeedController.setIdleMode(IdleMode.kBrake);
+        robotMap.armBlackSpeedController.setInverted(true);
+        robotMap.armBlackSpeedController.setIdleMode(IdleMode.kBrake);
+
+        // keep references
+        maroonSpeedController = new RampSpeedController(robotMap.armMaroonSpeedController, RobotMap.armRampFactor); 
+        blackSpeedController = new RampSpeedController(robotMap.armBlackSpeedController, RobotMap.armRampFactor); 
         encoder = robotMap.armEncoder;
         limitSwitch = robotMap.armLimitSwitch;
 
@@ -60,10 +72,9 @@ public class Arm {
     public void init() {
         baseClicks = encoder.get();
 
-        // zero out derived fields
-        targetClicks = 0;                        
+        // reset derived fields
+        targetClicks = baseClicks;                        
         feedForward = 0;
-        baseClicks = 0;
         power = 0;
     }
 
@@ -71,7 +82,13 @@ public class Arm {
     public void stop() {
         state = States.Stopped;
         power = 0;
-        speedController.stopMotor();
+        maroonSpeedController.stopMotor();
+        blackSpeedController.stopMotor();
+    }
+
+    private void setMotors(double value) {
+        maroonSpeedController.set(value);
+        blackSpeedController.set(value);
     }
 
     // === PER CYCLE ===
@@ -85,7 +102,7 @@ public class Arm {
         return angleFromClicks(getClicks());
     }    
 
-    // start side goes 0-180, 
+    // start side goes [0-180) 
     public boolean getFacingNormal() {
         return (getAngle() < 180);
     }
@@ -98,13 +115,16 @@ public class Arm {
     public void moveStowed() {
         state = States.MovingStowed;
         targetHeight = -1;
-        targetClicks = (getFacingNormal() ? baseClicks : baseClicks + RobotMap.armEncoderClicksPerDegree * (360 - 2 * RobotMap.armStowedAngle));        
+        targetClicks = (getFacingNormal() ? baseClicks : baseClicks + RobotMap.armEncoderClicksPerDegree * (360 - 2 * RobotMap.armStowedAngle));
     }
 
-    public void moveManual(double offsetClicks) {
-        state = States.MovingManual;
-        targetHeight = -1;
-        targetClicks = getClicks() + offsetClicks;
+    public void moveManual(double controlPower) {
+        // ignore deadband and defaults where we are not moving joystick
+        if (Math.abs(controlPower) > .01) {
+            state = States.MovingManual;
+            targetHeight = -1;
+            targetClicks = getClicks() + (controlPower *  RobotMap.armEncoderClicksPerDegree * .5);
+        }
     }
 
     public void moveRocketHatch1() {
@@ -169,39 +189,43 @@ public class Arm {
     }
 
     public void run() {
-        // current angle implies how much force gravity applies and so what we need to make neutral
-        double angle = getAngle();
-        feedForward = Geometry.gravity(angle) * RobotMap.armFeedForwardFactor;
+        if (state != States.Stopped) {
+            // current angle implies how much force gravity applies and so what we need to make neutral
+            double angle = getAngle();
+            feedForward = Geometry.gravity(angle) * RobotMap.armFeedForwardFactor;
 
-        // get PID output that is best to go towards the target clicks
-        power = pidController.update(targetClicks, encoder.get());      
+            // get PID output that is best to go towards the target clicks
+            pidPower = pidController.update(targetClicks, encoder.get());      
 
-        // add in bias and reduce the power to the allowed range
-        // power = Geometry.clip(feedForward + power, -1, 1);
-        // **** be safe for now until we get the settings right ***
-        power = Geometry.clip(power, -.1, .1);
+            // add in bias and reduce the power to the allowed range
+            // power = Geometry.clip(feedForward + power, -1, 1);
+            // **** be safe for now until we get the settings right ***
+            power = common.util.Geometry.clip(feedForward + pidPower, -.25d, .25d);
 
-        // is limit switch saying we are going too far?
-        if (limitSwitch.get() && 
-                ((angle > 180 && power > 0)                  // opposite side too far 
-                || (angle < 180 && power < 0))) {           // normal side too far
-            power = 0;
+            // is limit switch saying we are going too far?
+            // if (limitSwitch.get() && 
+            //         ((angle > 180 && power > 0)                  // opposite side too far 
+            //         || (angle < 180 && power < 0))) {           // normal side too far
+            //     power = 0;
+            // }
+
+            // set the power on the motors
+            setMotors(power);
         }
-
-        // set the power on the motors
-        speedController.set(power);
         putTelemetry();
     }
 
     private void putTelemetry() {
         telemetry.putString("State", state.toString());
+        telemetry.putBoolean("LimitSwitch.get()", limitSwitch.get());
         telemetry.putDouble("Angle", getAngle());
+        telemetry.putDouble("PIDPower", pidPower);
+        telemetry.putDouble("FeedForward", feedForward);
         telemetry.putDouble("Power", power);
         telemetry.putDouble("Clicks", encoder.get());
         telemetry.putDouble("TargetHeight", targetHeight);
         telemetry.putDouble("TargetAngle", targetAngle);
         telemetry.putDouble("TargetClicks", targetClicks);
-        telemetry.putDouble("FeedForward", feedForward);
         telemetry.putString("Version", "1.0.0");
     }
 
@@ -222,29 +246,33 @@ public class Arm {
         double height;
         double angle;
 
-        // figure angle about pivot point given reach points in the vertical plane
-        if (facingNormal) {
-            if (RobotMap.armPivotHeight >= targetHeight) { 
-                // reaching low on start side - height is cos
-                height = (RobotMap.armPivotHeight - targetHeight)/RobotMap.armLength;
-                angle = Math.toDegrees(Math.acos(height));
-            } else {
-                // reaching high on start side - height is sin 
-                height = (targetHeight - RobotMap.armPivotHeight)/RobotMap.armLength;
-                angle = Math.toDegrees(Math.asin(height)) + 90;
-            }
-        }
-        else {
-            if (RobotMap.armPivotHeight >= targetHeight) { 
-                // reaching low on opposite side - height is sin
-                height = (RobotMap.armPivotHeight - targetHeight)/RobotMap.armLength;
-                angle = Math.toDegrees(Math.asin(height)) + 270;
-            } else {
-                // reaching high on opposite side - height is cos
-                height = (RobotMap.armPivotHeight - targetHeight)/RobotMap.armLength;
-                angle = Math.toDegrees(Math.acos(height)) + 180;
-            }
-        }
+        // TODO: Figure out angle where height is sine and then rotate it based on zero degrees for arm is straight down
+        height = (targetHeight - RobotMap.armPivotHeight)/RobotMap.armLength; 
+        angle = Math.toDegrees(Math.acos(height)) + ((facingNormal) ? 90 : 270);
+
+        // // figure angle about pivot point given reach points in the vertical plane
+        // if (facingNormal) {
+        //     if (RobotMap.armPivotHeight >= targetHeight) { 
+        //         // reaching low on start side - height is cos
+        //         height = (RobotMap.armPivotHeight - targetHeight)/RobotMap.armLength;
+        //         angle = Math.toDegrees(Math.acos(height));
+        //     } else {
+        //         // reaching high on start side - height is sin 
+        //         height = (targetHeight - RobotMap.armPivotHeight)/RobotMap.armLength;
+        //         angle = Math.toDegrees(Math.asin(height)) + 90;
+        //     }
+        // }
+        // else {
+        //     if (RobotMap.armPivotHeight >= targetHeight) { 
+        //         // reaching low on opposite side - height is sin
+        //         height = (RobotMap.armPivotHeight - targetHeight)/RobotMap.armLength;
+        //         angle = Math.toDegrees(Math.asin(height)) + 270;
+        //     } else {
+        //         // reaching high on opposite side - height is cos
+        //         height = (RobotMap.armPivotHeight - targetHeight)/RobotMap.armLength;
+        //         angle = Math.toDegrees(Math.acos(height)) + 180;
+        //     }
+        // }
 
         return angle;
     }

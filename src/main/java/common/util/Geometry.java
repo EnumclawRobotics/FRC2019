@@ -35,7 +35,15 @@ public class Geometry {
 
     // enforce an arbitrary range
     public static double clip(double value, double min, double max) {
-        return Math.min(Math.max(value, min), max);
+        double result = value;
+        
+        // NOTE: Do NOT use Math.min and Math.Max they do not handle negatives properly for our purposes
+        if (value < min) {
+            result = min;
+        } else if (value > max) {
+            result = max;
+        }
+        return result;
     }
 
     // get a slope from two points

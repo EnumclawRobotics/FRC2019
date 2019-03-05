@@ -60,7 +60,7 @@ public class Grabber {
     } 
 
     public void close() {
-        state = States.Stopped;
+        state = States.Closing;
         grabberPower = .75d;
 //        moveExpiration = Timer.getFPGATimestamp() + .75d;
     }

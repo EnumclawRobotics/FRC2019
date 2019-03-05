@@ -1,7 +1,6 @@
 package frc.robot;
 
 import common.instrumentation.Telemetry;
-import common.util.Geometry;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import frc.robot.Components.*;
@@ -28,17 +27,19 @@ public class Robot extends TimedRobot {
         // setup hardware specific stuff
         robotMap = new RobotMap();
 
-        // vision
-//        cameraManager = new CameraManager(robotMap);
-//        mapper = new Mapper(robotMap);
-        
-        // setup logical subsystem components
+        // setup mechanical subsystem components
         operator = new Operator(robotMap);
         drive = new Drive(robotMap);
         arm = new Arm(robotMap);
         wrist = new Wrist(robotMap, arm);
         grabber = new Grabber(robotMap);
  //       lifter = new Lifter(robotMap);
+
+        // start vision components
+        //cameraManager = new CameraManager(robotMap);
+        //cameraManager.init();
+
+        //        mapper = new Mapper(robotMap);
     }
 
     // === Modes ===
@@ -68,7 +69,6 @@ public class Robot extends TimedRobot {
     public void autonomousInit() {
         arm.init();
         wrist.init();
-//        cameraManager.init();
     }
 
     @Override
@@ -175,11 +175,15 @@ public class Robot extends TimedRobot {
         }
 
         if (this.isTest() || this.isAutonomous() || this.isOperatorControl()) {
-            // joystick moves arm manually overwriting previous height selection - only to correct for placing
-            arm.moveManual(-operator.armXboxController.getY(Hand.kLeft));
-
-            // POV moves wrist manually overwriting previous position selection - only to correct for placing
-            wrist.moveManual(-operator.armXboxController.getY(Hand.kRight));
+            // ignore deadband and defaults where we are not moving joystick
+            if (Math.abs(-operator.armXboxController.getY(Hand.kLeft)) > .01d) {
+                // joystick moves arm manually overwriting previous height selection - only use to correct for placing
+                arm.moveManual(-operator.armXboxController.getY(Hand.kLeft));
+            }
+            if (Math.abs(-operator.armXboxController.getY(Hand.kRight)) > .01d) {
+                // POV moves wrist manually overwriting previous position selection - only use to correct for placing
+                wrist.moveManual(-operator.armXboxController.getY(Hand.kRight));
+            }
         }
 
         if (this.isTest() || this.isAutonomous() || this.isOperatorControl()) {

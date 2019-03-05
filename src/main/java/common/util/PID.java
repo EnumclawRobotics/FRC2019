@@ -3,7 +3,6 @@ package common.util;
 import edu.wpi.first.wpilibj.*;
 
 public class PID {
-
     double priorTime = 0;
     double priorError = 0;
     double integral = 0;
@@ -21,6 +20,12 @@ public class PID {
         this.kD = kD;
     }
 
+    public void reset() {
+        priorTime = 0;
+        priorError = 0;
+        integral = 0;
+    }
+
     // updates PID controller based on target metric
     public double update(double desired, double actual) { 
         // since last time
@@ -29,9 +34,9 @@ public class PID {
 
         // accumulate error - reset to current if we just overshot in order to throw away any windup
         double currentError = desired - actual;
-        if (Math.signum(currentError) != Math.signum(priorError)) {
-            integral = currentError;
-        }
+        // if (Math.signum(currentError) != Math.signum(priorError)) {
+        //     integral = currentError;
+        // }
         integral = integral + (currentError * iterationTime);
         
         // future estimate based on most recent performance

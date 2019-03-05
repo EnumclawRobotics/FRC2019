@@ -1,5 +1,7 @@
 package frc.robot.Components;
 
+import com.revrobotics.CANSparkMax.IdleMode;
+
 import common.instrumentation.Telemetry;
 import common.util.Geometry;
 import edu.wpi.first.wpilibj.*;
@@ -12,76 +14,104 @@ public class Lifter {
     private SpeedController blackSpeedController;
     private SpeedController moverSpeedController;
 
-    private boolean liftingActive;
-    private boolean maroonActive;
-    private boolean blackActive;
-
+    private double stowedPower;
     private double maroonPower;
     private double blackPower;
     private double moverPower;
+    private double stateExpiration;
 
-    private double gravity;
+    private States state = States.Stopped;
 
     public Lifter(RobotMap robotMap) {
+        robotMap.liftMaroonSpeedController.setIdleMode(IdleMode.kBrake);
+        robotMap.liftBlackSpeedController.setIdleMode(IdleMode.kBrake);
+        // TODO: Doublecheck that motor is inverted?
+        robotMap.liftBlackSpeedController.setInverted(true);
+
         maroonSpeedController = robotMap.liftMaroonSpeedController;
         blackSpeedController = robotMap.liftBlackSpeedController;
         moverSpeedController = robotMap.liftMoverSpeedController;
 
-        // ((MotorSafety)maroonSpeedController).setExpiration(RobotMap.safetyExpiration);
-        // ((MotorSafety)maroonSpeedController).setSafetyEnabled(true);
-
-        // ((MotorSafety)blackSpeedController).setExpiration(RobotMap.safetyExpiration);
-        // ((MotorSafety)blackSpeedController).setSafetyEnabled(true);
-
-        gravity = robotMap.liftGravity;
-        moverPower = robotMap.liftMoverSpeed;
+        setStowed();
     }
 
-    public boolean getLiftingActive() {
-        return liftingActive;
+    public enum States {
+        Stowed, 
+        Touchdown,
+        Extending,
+        RetractingMaroon,
+        RetractingBlack,
+        Stopped
     }
 
-    public void setLiftingActive() {
-        liftingActive = true;
-        maroonActive = true;
-        blackActive = true;
+    public States getState() {
+        return state;
     }
 
-    public void setMaroonActive() {
-        liftingActive = true;
-        maroonActive = true;
-        blackActive = false;
+    // goes into stowed mode where the lift retracts with a holding force enough to hold the lift columns up
+    public void setStowed() {
+        state = States.Stowed;
+        maroonPower = RobotMap.liftStowedPower;     // gently continuously retract
+        blackPower = RobotMap.liftStowedPower;
     }
 
-    public void setGoldActive() {
-        liftingActive = true;
-        maroonActive = false;
-        blackActive = true;
+    // starts a lift the whole bot cycle
+    public void lift() {
+        if (state == States.Stowed) {
+            touchdown();
+        }
     }
 
-    public void move(double speed) {
-        maroonPower = (maroonActive ? speed : 0);
-        blackPower = (blackActive ? speed : 0);
+    // gently touch down without lifting
+    private void touchdown() {
+        state = States.Touchdown;
+        maroonPower = -RobotMap.liftStowedPower;     // gently extend without lifting
+        blackPower = -RobotMap.liftStowedPower;
+        stateExpiration = Timer.getFPGATimestamp() + .5d;
+    }
+
+    // extend the lift elements
+    private void extend() {
+        state = States.Extending;
+        maroonPower = RobotMap.liftExtend;           // forcefully continuously extend at just over what is required
+        blackPower = RobotMap.liftExtend;
+        moverPower = RobotMap.liftMoverPower;
+    }
+
+    // retracting the maroon side
+    public void retractMaroon() {
+        if (state == States.Extending) {
+            state = States.RetractingMaroon;
+            maroonPower = RobotMap.liftStowedPower;     // gently and continuously retract
+        }
+    }
+
+    // retracting the black side
+    // TODO: Make sure black side is where roller is installed
+    public void retractBlack() {
+        if (state == States.RetractingMaroon) {
+            state = States.RetractingBlack;
+            blackPower = RobotMap.liftStowedPower;     // gently and continuously retract
+            moverPower = 0;
+        }
     }
 
     public void run() {
-        if (liftingActive) {
-            maroonSpeedController.set(Geometry.clip(maroonPower + gravity , -1, 1));        
-            blackSpeedController.set(Geometry.clip(blackPower + gravity , -1, 1));
-            moverSpeedController.set(moverPower);
+        if (state == States.Touchdown) {
+            if (Timer.getFPGATimestamp() > stateExpiration) {
+                extend();
+            }
         }
-        else {
-            stop();
-        }
+
+        maroonSpeedController.set(maroonPower);        
+        blackSpeedController.set(blackPower);
+        moverSpeedController.set(moverPower);
 
         putTelemetry();
     }
 
     public void stop() {
-        liftingActive = false;
-        maroonActive = false;
-        blackActive = false;
-
+        state = States.Stopped;
         maroonSpeedController.stopMotor();
         blackSpeedController.stopMotor();
         moverSpeedController.stopMotor();

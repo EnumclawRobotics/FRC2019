@@ -31,6 +31,7 @@ public class Wrist {
 
     // derived but stored for awareness
     double feedForward = 0;                         // amount of counter gravity force
+    double pidPower = 0;
     double power = 0;                               // power sent to motor
 
     States state = States.Stopped;
@@ -57,10 +58,9 @@ public class Wrist {
         // store starting position
         baseClicks = encoder.get();
 
-        // zero out derived fields
-        targetClicks = 0;                        
+        // reset derived fields
+        targetClicks = baseClicks;                        
         feedForward = 0;
-        baseClicks = 0;
         power = 0;
     }
 
@@ -93,10 +93,13 @@ public class Wrist {
     }
 
     // manually adjust arm
-    public void moveManual(double offsetClicks) {
-        state = States.MovingManual;
-        targetAngle = -1;
-        targetClicks = getClicks() + offsetClicks;
+    public void moveManual(double controlPower) {
+        // ignore deadband and defaults where we are not moving joystick
+        if (Math.abs(controlPower) > .01) {
+            state = States.MovingManual;
+            targetAngle = -1;
+            targetClicks = getClicks() + (controlPower * RobotMap.wristEncoderClicksPerDegree * .5);
+        }
     }
 
     // keep wrist straight aligned with arm
@@ -128,19 +131,19 @@ public class Wrist {
             feedForward = Geometry.gravity(gravityAngle) * RobotMap.wristFeedForwardFactor;
 
             // get PID output that is best to go towards the target clicks
-            double power = pidController.update(targetClicks, getClicks());
+            pidPower = pidController.update(targetClicks, getClicks());
 
             // add in bias and reduce the power to the allowed range
             // power = Geometry.clip(feedForward + power, -1, 1);
             // **** be safe for now until we get the settings right ***
-            power = Geometry.clip(power, -.1, .1);
+            power = Geometry.clip(feedForward + pidPower, -.15d, .15d);
 
             // is limit switch saying we are going too far?
-            if (limitSwitch.get() && 
-                   ((angle > 180 && power > 0)                  // opposite side too far 
-                    || (angle < 180 && power < 0))) {           // normal side too far
-                power = 0;
-            }
+            // if (limitSwitch.get() && 
+            //        ((angle > 180 && power > 0)                  // opposite side too far 
+            //         || (angle < 180 && power < 0))) {           // normal side too far
+            //     power = 0;
+            // }
 
             // apply the correction to move towards the target
             speedController.set(power);
@@ -151,12 +154,14 @@ public class Wrist {
 
     private void putTelemetry() {
         telemetry.putString("State", state.toString());
+        telemetry.putBoolean("LimitSwitch.get()", limitSwitch.get());
         telemetry.putDouble("Angle", getAngle());
         telemetry.putDouble("Clicks", encoder.get());
+        telemetry.putDouble("PIDPower", pidPower);
+        telemetry.putDouble("FeedForward", feedForward);
         telemetry.putDouble("Power", power);
         telemetry.putDouble("TargetAngle", targetAngle);
         telemetry.putDouble("TargetClicks", targetClicks);
-        telemetry.putDouble("FeedForward", feedForward);
         telemetry.putString("Version", "1.0.0");
     }
 
