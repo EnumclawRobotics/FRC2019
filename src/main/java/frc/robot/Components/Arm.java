@@ -19,8 +19,8 @@ public class Arm {
     private Telemetry telemetry = new Telemetry("Robot/Arm");
 
     // parts of this subsystem
-    private RampSpeedController maroonSpeedController;
-    private RampSpeedController blackSpeedController;
+    private RampSpeedController leftSpeedController;
+    private RampSpeedController rightSpeedController;
     private CANEncoder2 encoder;
     private DigitalInput limitSwitch; 
     
@@ -55,13 +55,13 @@ public class Arm {
         pidController = new PID(RobotMap.armKpFactor, RobotMap.armKiFactor, RobotMap.armKdFactor); 
 
         // config motor controllers
-        robotMap.armMaroonSpeedController.setIdleMode(IdleMode.kBrake);
-        robotMap.armBlackSpeedController.setInverted(true);
-        robotMap.armBlackSpeedController.setIdleMode(IdleMode.kBrake);
+        robotMap.armLeftSpeedController.setIdleMode(IdleMode.kBrake);
+        robotMap.armRightSpeedController.setInverted(true);
+        robotMap.armRightSpeedController.setIdleMode(IdleMode.kBrake);
 
         // keep references
-        maroonSpeedController = new RampSpeedController(robotMap.armMaroonSpeedController, RobotMap.armRampFactor); 
-        blackSpeedController = new RampSpeedController(robotMap.armBlackSpeedController, RobotMap.armRampFactor); 
+        leftSpeedController = new RampSpeedController(robotMap.armLeftSpeedController, RobotMap.armRampFactor); 
+        rightSpeedController = new RampSpeedController(robotMap.armRightSpeedController, RobotMap.armRampFactor); 
         encoder = robotMap.armEncoder;
         limitSwitch = robotMap.armLimitSwitch;
 
@@ -82,13 +82,13 @@ public class Arm {
     public void stop() {
         state = States.Stopped;
         power = 0;
-        maroonSpeedController.stopMotor();
-        blackSpeedController.stopMotor();
+        leftSpeedController.stopMotor();
+        rightSpeedController.stopMotor();
     }
 
     private void setMotors(double value) {
-        maroonSpeedController.set(value);
-        blackSpeedController.set(value);
+        leftSpeedController.set(value);
+        rightSpeedController.set(value);
     }
 
     // === PER CYCLE ===
@@ -200,7 +200,7 @@ public class Arm {
             // add in bias and reduce the power to the allowed range
             // power = Geometry.clip(feedForward + power, -1, 1);
             // **** be safe for now until we get the settings right ***
-            power = common.util.Geometry.clip(feedForward + pidPower, -.25d, .25d);
+            power = common.util.Geometry.clip(feedForward + pidPower, -.22d, .22d);
 
             // is limit switch saying we are going too far?
             // if (limitSwitch.get() && 

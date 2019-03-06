@@ -21,7 +21,7 @@ public class Drive {
 
     double speed = 0;
     double rotation = 0;
-    boolean squareInputs = false;
+    boolean isLimiterOn = false;
     boolean facingNormal = true;
 
 //    double headingTarget = 0;
@@ -48,10 +48,10 @@ public class Drive {
 //        robotMap.driveRightBlackSpeedController.setInverted(true);
 
         // set up drive
-        differentialDrive = new DifferentialDrive(new SpeedControllerGroup(robotMap.driveLeftMaroonSpeedController, 
-                                                                            robotMap.driveLeftBlackSpeedController), 
-                                                new SpeedControllerGroup(robotMap.driveRightMaroonSpeedController, 
-                                                                            robotMap.driveRightBlackSpeedController));
+        differentialDrive = new DifferentialDrive(new SpeedControllerGroup(robotMap.driveLeftFrontSpeedController, 
+                                                                            robotMap.driveLeftBackSpeedController), 
+                                                new SpeedControllerGroup(robotMap.driveRightFrontSpeedController, 
+                                                                            robotMap.driveRightBackSpeedController));
 
         // ensure that motors get stopped if runaway
 //        differentialDrive.setExpiration(RobotMap.safetyExpiration);
@@ -66,9 +66,22 @@ public class Drive {
     }
 
     // === Executing per Period ===
+    public void setlimiterOff() {
+        isLimiterOn = false;
+    }
+
     public void run() {
-        differentialDrive.arcadeDrive(facingNormal ? speed : -speed, rotation, squareInputs);
+        // if operator is not turning it off then limit forward speed
+        if (isLimiterOn) {
+            speed = speed * RobotMap.driveSpeedLimiter;
+        }
+        // always apply rotation limits
+        rotation = rotation * RobotMap.driveRotationLimiter; 
+
+        differentialDrive.arcadeDrive(facingNormal ? speed : -speed, rotation, false);
         putTelemetry();
+
+        isLimiterOn = true;
     }
 
     private void putTelemetry() {
@@ -87,12 +100,15 @@ public class Drive {
         this.facingNormal = facingNormal;
     }
 
+    public void toggleFacing() {
+        this.facingNormal = !this.facingNormal;
+    }
+
     public void stop() {
         state = States.Stopped;
 
         speed = 0;
         rotation = 0;
-        squareInputs = false;
         
         differentialDrive.stopMotor();
     }
@@ -103,7 +119,6 @@ public class Drive {
 
         this.speed = speed;
         this.rotation = rotation;
-        this.squareInputs = squareInputs;
     }
 
     // // layered onto Move to help drive straight according to gyro

@@ -1,19 +1,18 @@
 package frc.robot;
 
 import edu.wpi.cscore.UsbCamera;
+import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.VictorSP;
 //import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.cameraserver.*;
-import edu.wpi.cscore.UsbCamera;
 
 import frc.robot.Components.*;
 import common.i2cSensors.*;
 
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import common.pixy2Api.*;
@@ -33,25 +32,28 @@ public class RobotMap {
     final int liftMoverPwm = 0;                     // 30amp / VictorSP / Neverest 40 
 
     // CAN Device IDs
-    final int driveLeftMaroonCan = 1;               // 40amp / VictorSPX / CIM / ToughBox 
-    final int driveLeftBlackCan = 2;                 // 40amp / VictorSPX / CIM / ToughBox
-    final int driveRightMaroonCan = 3;              // 40amp / VictorSPX / CIM / ToughBox
-    final int driveRightBlackCan = 4;                // 40amp / VictorSPX / CIM / ToughBox 
+    final int driveLeftFrontCan = 1;               // 40amp / VictorSPX / CIM / ToughBox 
+    final int driveLeftBackCan = 2;                 // 40amp / VictorSPX / CIM / ToughBox
+    final int driveRightFrontCan = 3;              // 40amp / VictorSPX / CIM / ToughBox
+    final int driveRightBackCan = 4;                // 40amp / VictorSPX / CIM / ToughBox 
 
-    final int armMaroonCan = 5;                     // 40amp / SparkMax / NEO / CimSport 100:1
-    final int armBlackCan = 6;                      // 40amp / SparkMax / NEO / CimSport 100:1
-    final int wristCan = 1;                         // 40amp / SparkMax / NEO / CimSport 64:1
+    final int armLeftCan = 1;                     // 40amp / SparkMax / NEO / CimSport 100:1
+    final int armRightCan = 6;                      // 40amp / SparkMax / NEO / CimSport 100:1
+    final int wristCan = 8;                         // 30amp / SparkMax / NEO / CimSport 64:1
 
     final int grabberCan = 1;                       // 30amp / TalonSRX / 775 / PG188 188:1
-    final int rollerMaroonCan = 2;                  // 30amp / TalonSRX / 775 / CimSport 4:1
-    final int rollerBlackCan = 3;                   // 30amp / TalonSRX / 775 / CimSport 4:1
+    final int rollerFrontCan = 2;                  // 30amp / TalonSRX / 775 / CimSport 4:1
+    final int rollerBackCan = 3;                   // 30amp / TalonSRX / 775 / CimSport 4:1
 
-    final int liftMaroonCan = 7;                    // 40amp / SparkMax / NEO / CimSport 12:1
-    final int liftBlackCan = 6;                      // 40amp / SparkMax / NEO / CimSport 12:1
+    final int liftFrontCan = 7;                    // 40amp / SparkMax / NEO / CimSport 12:1
+    final int liftBackCan = 9;                     // 40amp / SparkMax / NEO / CimSport 12:1
 
     // DIO Ports
-    final int armLimitSwitchDio = 0;                // Rev Magnetic limit switch
-    final int wristLimitSwitchDio = 1;              // Rev Magnetic limit switch
+    final int grabberEncoderADio = 0;               // PG188 encoder
+    final int grabberEncoderBDio = 1;               // PG188 encoder
+
+    final int armLimitSwitchDio = 5;                // Rev Magnetic limit switch
+    final int wristLimitSwitchDio = 6;              // Rev Magnetic limit switch
 
     // I2C Addresses
     final int pixy2NormalI2C = 0x53;
@@ -70,6 +72,9 @@ public class RobotMap {
  
 
     // === TUNING CONSTANTS =====================================
+
+    public final static double driveSpeedLimiter = .50;                 // used to limit output when not afterburning
+    public final static double driveRotationLimiter = .40;                 // used to limit output when not afterburning
 
     // safety
     public final static double safetyExpiration = .25d;
@@ -97,7 +102,11 @@ public class RobotMap {
 
     // grabber
     public final static double grabberLength = 10d;
-//    public final static double grabberEncoderClicksPerDegree = 1316d/360d;    // PG188 output shaft include gear reduction
+    public final static double grabberEncoderClicksPerDegree = 1316d/360d;      // PG188 output shaft include gear reduction
+    public final static double grabberHatchOpen = 30d;                          // degrees to open
+    public final static double grabberCargoOpen = 60d;                          // degrees to open
+    public final static double grabberIntake = .1d;                             // speed of intake
+    public final static double grabberExpell = -.5d;                            // speed of expelling
 
     // camera
     public final static double cameraElevation = 35d;           // Camera height from floor;
@@ -108,29 +117,35 @@ public class RobotMap {
     public final static double cameraMaxY = 60d;                // Max Y resolution Pixy2
 
     // lift 
-    public final static double liftHeight = 20d;                 // inches to raise bot
-    public final static double liftMoverPower = 1d;              // power to roll forward
-    public final static double liftExtend = .25d;                // the lift power to extend the elements and lift the bot
-    public final static double liftStowedPower = -.05d;          // retaining power
+    public final static double liftHeight = 20d;                // inches to raise bot
+    public final static double liftMoverPower = 1d;             // power to roll forward
+    public final static double liftEncoderClicksPerDegree = 42d*(12d * 24d/18d)/360d;      // 12:1 output shaft with 24/18 sprocket reduction
+    public final static double liftStow = -.05d;                // retraction power 
+    public final static double liftTouchdown = .05d;            // touching down
+    public final static double liftExtend = .40d;               // extend lift power limit
+    public final static double liftKpFactor = .5;               // PID kP correction factor
+    public final static double liftKiFactor = 0;                // PID kI correction factor
+    public final static double liftKdFactor = 0;                // PID kD correction factor
+    public final static double liftRamp = .04d;                 // acceleration
 
     // === REFERENCES ======================
 
     // SpeedControllers
-    public CANVictorSPX driveLeftMaroonSpeedController;         // set coast
-    public CANVictorSPX driveLeftBlackSpeedController;          // set coast
-    public CANVictorSPX driveRightMaroonSpeedController;        // set coast
-    public CANVictorSPX driveRightBlackSpeedController;         // set coast
+    public CANVictorSPX driveLeftFrontSpeedController;         // set coast
+    public CANVictorSPX driveLeftBackSpeedController;          // set coast
+    public CANVictorSPX driveRightFrontSpeedController;        // set coast
+    public CANVictorSPX driveRightBackSpeedController;         // set coast
 
-    public CANSparkMax armMaroonSpeedController;                // set brake 
-    public CANSparkMax armBlackSpeedController;                 // set brake 
+    public CANSparkMax armLeftSpeedController;                // set brake 
+    public CANSparkMax armRightSpeedController;                 // set brake 
     public CANSparkMax wristSpeedController;                    // set brake
 
     public CANTalonSRX grabberSpeedController;                  // set brake
-    public CANTalonSRX rollerMaroonSpeedController;             // set brake
-    public CANTalonSRX rollerBlackSpeedController;              // set brake
+    public CANTalonSRX rollerFrontSpeedController;             // set brake
+    public CANTalonSRX rollerBackSpeedController;              // set brake
     
-    public CANSparkMax liftMaroonSpeedController;               // set brake
-    public CANSparkMax liftBlackSpeedController;                // set brake
+    public CANSparkMax liftFrontSpeedController;               // set brake
+    public CANSparkMax liftBackSpeedController;                // set brake
     public VictorSP liftMoverSpeedController;                   // set brake
 
     // sensors
@@ -141,12 +156,15 @@ public class RobotMap {
 
     public CANEncoder2 wristEncoder;
     public DigitalInput wristLimitSwitch;
-//    public GenericEncoder grabberEncoder;
+    public Encoder grabberEncoder;
 //    public DigitalInput grabberLimitSwitch;
 
     public DigitalInput hatchLimitSwitch;                     // TODO: Use two limit switches on physical bot just linked together
 
     public MRColorSensor cargoColorSensor;
+
+    public CANEncoder2 liftFrontEncoder;
+    public CANEncoder2 liftBackEncoder;
 
     public Pixy2 pixy2Normal;
     public Pixy2 pixy2Inverted;
@@ -167,17 +185,17 @@ public class RobotMap {
         armButtons = new Joystick(armButtonsUsb);
 
         // drive 
-        driveLeftMaroonSpeedController = new CANVictorSPX(driveLeftMaroonCan);
-        driveLeftBlackSpeedController = new CANVictorSPX(driveLeftBlackCan);
-        driveRightMaroonSpeedController = new CANVictorSPX(driveRightMaroonCan);
-        driveRightBlackSpeedController = new CANVictorSPX(driveRightBlackCan);
+        driveLeftFrontSpeedController = new CANVictorSPX(driveLeftFrontCan);
+        driveLeftBackSpeedController = new CANVictorSPX(driveLeftBackCan);
+        driveRightFrontSpeedController = new CANVictorSPX(driveRightFrontCan);
+        driveRightBackSpeedController = new CANVictorSPX(driveRightBackCan);
 
         // driveGyro = new ADXRS450_Gyro();
 
         // arm
-        armMaroonSpeedController = new CANSparkMax(armMaroonCan, MotorType.kBrushless);
-        armBlackSpeedController = new CANSparkMax(armBlackCan, MotorType.kBrushless);
-        armEncoder = new CANEncoder2(armMaroonSpeedController);
+        armLeftSpeedController = new CANSparkMax(armLeftCan, MotorType.kBrushless);
+        armRightSpeedController = new CANSparkMax(armRightCan, MotorType.kBrushless);
+        armEncoder = new CANEncoder2(armRightSpeedController);
         armLimitSwitch = new DigitalInput(armLimitSwitchDio);
 
         // wrist
@@ -187,21 +205,23 @@ public class RobotMap {
 
         // grabber
         grabberSpeedController = new CANTalonSRX(grabberCan);
-//        grabberEncoder = new GenericEncoder(new Encoder(grabberEncoderADio, grabberEncoderBDio));
+        grabberEncoder = new Encoder(grabberEncoderADio, grabberEncoderBDio);
 //        grabberLimitSwitch = new DigitalInput(grabberLimitSwitchDio);
 
         // cargo handler
-        rollerMaroonSpeedController = new CANTalonSRX(rollerMaroonCan);
-        rollerBlackSpeedController = new CANTalonSRX(rollerBlackCan);
+        rollerFrontSpeedController = new CANTalonSRX(rollerFrontCan);
+        rollerBackSpeedController = new CANTalonSRX(rollerBackCan);
 //        cargoColorSensor = new MRColorSensor();
 
         // hatch handler
 //        hatchLimitSwitch = new DigitalInput(hatchLimitSwitchDio);
 
         // lift
-        liftMaroonSpeedController = new CANSparkMax(liftMaroonCan, MotorType.kBrushless);
-        liftBlackSpeedController = new CANSparkMax(liftMaroonCan, MotorType.kBrushless);
+        liftFrontSpeedController = new CANSparkMax(liftFrontCan, MotorType.kBrushless);
+        liftBackSpeedController = new CANSparkMax(liftFrontCan, MotorType.kBrushless);
         liftMoverSpeedController = new VictorSP(liftMoverPwm);
+        liftFrontEncoder = new CANEncoder2(liftFrontSpeedController);
+        liftBackEncoder = new CANEncoder2(liftBackSpeedController);
 
         // cameras
         cameraNormal = CameraServer.getInstance().startAutomaticCapture(cameraNormalUsb);

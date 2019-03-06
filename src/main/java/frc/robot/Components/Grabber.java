@@ -1,6 +1,8 @@
 package frc.robot.Components;
 
 import common.instrumentation.Telemetry;
+import common.util.Geometry;
+import common.util.PID;
 import edu.wpi.first.wpilibj.*;
 import frc.robot.*;
 
@@ -16,12 +18,16 @@ public class Grabber {
     Telemetry telemetry = new Telemetry("Robot/Grabber");
 
     States state = States.Stopped;
-    SpeedController grabber;
+    PID grabberPid = new PID(.02, .002, .08);
+    SpeedController grabberSpeedController;
     double grabberPower;
- //   double moveExpiration = 0;
 
-    SpeedController rollerMaroonSpeedController;
-    SpeedController rollerBlackSpeedController;
+    Encoder grabberEncoder;
+    double baseClicks;
+    double targetClicks;
+
+    SpeedController rollerFrontSpeedController;
+    SpeedController rollerBackSpeedController;
     double rollerPower;
 
     public enum States {
@@ -33,52 +39,63 @@ public class Grabber {
     }
 
     public Grabber(RobotMap robotMap) {
-        grabber = robotMap.grabberSpeedController;
+        grabberSpeedController = robotMap.grabberSpeedController;
+        grabberEncoder = robotMap.grabberEncoder;
 
-        rollerMaroonSpeedController = robotMap.rollerMaroonSpeedController;          
-        rollerBlackSpeedController = robotMap.rollerBlackSpeedController;          
+        rollerFrontSpeedController = robotMap.rollerFrontSpeedController;          
+        rollerBackSpeedController = robotMap.rollerBackSpeedController;          
 
         stop();
     }
 
+    public void init() {
+        baseClicks = getClicks();
+    }
+
     // === Executing per Period ===
+
+    public double getClicks() {
+        return grabberEncoder.get();
+    }
+
     public void openHatch() {
         this.state = States.OpeningHatch;
-        grabberPower = -.75d;
-//        moveExpiration = Timer.getFPGATimestamp() + .75d;
+        targetClicks = baseClicks + (RobotMap.grabberEncoderClicksPerDegree * RobotMap.grabberHatchOpen);
     }
 
     public void openCargo() {
         this.state = States.OpeningCargo;
-        grabberPower = -.75d;
-//        moveExpiration = Timer.getFPGATimestamp() + .75d;
+        targetClicks = baseClicks + (RobotMap.grabberEncoderClicksPerDegree * RobotMap.grabberCargoOpen);
     }
 
     public void grip() {
         this.state = States.Gripping;
-        grabberPower = 0d;
+        targetClicks = baseClicks;
     } 
 
     public void close() {
         state = States.Closing;
-        grabberPower = .75d;
-//        moveExpiration = Timer.getFPGATimestamp() + .75d;
+        targetClicks = baseClicks;
     }
 
     public void stop() {
         state = States.Stopped;
         grabberPower = 0d;
         rollerPower = 0d;
+
+        grabberSpeedController.stopMotor();
+        rollerFrontSpeedController.stopMotor();
+        rollerBackSpeedController.stopMotor();
     }
 
     // full grab. Touch it! Own it!
     public void intake() {
-        rollerPower = 1d;
+        rollerPower = RobotMap.grabberIntake;
     }
 
     // lazy expell. No shooting just tossing!
     public void expell() {
-        rollerPower = -.3d;
+        rollerPower = RobotMap.grabberExpell;
     }
 
     // just hold when not intaking or expelling
@@ -89,17 +106,14 @@ public class Grabber {
     // RUN is only place to set motor values
     public void run() {
         if (state != States.Stopped) {
-            // if (Timer.getFPGATimestamp() > moveExpiration) {
-            //     //grabberPower = .1d;    // holding power
-            //     grabberPower = 0d;
-            // }
+            grabberPower = grabberPid.update(targetClicks, getClicks());
+            grabberPower = Geometry.clip(grabberPower, -.75d, .75d);
 
-            grabber.set(grabberPower);
-            rollerMaroonSpeedController.set(rollerPower);
-            rollerBlackSpeedController.set(rollerPower);
-            
-            putTelemetry();
+            grabberSpeedController.set(grabberPower);
+            rollerFrontSpeedController.set(rollerPower);
+            rollerBackSpeedController.set(rollerPower);
         }
+        putTelemetry();
     }
 
     public void putTelemetry() {

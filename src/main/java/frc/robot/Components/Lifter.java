@@ -3,108 +3,131 @@ package frc.robot.Components;
 import com.revrobotics.CANSparkMax.IdleMode;
 
 import common.instrumentation.Telemetry;
-import common.util.Geometry;
 import edu.wpi.first.wpilibj.*;
 import frc.robot.*;
+import common.util.PID;
 
 public class Lifter {
     private Telemetry telemetry = new Telemetry("Robot/Lifter");
 
-    private SpeedController maroonSpeedController;
-    private SpeedController blackSpeedController;
+    private RampSpeedController frontSpeedController;
+    private RampSpeedController backSpeedController;
     private SpeedController moverSpeedController;
 
-    private double stowedPower;
-    private double maroonPower;
-    private double blackPower;
+    private CANEncoder2 frontEncoder;
+    private CANEncoder2 backEncoder;
+
+    private double frontBaseClicks;
+    private double backBaseClicks;
+
+    private double frontPower;
+    private double backPower;
     private double moverPower;
     private double stateExpiration;
 
     private States state = States.Stopped;
 
     public Lifter(RobotMap robotMap) {
-        robotMap.liftMaroonSpeedController.setIdleMode(IdleMode.kBrake);
-        robotMap.liftBlackSpeedController.setIdleMode(IdleMode.kBrake);
-        // TODO: Doublecheck that motor is inverted?
-        robotMap.liftBlackSpeedController.setInverted(true);
+        robotMap.liftFrontSpeedController.setIdleMode(IdleMode.kBrake);
+        robotMap.liftBackSpeedController.setIdleMode(IdleMode.kBrake);
 
-        maroonSpeedController = robotMap.liftMaroonSpeedController;
-        blackSpeedController = robotMap.liftBlackSpeedController;
+        frontSpeedController = new RampSpeedController(robotMap.liftFrontSpeedController, RobotMap.liftRamp) ;
+        backSpeedController = new RampSpeedController(robotMap.liftBackSpeedController, RobotMap.liftRamp);
         moverSpeedController = robotMap.liftMoverSpeedController;
 
-        setStowed();
+        frontEncoder = robotMap.liftFrontEncoder;
+        backEncoder = robotMap.liftBackEncoder;
+
+        stow();
     }
 
     public enum States {
-        Stowed, 
-        Touchdown,
+        Stopped,
+        Stowing, 
+        TouchingDown,
         Extending,
-        RetractingMaroon,
-        RetractingBlack,
-        Stopped
+        RetractingFront,
+        RetractingBack,
     }
 
     public States getState() {
         return state;
     }
 
-    // goes into stowed mode where the lift retracts with a holding force enough to hold the lift columns up
-    public void setStowed() {
-        state = States.Stowed;
-        maroonPower = RobotMap.liftStowedPower;     // gently continuously retract
-        blackPower = RobotMap.liftStowedPower;
+    private void brake() {
+        frontPower = 0;
+        backPower = 0;
     }
 
-    // starts a lift the whole bot cycle
-    public void lift() {
-        if (state == States.Stowed) {
-            touchdown();
-        }
+    // goes into stowed mode where the lift retracts with a holding force enough to hold the lift columns up
+    public void stow() {
+        state = States.Stowing;
+        frontPower = RobotMap.liftStow;     // gently continuously retract
+        backPower = RobotMap.liftStow;
+        moverPower = 0;
+
+        stateExpiration = Timer.getFPGATimestamp() + .5d;
     }
 
     // gently touch down without lifting
-    private void touchdown() {
-        state = States.Touchdown;
-        maroonPower = -RobotMap.liftStowedPower;     // gently extend without lifting
-        blackPower = -RobotMap.liftStowedPower;
+    public void touchdown() {
+        state = States.TouchingDown;
+        frontPower = RobotMap.liftTouchdown;     // gently extend without lifting
+        backPower = RobotMap.liftTouchdown;
+        
         stateExpiration = Timer.getFPGATimestamp() + .5d;
     }
 
     // extend the lift elements
-    private void extend() {
+    public void extend() {
         state = States.Extending;
-        maroonPower = RobotMap.liftExtend;           // forcefully continuously extend at just over what is required
-        blackPower = RobotMap.liftExtend;
         moverPower = RobotMap.liftMoverPower;
     }
 
-    // retracting the maroon side
-    public void retractMaroon() {
+    // retracting the front side
+    public void retractFront() {
         if (state == States.Extending) {
-            state = States.RetractingMaroon;
-            maroonPower = RobotMap.liftStowedPower;     // gently and continuously retract
+            state = States.RetractingFront;
+            frontPower = RobotMap.liftStow;       // gently and continuously retract
+            moverPower = RobotMap.liftMoverPower;
+
+            stateExpiration = Timer.getFPGATimestamp() + 1.5d;
         }
     }
 
     // retracting the black side
-    // TODO: Make sure black side is where roller is installed
-    public void retractBlack() {
-        if (state == States.RetractingMaroon) {
-            state = States.RetractingBlack;
-            blackPower = RobotMap.liftStowedPower;     // gently and continuously retract
+    public void retractBack() {
+        if (state == States.RetractingFront) {
+            state = States.RetractingBack;
+            frontPower = 0;
+            backPower = RobotMap.liftStow;
             moverPower = 0;
+
+            stateExpiration = Timer.getFPGATimestamp() + 1.5d;
         }
     }
 
     public void run() {
-        if (state == States.Touchdown) {
+        if (state == States.Stowing) {
             if (Timer.getFPGATimestamp() > stateExpiration) {
+                brake();
+            }
+        }
+        if (state == States.TouchingDown) {
+            if (Timer.getFPGATimestamp() > stateExpiration) {
+                frontBaseClicks = frontEncoder.get();
+                backBaseClicks = backEncoder.get();
                 extend();
             }
         }
+        if (state == States.Extending) {
+            double correction = ((backEncoder.get() - backBaseClicks) - (frontEncoder.get() - frontBaseClicks)) * RobotMap.liftKpFactor;
+            frontPower = RobotMap.liftExtend + correction; 
+            backPower = RobotMap.liftExtend - correction;   
+        }
 
-        maroonSpeedController.set(maroonPower);        
-        blackSpeedController.set(blackPower);
+        frontSpeedController.set(frontPower);        
+        backSpeedController.set(backPower);
         moverSpeedController.set(moverPower);
 
         putTelemetry();
@@ -112,14 +135,14 @@ public class Lifter {
 
     public void stop() {
         state = States.Stopped;
-        maroonSpeedController.stopMotor();
-        blackSpeedController.stopMotor();
+        frontSpeedController.stopMotor();
+        backSpeedController.stopMotor();
         moverSpeedController.stopMotor();
     }
 
     private void putTelemetry() {
-        telemetry.putDouble("Maroon Power", maroonPower);
-        telemetry.putDouble("Gold Power", blackPower);
+        telemetry.putDouble("Front Power", frontPower);
+        telemetry.putDouble("Back Power", backPower);
         telemetry.putDouble("Move Power", moverPower);
         telemetry.putString("Version", "1.0.0");
     }

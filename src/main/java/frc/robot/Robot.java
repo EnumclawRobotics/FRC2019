@@ -18,7 +18,7 @@ public class Robot extends TimedRobot {
     private Arm arm;
     private Wrist wrist;
     private Grabber grabber;
-//    private Lifter lifter;
+    private Lifter lifter;
 
     @Override
     public void robotInit() {
@@ -33,7 +33,7 @@ public class Robot extends TimedRobot {
         arm = new Arm(robotMap);
         wrist = new Wrist(robotMap, arm);
         grabber = new Grabber(robotMap);
- //       lifter = new Lifter(robotMap);
+        lifter = new Lifter(robotMap);
 
         // start vision components
         //cameraManager = new CameraManager(robotMap);
@@ -69,6 +69,7 @@ public class Robot extends TimedRobot {
     public void autonomousInit() {
         arm.init();
         wrist.init();
+        grabber.init();
     }
 
     @Override
@@ -105,11 +106,14 @@ public class Robot extends TimedRobot {
     public void run() {
         // get changes in situation
         if (this.isAutonomous() || this.isOperatorControl()) {
-            // drive facing
-            if (operator.driveXboxController.getYButton()) {
-                drive.setFacing(true);
-            } else if (operator.driveXboxController.getXButton()) {
-                drive.setFacing(false);
+            // drive facing is toggled
+            if (operator.driveXboxController.getYButtonPressed()) {
+                drive.toggleFacing();
+            } 
+
+            if (operator.driveXboxController.getTriggerAxis(Hand.kLeft) > .5d 
+                    || operator.driveXboxController.getTriggerAxis(Hand.kRight) > .5d) {
+                drive.setlimiterOff();
             }
         }
 
@@ -117,8 +121,8 @@ public class Robot extends TimedRobot {
         // cameraManager.run();
         // mapper.run();
 
+       if (this.isAutonomous() || this.isOperatorControl()) {
 
-        if (this.isAutonomous() || this.isOperatorControl()) {
             // driver set up default move - may be overwritten by other elements
             drive.move(-operator.driveXboxController.getY(Hand.kLeft), operator.driveXboxController.getX(Hand.kRight), false);
 
@@ -206,19 +210,34 @@ public class Robot extends TimedRobot {
         if (this.isTest() || this.isAutonomous() || this.isOperatorControl()) {
             // // handle lifting by overloading the drive controller
             // if (operator.driveXboxController.getStartButton()) {
-            //     lifter.setLiftingActive();
+            //     if (lifter.getState() == Lifter.States.Stowed) {
+            //         lifter.touchdown();
+            //     } else if (lifter.getState() == Lifter.States.Touchdown) {
+            //         // no change. wait for timeout
+            //     } else if (lifter.getState() == Lifter.States.Extending && ) {
+            //         lifter.extend();
+            //     } else if (lifter.getState() == Lifter.States.Holding) {
+            //         // if was holding restart lifting 
+            //         lifter.extend();
+            //     }
+            // } else {
+            //     // stopping lift and hold at height
+            //     if (lifter.getState() == Lifter.States.Extending) {
+            //         lifter.hold();
+            //     }
             // }
+
             // if (operator.driveXboxController.getYButton()) {
-            //     lifter.setMaroonActive();
+            //     lifter.retractFront();
+            // } else if (lifter.getState() == Lifter.States.RetractingFront) {
+            //     lifter.hold();
             // }
             // if (operator.driveXboxController.getXButton()) {
-            //     lifter.setGoldActive();
+            //     lifter.retractBack();
+            // } else if (lifter.getState() == Lifter.States.RetractingBack) {
+            //     lifter.hold();
             // }
-            // if (lifter.getLiftingActive()) {
-            //    if (operator.driveXboxController.getPOV() != -1) {
-            //        lifter.move(Geometry.getYFromAngle(operator.driveXboxController.getPOV()));
-            //    }
-            // } 
+            
             // if (operator.driveXboxController.getBackButton()) {
             //     lifter.stop();
             // }
