@@ -98,7 +98,7 @@ public class Robot extends TimedRobot {
         arm.stop();
         wrist.stop();
         grabber.stop();
-//        lifter.stop();
+        lifter.stop();
 //        mapper.stop();
 //        cameraManager.stop();
     }
@@ -180,13 +180,13 @@ public class Robot extends TimedRobot {
 
         if (this.isTest() || this.isAutonomous() || this.isOperatorControl()) {
             // ignore deadband and defaults where we are not moving joystick
-            if (Math.abs(-operator.armXboxController.getY(Hand.kLeft)) > .01d) {
+            if (Math.abs(operator.armXboxController.getY(Hand.kLeft)) > .01d) {
                 // joystick moves arm manually overwriting previous height selection - only use to correct for placing
                 arm.moveManual(-operator.armXboxController.getY(Hand.kLeft));
             }
-            if (Math.abs(-operator.armXboxController.getY(Hand.kRight)) > .01d) {
+            if (Math.abs(operator.armXboxController.getY(Hand.kRight)) > .01d) {
                 // POV moves wrist manually overwriting previous position selection - only use to correct for placing
-                wrist.moveManual(-operator.armXboxController.getY(Hand.kRight));
+                wrist.moveManual(operator.armXboxController.getY(Hand.kRight));
             }
         }
 
@@ -208,39 +208,29 @@ public class Robot extends TimedRobot {
         }
 
         if (this.isTest() || this.isAutonomous() || this.isOperatorControl()) {
-            // // handle lifting by overloading the drive controller
-            // if (operator.driveXboxController.getStartButton()) {
-            //     if (lifter.getState() == Lifter.States.Stowed) {
-            //         lifter.touchdown();
-            //     } else if (lifter.getState() == Lifter.States.Touchdown) {
-            //         // no change. wait for timeout
-            //     } else if (lifter.getState() == Lifter.States.Extending && ) {
-            //         lifter.extend();
-            //     } else if (lifter.getState() == Lifter.States.Holding) {
-            //         // if was holding restart lifting 
-            //         lifter.extend();
-            //     }
-            // } else {
-            //     // stopping lift and hold at height
-            //     if (lifter.getState() == Lifter.States.Extending) {
-            //         lifter.hold();
-            //     }
-            // }
-
-            // if (operator.driveXboxController.getYButton()) {
-            //     lifter.retractFront();
-            // } else if (lifter.getState() == Lifter.States.RetractingFront) {
-            //     lifter.hold();
-            // }
-            // if (operator.driveXboxController.getXButton()) {
-            //     lifter.retractBack();
-            // } else if (lifter.getState() == Lifter.States.RetractingBack) {
-            //     lifter.hold();
-            // }
-            
-            // if (operator.driveXboxController.getBackButton()) {
-            //     lifter.stop();
-            // }
+            // handle lifting by overloading the drive controller buttons
+            if (operator.driveXboxController.getStartButton()) {
+                if (lifter.getState() == Lifter.States.Stowing) {
+                    lifter.touchdown();
+                } else if (lifter.getState() == Lifter.States.TouchingDown) {
+                    // no change. wait for timeout
+                } else if (lifter.getState() == Lifter.States.Extending) {
+                    lifter.extend();
+                }
+            }
+            if (operator.driveXboxController.getBButton()) {
+                if (lifter.getState() == Lifter.States.Extending) {
+                    lifter.retractFront();
+                }
+            }
+            if (operator.driveXboxController.getAButton()) {
+                if (lifter.getState() == Lifter.States.RetractingFront) {
+                    lifter.retractBack();
+                }
+            }
+            if (operator.driveXboxController.getBackButton()) {
+                lifter.stow();
+            }
         }
 
         // apply component changes in order
@@ -248,7 +238,7 @@ public class Robot extends TimedRobot {
         arm.run();
         wrist.run();
         grabber.run();
-//        lifter.run();
+        lifter.run();
 
         putTelemetry();
     }

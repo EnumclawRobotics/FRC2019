@@ -19,6 +19,8 @@ public class Lifter {
 
     private double frontBaseClicks;
     private double backBaseClicks;
+    private double frontTargetClicks;
+    private double backTargetClicks;
 
     private double frontPower;
     private double backPower;
@@ -81,6 +83,8 @@ public class Lifter {
     // extend the lift elements
     public void extend() {
         state = States.Extending;
+        frontTargetClicks = frontTargetClicks + 10;
+        backTargetClicks = backTargetClicks + 10;
         moverPower = RobotMap.liftMoverPower;
     }
 
@@ -88,7 +92,8 @@ public class Lifter {
     public void retractFront() {
         if (state == States.Extending) {
             state = States.RetractingFront;
-            frontPower = RobotMap.liftStow;       // gently and continuously retract
+            frontPower = RobotMap.liftStow;         // gently and continuously retract
+            backPower = 0;                          // brake
             moverPower = RobotMap.liftMoverPower;
 
             stateExpiration = Timer.getFPGATimestamp() + 1.5d;
@@ -117,13 +122,15 @@ public class Lifter {
             if (Timer.getFPGATimestamp() > stateExpiration) {
                 frontBaseClicks = frontEncoder.get();
                 backBaseClicks = backEncoder.get();
+                frontTargetClicks = frontBaseClicks;
+                backTargetClicks = backBaseClicks;
                 extend();
             }
         }
         if (state == States.Extending) {
-            double correction = ((backEncoder.get() - backBaseClicks) - (frontEncoder.get() - frontBaseClicks)) * RobotMap.liftKpFactor;
-            frontPower = RobotMap.liftExtend + correction; 
-            backPower = RobotMap.liftExtend - correction;   
+            double correction = ((backEncoder.get() - backTargetClicks) - (frontEncoder.get() - frontTargetClicks)) * RobotMap.liftKpFactor;
+            frontPower = RobotMap.liftExtend + correction;
+            backPower = RobotMap.liftExtend - correction;  
         }
 
         frontSpeedController.set(frontPower);        

@@ -42,12 +42,12 @@ public class Arm {
     public enum States {
         Stopped,
         MovingStowed,
-        MovingManual,
         MovingFloorCargo, 
         MovingStationHatch, MovingStationCargo,
         MovingRocketHatch1, MovingRocketHatch2, MovingRocketHatch3,
         MovingRocketCargo1, MovingRocketCargo2, MovingRocketCargo3, 
-        MovingShipHatch, MovingShipCargo 
+        MovingShipHatch, MovingShipCargo, 
+        MovingManual,
     }
 
     // Constructor that saves controller and sensor references
@@ -118,15 +118,6 @@ public class Arm {
         targetClicks = (getFacingNormal() ? baseClicks : baseClicks + RobotMap.armEncoderClicksPerDegree * (360 - 2 * RobotMap.armStowedAngle));
     }
 
-    public void moveManual(double controlPower) {
-        // ignore deadband and defaults where we are not moving joystick
-        if (Math.abs(controlPower) > .01) {
-            state = States.MovingManual;
-            targetHeight = -1;
-            targetClicks = getClicks() + (controlPower *  RobotMap.armEncoderClicksPerDegree * .5);
-        }
-    }
-
     public void moveRocketHatch1() {
         state = States.MovingRocketHatch1;
         targetHeight = FieldMap.heightRocketHatch1;
@@ -186,6 +177,15 @@ public class Arm {
         state = States.MovingShipCargo;
         targetHeight = FieldMap.heightShipCargo;
         targetClicks = clicksFromAngle(targetAngle);
+    }
+
+    public void moveManual(double controlPower) {
+        // ignore deadband and defaults where we are not moving joystick
+        if (Math.abs(controlPower) > .01) {
+            state = States.MovingManual;
+            targetHeight = -1;
+            targetClicks = getClicks() + (controlPower *  RobotMap.armEncoderClicksPerDegree * .5);
+        }
     }
 
     public void run() {
