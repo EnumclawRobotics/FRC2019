@@ -102,16 +102,25 @@ public class Wrist {
         targetClicks = (arm.getFacingNormal() ? baseClicks : baseClicks + RobotMap.wristEncoderClicksPerDegree * (360 - 2 * RobotMap.wristStowedAngle));        
     }
 
-    // manually adjust arm
+    // manually move wrist
     public void moveManual(double controlPower) {
         // ignore deadband and defaults where we are not moving joystick
         if (Math.abs(controlPower) > .01) {
             state = States.MovingManual;
             targetAngle = -1;
-            targetClicks = getClicks() + (controlPower * RobotMap.wristEncoderClicksPerDegree * .5);
+            targetClicks = getClicks() + (controlPower * RobotMap.wristEncoderClicksPerDegree * .25);
         }
     }
 
+    // nudges wrist by a percent of an angle. 
+    // used when switching from open to close and vice versa to aid with grabbing and placing
+    public void nudge(double nudgeAngle) {
+        // ignore deadband and defaults where we are not moving joystick
+        if (Math.abs(nudgeAngle) > .01) {
+            targetClicks = targetClicks + (nudgeAngle * RobotMap.wristEncoderClicksPerDegree);
+        }
+    }
+    
     // keep wrist straight aligned with arm
     public void moveAligned() {
         state = States.MovingAligned;
@@ -144,7 +153,6 @@ public class Wrist {
             pidPower = pid.update(targetClicks - getClicks(), RobotMap.wristPidLocality);
 
             // add in bias and reduce the power to the allowed range
-            // power = Geometry.clip(feedForward + power, -1, 1);
             // **** be safe for now until we get the settings right ***
             power = Functions.clip(feedForward + pidPower, -.22d, .22d);
 

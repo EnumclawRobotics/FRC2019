@@ -19,6 +19,9 @@ public class Grabber {
     // === setup and cleanup ===
     Telemetry telemetry = new Telemetry("Robot/Grabber");
 
+    // involved
+    private Wrist wrist;
+
     private States state = States.Stopped;
     private PID grabberPid;
     private SpeedController grabberSpeedController;
@@ -71,7 +74,10 @@ public class Grabber {
         stop();
     }
 
-    public void init() {
+    public void init(Wrist wrist) {
+        // involved
+        this.wrist = wrist;
+
         // assumes all the way closed
         baseClicks = getClicks();
     }
@@ -109,6 +115,7 @@ public class Grabber {
             state = States.Closing;
             grabberPower = -.5d;
             stateExpiration = Timer.getFPGATimestamp() + 1d;
+            wrist.nudge(-.25);
         }
     }
 
@@ -117,6 +124,7 @@ public class Grabber {
         if (state != States.OpeningHatch) {
             state = States.OpeningHatch;
             targetClicks = baseClicks + (RobotMap.grabberEncoderClicksPerDegree * RobotMap.grabberHatchOpen);
+            wrist.nudge(.25);
         }
     }
 
@@ -125,6 +133,7 @@ public class Grabber {
         if (state != States.OpeningCargo) {
             state = States.OpeningCargo;
             targetClicks = baseClicks + (RobotMap.grabberEncoderClicksPerDegree * RobotMap.grabberCargoOpen);
+            wrist.nudge(.25);
         }
     }
 

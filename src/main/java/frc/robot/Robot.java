@@ -69,7 +69,7 @@ public class Robot extends TimedRobot {
     public void autonomousInit() {
         arm.init(wrist);
         wrist.init(arm);
-        grabber.init();
+        grabber.init(wrist);
         lifter.init();
     }
 
