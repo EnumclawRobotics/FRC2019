@@ -108,7 +108,7 @@ public class Wrist {
         if (Math.abs(controlPower) > .01) {
             state = States.MovingManual;
             targetAngle = -1;
-            targetClicks = getClicks() + (controlPower * RobotMap.wristEncoderClicksPerDegree * .25);
+            targetClicks = getClicks() + (controlPower * RobotMap.wristEncoderClicksPerDegree);
         }
     }
 
@@ -154,7 +154,8 @@ public class Wrist {
 
             // add in bias and reduce the power to the allowed range
             // **** be safe for now until we get the settings right ***
-            power = Functions.clip(feedForward + pidPower, -.22d, .22d);
+            //power = Functions.clip(feedForward + pidPower, -.22d, .22d);
+            power = feedForward + pidPower;
 
             // is limit switch saying we are going too far?
             // if (limitSwitch.get() && 

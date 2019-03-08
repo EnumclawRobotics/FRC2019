@@ -84,53 +84,55 @@ public class RobotMap {
     public final static double armLength = 19d;                                 // pivot to pivot
     public final static double armStowedAngle = 5d;                             // starting angle for arm  
     public final static double armEncoderClicksPerDegree = (42d*100d)/360d;     // NEO gearbox output shaft include gear reduction  
-    public final static double armPidLocality = armEncoderClicksPerDegree * 5d;   // area around setpoint to use PID with 
-    public final static double armPidKu = .18d;                                 // Proportional oscillation 
-    public final static double armPidKp = .0171d;                               // PID kP correction factor 
+    public final static double armPidLocality = armEncoderClicksPerDegree * 2d;   // area around setpoint to use PID with 
+    public final static double armPowerLimit = .35d;                           // power limit
+    public final static double armPidKp = armPowerLimit / armPidLocality;       // PID kP correction factor  
     public final static double armPidKi = 0d;                                   // PID kI correction factor 
     public final static double armPidKd = 0d;                                   // PID kD correction factor 
-    public final static double armFeedForwardFactor = .12d;                     // hold at horizontal power. find by testing
+//    public final static double armPidKu = .18d;                                 // Proportional oscillation 
+    public final static double armFeedForwardFactor = .15d;                    // power for feed forward amount
     public final static double armRampFactor = .04d;                            // ramp change power limit per cycle (60hz) 
 
     // wrist
     public final static double wristLength = 7.75d; 
-    public final static double wristStowedAngle = 5d;                           // angle to fold back the grabber for protection
-    public final static double wristEncoderClicksPerDegree = (42d*64d)/360d;    // NEO gearbox output shaft include gear reduction
-    public final static double wristPidLocality = wristEncoderClicksPerDegree * 5d;   // area around setpoint to use PID with 
-    public final static double wristPidKu = .12d;                                   // Proportional oscillation
-    public final static double wristPidKp = .0268d;                             // PID kP correction factor
-    public final static double wristPidKi = 0d;                                 // PID kI correction factor
-    public final static double wristPidKd = 0d;                                 // PID kD correction factor
-    public final static double wristFeedForwardFactor = .12d;                   // hold at horizontal power. find by testing
-    public final static double wristRampFactor = .04d;                          // ramp change power limit per cycle (60hz)
+    public final static double wristStowedAngle = 5d;                               // angle to fold back the grabber for protection
+    public final static double wristEncoderClicksPerDegree = (42d*64d)/360d;        // NEO gearbox output shaft include gear reduction
+    public final static double wristPidLocality = wristEncoderClicksPerDegree * 3d; // area around setpoint to use PID with 
+    public final static double wristPowerLimit = .60d;                              // power limit
+    public final static double wristPidKp =  wristPowerLimit / wristPidLocality;    // PID kP correction factor  
+    public final static double wristPidKi = 0d;                                     // PID kI correction factor
+    public final static double wristPidKd = 0d;                                     // PID kD correction factor
+///    public final static double wristPidKu = .12d;                                   // Proportional oscillation
+    public final static double wristFeedForwardFactor = .12d;                         // hold at horizontal power. find by testing
+    public final static double wristRampFactor = .04d;                              // ramp change power limit per cycle (60hz)
 
     // grabber
     public final static double grabberLength = 10d;
     public final static double grabberEncoderClicksPerDegree = 1316d/360d;      // PG188 output shaft include gear reduction
     public final static double grabberLocality = grabberEncoderClicksPerDegree * 5d;   // area around setpoint to use PID with
-    public final static double grabberPidKp = .0547d;                           // PID kP correction factor
+    public final static double grabberPowerLimit = .5d;                         // power limit
+    public final static double grabberPidKp = grabberPowerLimit / grabberLocality;  // PID kP correction factor
     public final static double grabberPidKi = 0d;                               // PID kI correction factor
     public final static double grabberPidKd = 0d;                               // PID kD correction factor
     public final static double grabberHatchOpen = 30d;                          // degrees to open
     public final static double grabberCargoOpen = 60d;                          // degrees to open
-    public final static double grabberIntake = .3d;                             // speed of intake
-    public final static double grabberExpell = -.3d;                            // speed of expelling
-    public final static double grabberRampFactor = .04d;                        // ramp change power limit per cycle (60hz)
+    public final static double grabberRampFactor = .1d;                         // ramp change power limit per cycle (60hz)
+    public final static double rollerIntake = .3d;                             // speed of intake
+    public final static double rollerExpell = -.3d;                            // speed of expelling
+    public final static double rollerRampFactor = .1d;                         // ramp change power limit per cycle (60hz)
 
     // lift 
     public final static double liftHeight = 20d;                                // inches to raise bot
     public final static double liftMoverPower = 1d;                             // power to roll forward
     public final static double liftEncoderClicksPerDegree = 42d*(12d * 24d/18d)/360d;      // 12:1 output shaft with 24/18 sprocket reduction
-    public final static double liftLocality = liftEncoderClicksPerDegree * 60d;  // area around setpoint to use PID with
-    public final static double liftPidKp = .00892d;                             // PID kP correction factor
+    public final static double liftLocality = liftEncoderClicksPerDegree * 60d;    // area around setpoint to use PID with
+    public final static double liftPower = .40d;                                // extend lift power limit
+    public final static double liftPidKp = liftPower / liftLocality;            // PID kP correction factor
     public final static double liftPidKi = .0d;                                 // PID kI correction factor
     public final static double liftPidKd = .0d;                                 // PID kD correction factor
-
-    public final static double liftStow = -.05d;                                // retraction power 
-    public final static double liftTouchdown = .05d;                            // touching down
-    public final static double liftExtend = .40d;                               // extend lift power limit
-
-    public final static double liftRamp = .1d;                                  // acceleration
+    public final static double liftStow = -.1d;                                // retraction power 
+    public final static double liftTouchdown = .1d;                            // touching down
+    public final static double liftRamp = .1d;                                 // acceleration
 
     // camera
     public final static double cameraElevation = 35d;           // Camera height from floor;

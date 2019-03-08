@@ -80,11 +80,23 @@ public class Robot extends TimedRobot {
 
     @Override
     public void teleopInit() {
+        arm.init(wrist);
+        wrist.init(arm);
+        grabber.init(wrist);
+        lifter.init();
     }
 
     @Override
     public void teleopPeriodic() {
         run();
+    }
+
+    @Override
+    public void testInit() {
+        arm.init(wrist);
+        wrist.init(arm);
+        grabber.init(wrist);
+        lifter.init();
     }
 
     @Override
@@ -201,12 +213,12 @@ public class Robot extends TimedRobot {
             }
             if (operator.armXboxController.getXButton()) {
                 grabber.close();
-            // } else if (operator.armXboxController.getYButton()) {
-            //     grabber.open();
             } else if (operator.armXboxController.getYButton()) {
-                grabber.openHatch();
-            } else if (operator.armXboxController.getBButton()) {
-                grabber.openCargo();
+                 grabber.open();
+            // } else if (operator.armXboxController.getYButton()) {
+            //     grabber.openHatch();
+            // } else if (operator.armXboxController.getBButton()) {
+            //     grabber.openCargo();
             } else {
                 grabber.grip();
             }

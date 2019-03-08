@@ -188,10 +188,10 @@ public class Arm {
 
     public void moveManual(double controlPower) {
         // ignore deadband and defaults where we are not moving joystick
-        if (Math.abs(controlPower) > .01) {
+        if (Math.abs(controlPower) > .05) {
             state = States.MovingManual;
             targetHeight = -1;
-            targetClicks = getClicks() + (controlPower *  RobotMap.armEncoderClicksPerDegree * .5);
+            targetClicks = getClicks() + (controlPower * RobotMap.armEncoderClicksPerDegree);
         }
     }
 
@@ -207,7 +207,8 @@ public class Arm {
 
             // add in bias and reduce the power to the allowed range
             // **** be safe for now until we get the settings right ***
-            power = Functions.clip(feedForward + pidPower, -.22d, .22d);
+            //power = Functions.clip(feedForward + pidPower, -.25d, .25d);
+            power = feedForward + pidPower;
 
             // is limit switch saying we are going too far?
             // if (limitSwitch.get() && 

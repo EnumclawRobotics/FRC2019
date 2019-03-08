@@ -24,17 +24,16 @@ public class Grabber {
 
     private States state = States.Stopped;
     private PID grabberPid;
-    private SpeedController grabberSpeedController;
+    private RampSpeedController grabberSpeedController;
     private double grabberPower;
 
     private Encoder grabberEncoder;
     private double baseClicks;
     private double targetClicks;
-    private double stateStart;
     private double stateExpiration;
 
-    SpeedController rollerFrontSpeedController;
-    SpeedController rollerBackSpeedController;
+    RampSpeedController rollerFrontSpeedController;
+    RampSpeedController rollerBackSpeedController;
     double rollerPower;
 
     public enum States {
@@ -55,21 +54,21 @@ public class Grabber {
         robotMap.grabberSpeedController.setInverted(true);
         robotMap.grabberEncoder.setReverseDirection(true);
 
-        // set intake brake mode
+        // set intake brake mode and ensure they rotate counter to each other
         robotMap.rollerFrontSpeedController.setNeutralMode(NeutralMode.Brake);
         robotMap.rollerFrontSpeedController.setInverted(true);
         robotMap.rollerBackSpeedController.setNeutralMode(NeutralMode.Brake);
 
         // grabber        
-        grabberSpeedController = robotMap.grabberSpeedController;
+        grabberSpeedController = new RampSpeedController(robotMap.grabberSpeedController, RobotMap.grabberRampFactor);
         grabberEncoder = robotMap.grabberEncoder;
 
         grabberPid = new PID();
         grabberPid.setGainsPID(RobotMap.grabberPidKp, RobotMap.grabberPidKi, RobotMap.grabberPidKd);
 
         // intake
-        rollerFrontSpeedController = robotMap.rollerFrontSpeedController;          
-        rollerBackSpeedController = robotMap.rollerBackSpeedController;          
+        rollerFrontSpeedController = new RampSpeedController(robotMap.rollerFrontSpeedController, RobotMap.rollerRampFactor);          
+        rollerBackSpeedController = new RampSpeedController(robotMap.rollerBackSpeedController, RobotMap.rollerRampFactor);          
 
         stop();
     }
@@ -88,62 +87,62 @@ public class Grabber {
         return grabberEncoder.get();
     }
 
-    // public void close() {
-    //     if (state != States.Closing) {
-    //         state = States.Closing;
-    //         grabberPower = -.5d;
-    //     }
-    // }
-
-    // public void open() {
-    //     if (state != States.Opening) {
-    //         state = States.Opening;
-    //         grabberPower = .5d;
-    //     }
-    // }
-
-    // public void grip() {
-    //     if (state != States.Gripping) {
-    //         state = States.Gripping;
-    //         grabberPower = .1d;
-    //     }
-    // }
-
-    // close by time so that we can reset baseline for opening
     public void close() {
         if (state != States.Closing) {
             state = States.Closing;
             grabberPower = -.5d;
-            stateExpiration = Timer.getFPGATimestamp() + 1d;
-            wrist.nudge(-.25);
         }
     }
 
-    // open by target clicks
-    public void openHatch() {
-        if (state != States.OpeningHatch) {
-            state = States.OpeningHatch;
-            targetClicks = baseClicks + (RobotMap.grabberEncoderClicksPerDegree * RobotMap.grabberHatchOpen);
-            wrist.nudge(.25);
+    public void open() {
+        if (state != States.Opening) {
+            state = States.Opening;
+            grabberPower = .5d;
         }
     }
 
-    // open by target clicks
-    public void openCargo() {
-        if (state != States.OpeningCargo) {
-            state = States.OpeningCargo;
-            targetClicks = baseClicks + (RobotMap.grabberEncoderClicksPerDegree * RobotMap.grabberCargoOpen);
-            wrist.nudge(.25);
-        }
-    }
-
-    // stay at current position 
     public void grip() {
         if (state != States.Gripping) {
             state = States.Gripping;
-            targetClicks = grabberEncoder.get();
+            grabberPower = .1d;
         }
     }
+
+    // // close by time so that we can reset baseline for opening
+    // public void close() {
+    //     if (state != States.Closing) {
+    //         state = States.Closing;
+    //         grabberPower = -.5d;
+    //         stateExpiration = Timer.getFPGATimestamp() + 1d;
+    //         wrist.nudge(-.25);
+    //     }
+    // }
+
+    // // open by target clicks
+    // public void openHatch() {
+    //     if (state != States.OpeningHatch) {
+    //         state = States.OpeningHatch;
+    //         targetClicks = baseClicks + (RobotMap.grabberEncoderClicksPerDegree * RobotMap.grabberHatchOpen);
+    //         wrist.nudge(.25);
+    //     }
+    // }
+
+    // // open by target clicks
+    // public void openCargo() {
+    //     if (state != States.OpeningCargo) {
+    //         state = States.OpeningCargo;
+    //         targetClicks = baseClicks + (RobotMap.grabberEncoderClicksPerDegree * RobotMap.grabberCargoOpen);
+    //         wrist.nudge(.25);
+    //     }
+    // }
+
+    // // stay at current position 
+    // public void grip() {
+    //     if (state != States.Gripping) {
+    //         state = States.Gripping;
+    //         targetClicks = grabberEncoder.get();
+    //     }
+    // }
 
     public void stop() {
         state = States.Stopped;
@@ -157,12 +156,12 @@ public class Grabber {
 
     // full grab. Touch it! Own it!
     public void intake() {
-        rollerPower = RobotMap.grabberIntake;
+        rollerPower = RobotMap.rollerIntake;
     }
 
     // lazy expell. No shooting just tossing!
     public void expell() {
-        rollerPower = RobotMap.grabberExpell;
+        rollerPower = RobotMap.rollerExpell;
     }
 
     // just hold when not intaking or expelling

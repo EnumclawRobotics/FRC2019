@@ -36,8 +36,8 @@ public class Lifter {
         robotMap.liftFrontSpeedController.setIdleMode(IdleMode.kBrake);
         robotMap.liftBackSpeedController.setIdleMode(IdleMode.kBrake);
 
-        robotMap.liftFrontSpeedController.setInverted(true);
-        robotMap.liftBackSpeedController.setInverted(true);
+//        robotMap.liftFrontSpeedController.setInverted(true);
+//        robotMap.liftBackSpeedController.setInverted(true);
 
         frontSpeedController = robotMap.liftFrontSpeedController;
         backSpeedController = robotMap.liftBackSpeedController;
@@ -178,8 +178,8 @@ public class Lifter {
             }
             else if (state == States.Extending || state == States.Retracting) {
                 // lift/retract
-                frontPower = RobotMap.liftExtend + frontPid.update(frontTargetClicks - frontEncoder.get(), RobotMap.liftLocality);
-                backPower = RobotMap.liftExtend + backPid.update(backTargetClicks - backEncoder.get(), RobotMap.liftLocality);
+                frontPower = RobotMap.liftPower + frontPid.update(frontTargetClicks - frontEncoder.get(), RobotMap.liftLocality);
+                backPower = RobotMap.liftPower + backPid.update(backTargetClicks - backEncoder.get(), RobotMap.liftLocality);
 
                 // try and keep the lift relatively in parrallel
                 double liftCorrection = ((frontEncoder.get() - frontTargetClicks) - (backEncoder.get() - backTargetClicks)) * RobotMap.liftPidKp;
@@ -187,7 +187,7 @@ public class Lifter {
                 backPower = backPower + liftCorrection;  
             }
             else if (state == States.RetractingFront) {
-                backPower = RobotMap.liftExtend + backPid.update(backTargetClicks - backEncoder.get(), RobotMap.liftLocality);
+                backPower = RobotMap.liftPower + backPid.update(backTargetClicks - backEncoder.get(), RobotMap.liftLocality);
             }
             
             frontSpeedController.set(frontPower);        
