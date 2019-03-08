@@ -1,7 +1,7 @@
 package frc.robot.Components;
 
 import edu.wpi.first.wpilibj.SpeedController;
-import common.util.Geometry;
+import common.util.Functions;
 
 public class RampSpeedController implements SpeedController {
     private SpeedController speedController;
@@ -25,7 +25,7 @@ public class RampSpeedController implements SpeedController {
             power = currentPower - rampIncrement;
         }
 
-        Geometry.clip(power, -1d, 1d);
+        Functions.clip(power, -1d, 1d);
 
         speedController.set(power);
     }

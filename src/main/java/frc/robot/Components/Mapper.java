@@ -146,7 +146,7 @@ public class Mapper {
 
         */
 
-        double m2 = Geometry.slope(vector.getX0(), vector.getY0(), vector.getX1(), vector.getY1());
+        double m2 = Functions.slope(vector.getX0(), vector.getY0(), vector.getX1(), vector.getY1());
 
         double a = (m2 * vector.getX0() - 2 * vector.getY0())/Math.pow(vector.getX0(), 3);
         double b = (3 * vector.getY0() - m2 * vector.getX0())/Math.pow(vector.getX0(), 2);

@@ -14,7 +14,7 @@ import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.TimedRobot;
 
 import common.instrumentation.*;
-import common.util.Geometry;
+import common.util.Functions;
 
 /**
  * Use for testing the Lifter Assembly
@@ -103,11 +103,11 @@ public class Robot extends TimedRobot {
                 liftingBack = true;
             }
 
-            liftingFrontPower = liftingFront ? Geometry.getYFromAngle(xboxController.getPOV()) : 0;
-            liftingBackPower = liftingBack ? Geometry.getYFromAngle(xboxController.getPOV()) : 0;
+            liftingFrontPower = liftingFront ? Functions.getYFromAngle(xboxController.getPOV()) : 0;
+            liftingBackPower = liftingBack ? Functions.getYFromAngle(xboxController.getPOV()) : 0;
 
-            motorControllerFront.set(Geometry.clip(liftingFrontPower + liftGravity, -1, 1));
-            motorControllerBack.set(Geometry.clip(liftingFrontPower + liftGravity, -1, 1));
+            motorControllerFront.set(Functions.clip(liftingFrontPower + liftGravity, -1, 1));
+            motorControllerBack.set(Functions.clip(liftingFrontPower + liftGravity, -1, 1));
             motorControllerMove.set(moverPower);
 
             // try to roll forward while lifting enabled 

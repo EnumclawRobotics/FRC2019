@@ -17,22 +17,24 @@ public class Wrist {
     private Arm arm;
 
     // equipment
-    private PID pidController;
+    private PID pid;
     private RampSpeedController speedController;    // controller for moving the joint
     private CANEncoder2 encoder;                    // counts clicks of rotation for the joint 
     private DigitalInput limitSwitch;               // determines when we're going to turn too far
                                                     
     // start condition
-    double baseClicks = 0;                          // where did encoder start at init?  0 is straight up
+    private double baseClicks;                          // where did encoder start at init?  0 is straight up
 
     // set target
-    private double targetAngle = 0;                 // based on state determistically, or if horizontal to arm, based on arm angle
-    double targetClicks = 0;                        // encoder clicks that match angle
+    private double armAngle;                        // arm's angle
+    private double angle;                           // wrist angle
+    private double targetAngle;                     // based on state determistically, or if horizontal to arm, based on arm angle
+    private double targetClicks;                        // encoder clicks that match angle
 
     // derived but stored for awareness
-    double feedForward = 0;                         // amount of counter gravity force
-    double pidPower = 0;
-    double power = 0;                               // power sent to motor
+    private double feedForward;                         // amount of counter gravity force
+    private double pidPower;
+    private double power;                               // power sent to motor
 
     States state = States.Stopped;
 
@@ -45,16 +47,24 @@ public class Wrist {
     }
 
     // Constructor holds onto motor controller and sensor references
-    public Wrist(RobotMap robotMap, Arm arm) {
-        this.pidController = new PID(RobotMap.wristKpFactor, RobotMap.wristKiFactor, RobotMap.wristKdFactor);
+    public Wrist(RobotMap robotMap) {
+        // invert due to mounting direction
+        robotMap.wristSpeedController.setInverted(true);
+
+        this.pid = new PID();
+        // this.pidController.setZnGainsP(RobotMap.wristPidKu);
+        this.pid.setGainsPID(RobotMap.wristPidKp, RobotMap.wristPidKi, RobotMap.wristPidKd);
+
         this.speedController = new RampSpeedController(robotMap.wristSpeedController, RobotMap.wristRampFactor);
         this.encoder = robotMap.wristEncoder;
         this.limitSwitch = robotMap.wristLimitSwitch;
-        this.arm = arm;
     }
 
     // assumes that arm is Stowed at start of autonomous 
-    public void init() {
+    public void init(Arm arm) {
+        // involved parts
+        this.arm = arm;
+
         // store starting position
         baseClicks = encoder.get();
 
@@ -118,25 +128,25 @@ public class Wrist {
 
     public void run() {
         if (state != States.Stopped) {
-            // adjust target based on arm move?
+            // adjust target based on current arm move?
             if (state == States.MovingHorizontal) {
                 targetAngle = horizontalAngleFromArm();
                 targetClicks = clicksFromAngle(targetAngle);
             }
 
             // current angle implies how much force gravity applies
-            double angle = getAngle();
-            double armAngle = arm.getAngle();
+            angle = getAngle();
+            armAngle = arm.getAngle();
             double gravityAngle = (angle - 180) + armAngle;       // wrist angle is 180 degrees ahead of arm in orientation
-            feedForward = Geometry.gravity(gravityAngle) * RobotMap.wristFeedForwardFactor;
+            feedForward = Functions.gravity(gravityAngle) * RobotMap.wristFeedForwardFactor;
 
             // get PID output that is best to go towards the target clicks
-            pidPower = pidController.update(targetClicks, getClicks());
+            pidPower = pid.update(targetClicks - getClicks(), RobotMap.wristPidLocality);
 
             // add in bias and reduce the power to the allowed range
             // power = Geometry.clip(feedForward + power, -1, 1);
             // **** be safe for now until we get the settings right ***
-            power = Geometry.clip(feedForward + pidPower, -.15d, .15d);
+            power = Functions.clip(feedForward + pidPower, -.22d, .22d);
 
             // is limit switch saying we are going too far?
             // if (limitSwitch.get() && 
@@ -155,13 +165,14 @@ public class Wrist {
     private void putTelemetry() {
         telemetry.putString("State", state.toString());
         telemetry.putBoolean("LimitSwitch.get()", limitSwitch.get());
-        telemetry.putDouble("Angle", getAngle());
-        telemetry.putDouble("Clicks", encoder.get());
+        telemetry.putDouble("Arm Angle", armAngle);
+        telemetry.putDouble("Wrist Angle", angle);
+        telemetry.putDouble("Wrist Clicks", encoder.get());
+        telemetry.putDouble("TargetAngle", targetAngle);
+        telemetry.putDouble("TargetClicks", targetClicks);
         telemetry.putDouble("PIDPower", pidPower);
         telemetry.putDouble("FeedForward", feedForward);
         telemetry.putDouble("Power", power);
-        telemetry.putDouble("TargetAngle", targetAngle);
-        telemetry.putDouble("TargetClicks", targetClicks);
         telemetry.putString("Version", "1.0.0");
     }
 

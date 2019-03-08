@@ -3,7 +3,7 @@ package frc.robot.Components;
 import com.revrobotics.CANSparkMax.IdleMode;
 
 import common.instrumentation.Telemetry;
-import common.util.Geometry;
+import common.util.Functions;
 import edu.wpi.first.wpilibj.*;
 import frc.robot.*;
 import common.util.PID;
@@ -13,8 +13,6 @@ import common.util.PID;
 *  DESIGNED TO ONLY APPLY CHANGES IN RUN()
 */
 public class Arm {
-    PID pidController;
-
     // -- setup and cleanup ===
     private Telemetry telemetry = new Telemetry("Robot/Arm");
 
@@ -23,7 +21,11 @@ public class Arm {
     private RampSpeedController rightSpeedController;
     private CANEncoder2 encoder;
     private DigitalInput limitSwitch; 
-    
+    private PID pid;
+
+    // involved parts
+    private Wrist wrist;
+
     // set/derived through command
     private double targetHeight = 0;
     private double targetAngle = 0;
@@ -52,8 +54,6 @@ public class Arm {
 
     // Constructor that saves controller and sensor references
     public Arm(RobotMap robotMap) {
-        pidController = new PID(RobotMap.armKpFactor, RobotMap.armKiFactor, RobotMap.armKdFactor); 
-
         // config motor controllers
         robotMap.armLeftSpeedController.setIdleMode(IdleMode.kBrake);
         robotMap.armRightSpeedController.setInverted(true);
@@ -65,11 +65,18 @@ public class Arm {
         encoder = robotMap.armEncoder;
         limitSwitch = robotMap.armLimitSwitch;
 
+        pid = new PID();
+        //pidController.setZnGainsP(RobotMap.armPidKu); 
+        pid.setGainsPID(RobotMap.armPidKp, RobotMap.armPidKi, RobotMap.armPidKd);
+
         stop();
     }
 
     // assumes that arm is Stowed at start of autonomous
-    public void init() {
+    public void init(Wrist wrist) {
+        // involved 
+        this.wrist = wrist;
+
         baseClicks = encoder.get();
 
         // reset derived fields
@@ -192,15 +199,15 @@ public class Arm {
         if (state != States.Stopped) {
             // current angle implies how much force gravity applies and so what we need to make neutral
             double angle = getAngle();
-            feedForward = Geometry.gravity(angle) * RobotMap.armFeedForwardFactor;
+            feedForward = Functions.gravity(angle) * RobotMap.armFeedForwardFactor;
+            // TODO: Incorporate change in wrist angle 
 
             // get PID output that is best to go towards the target clicks
-            pidPower = pidController.update(targetClicks, encoder.get());      
+            pidPower = pid.update(targetClicks - encoder.get(), RobotMap.armPidLocality);    
 
             // add in bias and reduce the power to the allowed range
-            // power = Geometry.clip(feedForward + power, -1, 1);
             // **** be safe for now until we get the settings right ***
-            power = common.util.Geometry.clip(feedForward + pidPower, -.22d, .22d);
+            power = Functions.clip(feedForward + pidPower, -.22d, .22d);
 
             // is limit switch saying we are going too far?
             // if (limitSwitch.get() && 

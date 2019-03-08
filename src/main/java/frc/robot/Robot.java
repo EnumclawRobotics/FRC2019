@@ -31,7 +31,7 @@ public class Robot extends TimedRobot {
         operator = new Operator(robotMap);
         drive = new Drive(robotMap);
         arm = new Arm(robotMap);
-        wrist = new Wrist(robotMap, arm);
+        wrist = new Wrist(robotMap);
         grabber = new Grabber(robotMap);
         lifter = new Lifter(robotMap);
 
@@ -67,9 +67,10 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousInit() {
-        arm.init();
-        wrist.init();
+        arm.init(wrist);
+        wrist.init(arm);
         grabber.init();
+        lifter.init();
     }
 
     @Override
@@ -200,7 +201,11 @@ public class Robot extends TimedRobot {
             }
             if (operator.armXboxController.getXButton()) {
                 grabber.close();
+            // } else if (operator.armXboxController.getYButton()) {
+            //     grabber.open();
             } else if (operator.armXboxController.getYButton()) {
+                grabber.openHatch();
+            } else if (operator.armXboxController.getBButton()) {
                 grabber.openCargo();
             } else {
                 grabber.grip();
@@ -229,7 +234,11 @@ public class Robot extends TimedRobot {
                 }
             }
             if (operator.driveXboxController.getBackButton()) {
-                lifter.stow();
+                if (lifter.getState() == Lifter.States.Extending) {
+                    lifter.retract();
+                } else {
+                    lifter.stow();
+                }
             }
         }
 
