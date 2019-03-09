@@ -32,34 +32,40 @@ public class RobotMap {
     final int liftMoverPwm = 0;                     // 30amp / VictorSP / Neverest 40 
 
     // CAN Device IDs
-    final int driveLeftFrontCan = 1;               // 40amp / VictorSPX / CIM / ToughBox 
+    final int driveLeftFrontCan = 1;                // 40amp / VictorSPX / CIM / ToughBox 
     final int driveLeftBackCan = 2;                 // 40amp / VictorSPX / CIM / ToughBox
-    final int driveRightFrontCan = 3;              // 40amp / VictorSPX / CIM / ToughBox
+    final int driveRightFrontCan = 3;               // 40amp / VictorSPX / CIM / ToughBox
     final int driveRightBackCan = 4;                // 40amp / VictorSPX / CIM / ToughBox 
 
-    final int armLeftCan = 1;                     // 40amp / SparkMax / NEO / CimSport 100:1
+    final int armLeftCan = 1;                       // 40amp / SparkMax / NEO / CimSport 100:1
     final int armRightCan = 6;                      // 40amp / SparkMax / NEO / CimSport 100:1
-    final int wristCan = 8;                         // 30amp / SparkMax / NEO / CimSport 64:1
+    //final int wristCan = 8;                         // 30amp / SparkMax / NEO / CimSport 64:1
+    final int wristCan = 8;                         // 30amp / victorSPX / 775 / PG188 188:1
 
-    final int grabberCan = 5;                      // 30amp / VictorSPX / 775 / PG188 188:1
-    final int rollerFrontCan = 6;                  // 30amp / VictorSPX / 775 / CimSport 4:1
-    final int rollerBackCan = 7;                   // 30amp / VictorSPX / 775 / CimSport 4:1
+    final int grabberCan = 5;                       // 30amp / VictorSPX / 775 / PG188 188:1
+    final int rollerFrontCan = 10;                  // 30amp / VictorSPX / 775 / CimSport 4:1
+    final int rollerBackCan = 11;                   // 30amp / VictorSPX / 775 / CimSport 4:1
 
-    final int liftFrontCan = 7;                    // 40amp / SparkMax / NEO / CimSport 12:1
-    final int liftBackCan = 9;                     // 40amp / SparkMax / NEO / CimSport 12:1
+    final int liftFrontCan = 7;                     // 40amp / SparkMax / NEO / CimSport 20:1
+    final int liftBackCan = 9;                      // 40amp / SparkMax / NEO / CimSport 20:1
+    // final int liftFrontCan = 7;                     // 40amp / SparkMax / NEO / CimSport 12:1
+    // final int liftBackCan = 9;                      // 40amp / SparkMax / NEO / CimSport 12:1
 
     // DIO Ports
-    final int grabberEncoderADio = 0;               // PG188 encoder
-    final int grabberEncoderBDio = 1;               // PG188 encoder
+    final int wristEncoderADio = 0;                 // PG188 encoder
+    final int wristEncoderBDio = 1;                 // PG188 encoder
 
-    final int armLimitSwitchDio = 5;                // Rev Magnetic limit switch
-    final int wristLimitSwitchDio = 6;              // Rev Magnetic limit switch
+    // final int grabberEncoderADio = 7;               // PG188 encoder
+    // final int grabberEncoderBDio = 8;               // PG188 encoder
+
+    // final int armLimitSwitchDio = 5;                // Rev Magnetic limit switch
+    // final int wristLimitSwitchDio = 6;              // Rev Magnetic limit switch
 
     // I2C Addresses
-    final int pixy2NormalI2C = 0x53;
-    final int pixy2InvertedI2C = 0x63; 
+    // final int pixy2NormalI2C = 0x53;
+    // final int pixy2InvertedI2C = 0x63; 
 
-    // USB Ports RoboRio
+    // // USB Ports RoboRio
     final int cameraNormalUsb = 0;
     final int cameraInvertedUsb = 1;
 
@@ -89,20 +95,19 @@ public class RobotMap {
     public final static double armPidKp = armPowerLimit / armPidLocality;       // PID kP correction factor  
     public final static double armPidKi = 0d;                                   // PID kI correction factor 
     public final static double armPidKd = 0d;                                   // PID kD correction factor 
-//    public final static double armPidKu = .18d;                                 // Proportional oscillation 
     public final static double armFeedForwardFactor = .15d;                    // power for feed forward amount
     public final static double armRampFactor = .04d;                            // ramp change power limit per cycle (60hz) 
 
     // wrist
     public final static double wristLength = 7.75d; 
     public final static double wristStowedAngle = 5d;                               // angle to fold back the grabber for protection
-    public final static double wristEncoderClicksPerDegree = (42d*64d)/360d;        // NEO gearbox output shaft include gear reduction
+    public final static double wristEncoderClicksPerDegree = 1316d/360d;            // PG188 gearbox output shaft include gear reduction
+//    public final static double wristEncoderClicksPerDegree = (42d*64d)/360d;        // NEO gearbox output shaft include gear reduction
     public final static double wristPidLocality = wristEncoderClicksPerDegree * 3d; // area around setpoint to use PID with 
     public final static double wristPowerLimit = .60d;                              // power limit
     public final static double wristPidKp =  wristPowerLimit / wristPidLocality;    // PID kP correction factor  
     public final static double wristPidKi = 0d;                                     // PID kI correction factor
     public final static double wristPidKd = 0d;                                     // PID kD correction factor
-///    public final static double wristPidKu = .12d;                                   // Proportional oscillation
     public final static double wristFeedForwardFactor = .12d;                         // hold at horizontal power. find by testing
     public final static double wristRampFactor = .04d;                              // ramp change power limit per cycle (60hz)
 
@@ -122,25 +127,25 @@ public class RobotMap {
     public final static double rollerRampFactor = .1d;                         // ramp change power limit per cycle (60hz)
 
     // lift 
-    public final static double liftHeight = 20d;                                // inches to raise bot
+//    public final static double liftHeight = 20d;                                // inches to raise bot
     public final static double liftMoverPower = 1d;                             // power to roll forward
-    public final static double liftEncoderClicksPerDegree = 42d*(12d * 24d/18d)/360d;      // 12:1 output shaft with 24/18 sprocket reduction
+//    public final static double liftEncoderClicksPerDegree = 42d*(12d * 24d/18d)/360d;      // 12:1 output shaft with 24/18 sprocket reduction
+    public final static double liftEncoderClicksPerDegree = 42d*(20d * 24d/18d)/360d;  // 20:1 output shaft with 24/18 sprocket reduction
     public final static double liftLocality = liftEncoderClicksPerDegree * 60d;    // area around setpoint to use PID with
-    public final static double liftPower = .40d;                                // extend lift power limit
+    public final static double liftPower = .75d;                                // extend lift power limit
     public final static double liftPidKp = liftPower / liftLocality;            // PID kP correction factor
     public final static double liftPidKi = .0d;                                 // PID kI correction factor
     public final static double liftPidKd = .0d;                                 // PID kD correction factor
     public final static double liftStow = -.1d;                                // retraction power 
-    public final static double liftTouchdown = .1d;                            // touching down
     public final static double liftRamp = .1d;                                 // acceleration
 
-    // camera
-    public final static double cameraElevation = 35d;           // Camera height from floor;
-    public final static double cameraAngle = 30d;               // Angle between vertical and camera facing in degrees;
-    public final static double cameraFovX = 60d;                // Field of view in degrees (FOV) Pixy2
-    public final static double cameraFovY = 40d;                // Field of view in degrees (FOV) Pixy2
-    public final static double cameraMaxX = 80d;                // Max X resolution Pixy2
-    public final static double cameraMaxY = 60d;                // Max Y resolution Pixy2
+    // // camera
+    // public final static double cameraElevation = 35d;           // Camera height from floor;
+    // public final static double cameraAngle = 30d;               // Angle between vertical and camera facing in degrees;
+    // public final static double cameraFovX = 60d;                // Field of view in degrees (FOV) Pixy2
+    // public final static double cameraFovY = 40d;                // Field of view in degrees (FOV) Pixy2
+    // public final static double cameraMaxX = 80d;                // Max X resolution Pixy2
+    // public final static double cameraMaxY = 60d;                // Max Y resolution Pixy2
 
     
     // === REFERENCES ======================
@@ -153,7 +158,8 @@ public class RobotMap {
 
     public CANSparkMax armLeftSpeedController;                  // set brake 
     public CANSparkMax armRightSpeedController;                 // set brake 
-    public CANSparkMax wristSpeedController;                    // set brake
+//    public CANSparkMax wristSpeedController;                    // set brake
+    public CANVictorSPX wristSpeedController;                    // set brake
 
     public CANVictorSPX grabberSpeedController;                 // set brake
     public CANVictorSPX rollerFrontSpeedController;             // set brake
@@ -167,21 +173,22 @@ public class RobotMap {
     //    public ADXRS450_Gyro driveGyro;                           // ROBORIO is mounted wrong for this
 
     public CANEncoder2 armEncoder;
-    public DigitalInput armLimitSwitch;
+//    public DigitalInput armLimitSwitch;
 
-    public CANEncoder2 wristEncoder;
-    public DigitalInput wristLimitSwitch;
+//    public CANEncoder2 wristEncoder;
+    public Encoder wristEncoder;
+//    public DigitalInput wristLimitSwitch;
 
     public Encoder grabberEncoder;
     //    public DigitalInput grabberLimitSwitch;
-    public DigitalInput hatchLimitSwitch;               // TODO: Use two limit switches on physical bot just linked together
-    public MRColorSensor cargoColorSensor;
+//    public DigitalInput hatchLimitSwitch;               // TODO: Use two limit switches on physical bot just linked together
+//    public MRColorSensor cargoColorSensor;
 
     public CANEncoder2 liftFrontEncoder;
     public CANEncoder2 liftBackEncoder;
 
-    public Pixy2 pixy2Normal;
-    public Pixy2 pixy2Inverted;
+    // public Pixy2 pixy2Normal;
+    // public Pixy2 pixy2Inverted;
 
     public UsbCamera cameraNormal;
     public UsbCamera cameraInverted;
@@ -210,16 +217,18 @@ public class RobotMap {
         armLeftSpeedController = new CANSparkMax(armLeftCan, MotorType.kBrushless);
         armRightSpeedController = new CANSparkMax(armRightCan, MotorType.kBrushless);
         armEncoder = new CANEncoder2(armRightSpeedController);
-        armLimitSwitch = new DigitalInput(armLimitSwitchDio);
+//        armLimitSwitch = new DigitalInput(armLimitSwitchDio);
 
         // wrist
-        wristSpeedController =  new CANSparkMax(wristCan, MotorType.kBrushless);
-        wristEncoder = new CANEncoder2(wristSpeedController);
-        wristLimitSwitch = new DigitalInput(wristLimitSwitchDio);
+//        wristSpeedController =  new CANSparkMax(wristCan, MotorType.kBrushless);
+//        wristEncoder = new CANEncoder2(wristSpeedController);
+        wristSpeedController =  new CANVictorSPX(wristCan);
+        wristEncoder = new Encoder(wristEncoderADio, wristEncoderBDio);
+//        wristLimitSwitch = new DigitalInput(wristLimitSwitchDio);
 
         // grabber
         grabberSpeedController = new CANVictorSPX(grabberCan);
-        grabberEncoder = new Encoder(grabberEncoderADio, grabberEncoderBDio);
+//        grabberEncoder = new Encoder(grabberEncoderADio, grabberEncoderBDio);
 //        grabberLimitSwitch = new DigitalInput(grabberLimitSwitchDio);
 
         // cargo handler
@@ -244,8 +253,8 @@ public class RobotMap {
         // cameraInverted = new UsbCamera("USB Camera 1", cameraInvertedUsb);
 
         // Pixy2
-        pixy2Normal = Pixy2.createInstance(new I2CLink());
-        pixy2Normal.init(2);
+        // pixy2Normal = Pixy2.createInstance(new I2CLink());
+        // pixy2Normal.init(2);
         // pixy2Inverted = Pixy2.createInstance(new I2CLink(2));
         // pixy2Inverted.init();
     }

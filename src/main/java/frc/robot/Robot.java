@@ -135,7 +135,6 @@ public class Robot extends TimedRobot {
         // mapper.run();
 
        if (this.isAutonomous() || this.isOperatorControl()) {
-
             // driver set up default move - may be overwritten by other elements
             drive.move(-operator.driveXboxController.getY(Hand.kLeft), operator.driveXboxController.getX(Hand.kRight), false);
 
@@ -227,30 +226,19 @@ public class Robot extends TimedRobot {
         if (this.isTest() || this.isAutonomous() || this.isOperatorControl()) {
             // handle lifting by overloading the drive controller buttons
             if (operator.driveXboxController.getStartButton()) {
-                if (lifter.getState() == Lifter.States.Stowing) {
-                    lifter.touchdown();
-                } else if (lifter.getState() == Lifter.States.TouchingDown) {
-                    // no change. wait for timeout
-                } else if (lifter.getState() == Lifter.States.Extending) {
-                    lifter.extend();
-                }
+                lifter.move(.5);
             }
-            if (operator.driveXboxController.getBButton()) {
-                if (lifter.getState() == Lifter.States.Extending) {
-                    lifter.retractFront();
-                }
-            }
-            if (operator.driveXboxController.getAButton()) {
-                if (lifter.getState() == Lifter.States.RetractingFront) {
-                    lifter.retractBack();
-                }
-            }
-            if (operator.driveXboxController.getBackButton()) {
-                if (lifter.getState() == Lifter.States.Extending) {
-                    lifter.retract();
-                } else {
-                    lifter.stow();
-                }
+            else if (operator.driveXboxController.getBackButton()) {
+                lifter.move(-.25);
+            } 
+            else if (operator.driveXboxController.getBButton()) {
+                lifter.stowFront();
+            } 
+            else if (operator.driveXboxController.getAButton()) {
+                lifter.stowBack();
+            } 
+            else {
+                lifter.holding();
             }
         }
 

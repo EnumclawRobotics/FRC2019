@@ -17,7 +17,7 @@ public class Drive {
 
     DifferentialDrive differentialDrive; 
 //    ADXRS450_Gyro gyro;
-    Mapper mapper;
+//    Mapper mapper;
 
     double speed = 0;
     double rotation = 0;
@@ -132,15 +132,15 @@ public class Drive {
     //     this.rotation = (headingError * .1d);                         // proportional correction based on drift. change value
     // }
 
-    // Figures out rotation needed based on current speed in order to line up with primary white line found 
-    public void assistRotation(Vector vector) {
-        if (state != States.AssistingTurn) {
-            state = States.AssistingTurn;
-        }
+    // // Figures out rotation needed based on current speed in order to line up with primary white line found 
+    // public void assistRotation(Vector vector) {
+    //     if (state != States.AssistingTurn) {
+    //         state = States.AssistingTurn;
+    //     }
 
-        // can camera find a primary while line? then supply some rotation help, otherwise ignore
-        if (vector != null) {
-            this.rotation = Mapper.getRotation(vector, speed);
-        }
-    }
+    //     // can camera find a primary while line? then supply some rotation help, otherwise ignore
+    //     if (vector != null) {
+    //         this.rotation = Mapper.getRotation(vector, speed);
+    //     }
+    // }
 }

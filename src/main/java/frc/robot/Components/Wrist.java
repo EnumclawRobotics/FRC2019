@@ -19,8 +19,10 @@ public class Wrist {
     // equipment
     private PID pid;
     private RampSpeedController speedController;    // controller for moving the joint
-    private CANEncoder2 encoder;                    // counts clicks of rotation for the joint 
-    private DigitalInput limitSwitch;               // determines when we're going to turn too far
+//    private CANEncoder2 encoder;                    // counts clicks of rotation for the joint 
+    private Encoder encoder;                    // counts clicks of rotation for the joint 
+
+//    private DigitalInput limitSwitch;               // determines when we're going to turn too far
                                                     
     // start condition
     private double baseClicks;                          // where did encoder start at init?  0 is straight up
@@ -57,7 +59,7 @@ public class Wrist {
 
         this.speedController = new RampSpeedController(robotMap.wristSpeedController, RobotMap.wristRampFactor);
         this.encoder = robotMap.wristEncoder;
-        this.limitSwitch = robotMap.wristLimitSwitch;
+//        this.limitSwitch = robotMap.wristLimitSwitch;
     }
 
     // assumes that arm is Stowed at start of autonomous 
@@ -173,7 +175,7 @@ public class Wrist {
 
     private void putTelemetry() {
         telemetry.putString("State", state.toString());
-        telemetry.putBoolean("LimitSwitch.get()", limitSwitch.get());
+//        telemetry.putBoolean("LimitSwitch.get()", limitSwitch.get());
         telemetry.putDouble("Arm Angle", armAngle);
         telemetry.putDouble("Wrist Angle", angle);
         telemetry.putDouble("Wrist Clicks", encoder.get());

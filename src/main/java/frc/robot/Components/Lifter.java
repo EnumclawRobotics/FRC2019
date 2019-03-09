@@ -10,9 +10,18 @@ import common.util.PID;
 public class Lifter {
     private Telemetry telemetry = new Telemetry("Robot/Lifter");
 
-    private SpeedController frontSpeedController;
-    private SpeedController backSpeedController;
-    private SpeedController moverSpeedController;
+    public enum States {
+        Stopped,
+        Stowing, 
+        StowingFront,
+        StowingBack,
+        Moving,
+        Holding
+    }
+
+    private RampSpeedController frontSpeedController;
+    private RampSpeedController backSpeedController;
+    private RampSpeedController moverSpeedController;
 
     private CANEncoder2 frontEncoder;
     private CANEncoder2 backEncoder;
@@ -20,8 +29,6 @@ public class Lifter {
     private PID frontPid;
     private PID backPid;
 
-    private double frontTouchdownClicks;
-    private double backTouchdownClicks;
     private double frontTargetClicks;
     private double backTargetClicks;
 
@@ -39,9 +46,9 @@ public class Lifter {
 //        robotMap.liftFrontSpeedController.setInverted(true);
 //        robotMap.liftBackSpeedController.setInverted(true);
 
-        frontSpeedController = robotMap.liftFrontSpeedController;
-        backSpeedController = robotMap.liftBackSpeedController;
-        moverSpeedController = robotMap.liftMoverSpeedController;
+        frontSpeedController = new RampSpeedController(robotMap.liftFrontSpeedController, RobotMap.liftRamp);
+        backSpeedController = new RampSpeedController(robotMap.liftBackSpeedController, RobotMap.liftRamp);
+        moverSpeedController = new RampSpeedController(robotMap.liftMoverSpeedController, RobotMap.liftRamp);
 
         frontEncoder = robotMap.liftFrontEncoder;
         backEncoder = robotMap.liftBackEncoder;
@@ -53,143 +60,77 @@ public class Lifter {
     }
 
     public void init() {
+        frontTargetClicks = frontEncoder.get();
+        backTargetClicks = backEncoder.get();
         stow();
-    }
-
-    public enum States {
-        Stopped,
-        Stowing, 
-        TouchingDown,
-        Extending,
-        RetractingFront,
-        RetractingBack,
-        Retracting
     }
 
     public States getState() {
         return state;
     }
 
+    // hold at position
     private void brake() {
         frontPower = 0;
         backPower = 0;
+        frontTargetClicks = frontEncoder.get();
+        backTargetClicks = backEncoder.get();
     }
 
-    // goes into stowed mode where the lift retracts with a holding force enough to hold the lift columns up
+    // stores both lifts
     public void stow() {
-        // was stopped so store lift legs
-        if (state == States.Stopped) {
-            frontPower = RobotMap.liftStow;     // gently continuously retract
-            backPower = RobotMap.liftStow;
-            moverPower = 0;
-            stateExpiration = Timer.getFPGATimestamp() + .5d;
-        } 
-        // was extending so actually brake 
-        else if (state == States.Extending || state == States.RetractingBack || state == States.RetractingFront) {
-            brake();
-            stateExpiration = Timer.getFPGATimestamp() + 1d;
-        } 
-        // 
-        else if (state == States.Stowing) {
-            if (Timer.getFPGATimestamp() > stateExpiration) {
-                brake();
-            }
-        }
+        frontPower = RobotMap.liftStow;     // gently retract for a period
+        backPower = RobotMap.liftStow;
+        moverPower = 0;
+        stateExpiration = Timer.getFPGATimestamp() + 1d;
         state = States.Stowing;
     }
 
-    // gently touch down without lifting
-    public void touchdown() {
-        if (state == States.Stowing) {
-            state = States.TouchingDown;
-            frontPower = RobotMap.liftTouchdown;     // gently extend without lifting
-            backPower = RobotMap.liftTouchdown;
-            stateExpiration = Timer.getFPGATimestamp() + 1d;
-        }
+    // stores front lift 
+    public void stowFront() {
+        frontPower = RobotMap.liftStow;                 // gently retract
+        frontTargetClicks = frontEncoder.get();
+        state = States.StowingFront;
     }
 
-    // extend the lift elements
-    public void extend() {
-        if (state == States.TouchingDown) {
-            frontTouchdownClicks = frontEncoder.get();
-            backTouchdownClicks = backEncoder.get();
-            frontTargetClicks = frontTouchdownClicks;
-            backTargetClicks = frontTouchdownClicks;
-            state = States.Extending;
-        } 
-        else if (state == States.Extending || state == States.Retracting) {
-            // are we close together on front and back? if not dont move else pick another goal 
-            if (Math.abs((frontEncoder.get() - frontTouchdownClicks) - (backEncoder.get() - backTouchdownClicks)) < RobotMap.liftLocality) {
-                frontTargetClicks += RobotMap.liftLocality;
-                backTargetClicks += RobotMap.liftLocality;
-                moverPower = RobotMap.liftMoverPower;
-            }
-        }
+    // stores back lift
+    public void stowBack() {
+        backPower = RobotMap.liftStow;     // gently retract
+        state = States.StowingBack;
+    }
+    
+    // raising / lowering
+    public void move(double controlPower) {
+        frontTargetClicks = frontTargetClicks + (controlPower * RobotMap.liftLocality);
+        backTargetClicks = backTargetClicks + (controlPower * RobotMap.liftLocality);
+        state = States.Moving;
     }
 
-    // retracting the front side
-    public void retract() {
-        if (state == States.Extending || state == States.Retracting) {
-            // are we close together on front and back? if not dont move else pick another goal 
-            if (Math.abs((frontEncoder.get() - frontTouchdownClicks) - (backEncoder.get() - backTouchdownClicks)) < RobotMap.liftLocality) {
-                frontTargetClicks -= RobotMap.liftLocality;
-                backTargetClicks -= RobotMap.liftLocality;
-                moverPower = 0;
-            }
-        }
-    }
-
-    // retracting the front side
-    public void retractFront() {
-        if (state == States.Extending || state == States.Retracting) {
-            state = States.RetractingFront;
-            frontPower = RobotMap.liftStow;         // gently and continuously retract
-            moverPower = RobotMap.liftMoverPower;
-            stateExpiration = Timer.getFPGATimestamp() + 1.5d;
-        }
-    }
-
-    // retracting the back side
-    public void retractBack() {
-        if (state == States.RetractingFront) {
-            state = States.RetractingBack;
-            frontPower = 0;
-            backPower = RobotMap.liftStow;
-            moverPower = 0;
-            stateExpiration = Timer.getFPGATimestamp() + 1.5d;
+    // holding position
+    public void holding() {
+        if (state != States.Holding) {
+            frontTargetClicks = frontEncoder.get();
+            backTargetClicks = backEncoder.get();
+            state = States.Holding;
         }
     }
 
     public void run() {
+        // adjustments per cycle
         if (state != States.Stopped) {
-            // adjustments per cycle
             if (state == States.Stowing) {
                 if (Timer.getFPGATimestamp() > stateExpiration) {
                     brake();
                 }
             }
-            else if (state == States.TouchingDown) {
-                if (Timer.getFPGATimestamp() > stateExpiration) {
-                    brake();
-                    frontTouchdownClicks = frontEncoder.get();
-                    backTouchdownClicks = backEncoder.get();
-                    extend();
-                }
+            else if (state == States.StowingFront) {
+                backPower = backPid.update(backTargetClicks - backEncoder.get(), RobotMap.liftLocality);
             }
-            else if (state == States.Extending || state == States.Retracting) {
-                // lift/retract
-                frontPower = RobotMap.liftPower + frontPid.update(frontTargetClicks - frontEncoder.get(), RobotMap.liftLocality);
-                backPower = RobotMap.liftPower + backPid.update(backTargetClicks - backEncoder.get(), RobotMap.liftLocality);
+            else if (state == States.Moving || state == States.Holding) {
+                frontPower = frontPid.update(frontTargetClicks - frontEncoder.get(), RobotMap.liftLocality);
+                backPower = backPid.update(backTargetClicks - backEncoder.get(), RobotMap.liftLocality);
+            }
 
-                // try and keep the lift relatively in parrallel
-                double liftCorrection = ((frontEncoder.get() - frontTargetClicks) - (backEncoder.get() - backTargetClicks)) * RobotMap.liftPidKp;
-                frontPower = frontPower - liftCorrection;
-                backPower = backPower + liftCorrection;  
-            }
-            else if (state == States.RetractingFront) {
-                backPower = RobotMap.liftPower + backPid.update(backTargetClicks - backEncoder.get(), RobotMap.liftLocality);
-            }
-            
             frontSpeedController.set(frontPower);        
             backSpeedController.set(backPower);
             moverSpeedController.set(moverPower);
@@ -207,11 +148,9 @@ public class Lifter {
 
     private void putTelemetry() {
         telemetry.putString("State", state.toString());
-        telemetry.putDouble("Front Touchdown Clicks", frontTouchdownClicks);
         telemetry.putDouble("Front Clicks", frontEncoder.get());
         telemetry.putDouble("Front Target Clicks", frontTargetClicks);
         telemetry.putDouble("Front Power", frontPower);
-        telemetry.putDouble("Back Touchdown Clicks", backTouchdownClicks);
         telemetry.putDouble("Back Clicks", backEncoder.get());
         telemetry.putDouble("Back Target Clicks", backTargetClicks);
         telemetry.putDouble("Back Power", backPower);

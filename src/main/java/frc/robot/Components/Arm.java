@@ -20,7 +20,7 @@ public class Arm {
     private RampSpeedController leftSpeedController;
     private RampSpeedController rightSpeedController;
     private CANEncoder2 encoder;
-    private DigitalInput limitSwitch; 
+//    private DigitalInput limitSwitch; 
     private PID pid;
 
     // involved parts
@@ -63,7 +63,7 @@ public class Arm {
         leftSpeedController = new RampSpeedController(robotMap.armLeftSpeedController, RobotMap.armRampFactor); 
         rightSpeedController = new RampSpeedController(robotMap.armRightSpeedController, RobotMap.armRampFactor); 
         encoder = robotMap.armEncoder;
-        limitSwitch = robotMap.armLimitSwitch;
+//        limitSwitch = robotMap.armLimitSwitch;
 
         pid = new PID();
         //pidController.setZnGainsP(RobotMap.armPidKu); 
@@ -225,7 +225,7 @@ public class Arm {
 
     private void putTelemetry() {
         telemetry.putString("State", state.toString());
-        telemetry.putBoolean("LimitSwitch.get()", limitSwitch.get());
+//        telemetry.putBoolean("LimitSwitch.get()", limitSwitch.get());
         telemetry.putDouble("Angle", getAngle());
         telemetry.putDouble("PIDPower", pidPower);
         telemetry.putDouble("FeedForward", feedForward);
