@@ -19,8 +19,8 @@ public class Wrist {
     // equipment
     private PID pid;
     private RampSpeedController speedController;    // controller for moving the joint
-//    private CANEncoder2 encoder;                    // counts clicks of rotation for the joint 
-    private Encoder encoder;                    // counts clicks of rotation for the joint 
+    private CANEncoder2 encoder;                    // counts clicks of rotation for the joint 
+//    private Encoder encoder;                    // counts clicks of rotation for the joint 
 
 //    private DigitalInput limitSwitch;               // determines when we're going to turn too far
                                                     
@@ -54,7 +54,6 @@ public class Wrist {
         robotMap.wristSpeedController.setInverted(true);
 
         this.pid = new PID();
-        // this.pidController.setZnGainsP(RobotMap.wristPidKu);
         this.pid.setGainsPID(RobotMap.wristPidKp, RobotMap.wristPidKi, RobotMap.wristPidKd);
 
         this.speedController = new RampSpeedController(robotMap.wristSpeedController, RobotMap.wristRampFactor);

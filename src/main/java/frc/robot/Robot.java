@@ -44,6 +44,13 @@ public class Robot extends TimedRobot {
 
     // === Modes ===
 
+    public void init() {
+        arm.init(wrist);
+        wrist.init(arm);
+        grabber.init(wrist);
+        lifter.init();
+    }
+
     /**
      * This function is called every robot packet, no matter the mode. Use
      * this for items like diagnostics that you want ran during disabled,
@@ -67,10 +74,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousInit() {
-        arm.init(wrist);
-        wrist.init(arm);
-        grabber.init(wrist);
-        lifter.init();
+        init();
     }
 
     @Override
@@ -80,10 +84,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void teleopInit() {
-        arm.init(wrist);
-        wrist.init(arm);
-        grabber.init(wrist);
-        lifter.init();
+        init();
     }
 
     @Override
@@ -93,10 +94,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void testInit() {
-        arm.init(wrist);
-        wrist.init(arm);
-        grabber.init(wrist);
-        lifter.init();
+        init();
     }
 
     @Override
@@ -200,6 +198,9 @@ public class Robot extends TimedRobot {
                 // POV moves wrist manually overwriting previous position selection - only use to correct for placing
                 wrist.moveManual(operator.armXboxController.getY(Hand.kRight));
             }
+            if (operator.armXboxController.getAButton()) {
+                wrist.moveAligned();
+            }
         }
 
         if (this.isTest() || this.isAutonomous() || this.isOperatorControl()) {
@@ -213,11 +214,9 @@ public class Robot extends TimedRobot {
             if (operator.armXboxController.getXButton()) {
                 grabber.close();
             } else if (operator.armXboxController.getYButton()) {
-                 grabber.open();
-            // } else if (operator.armXboxController.getYButton()) {
-            //     grabber.openHatch();
-            // } else if (operator.armXboxController.getBButton()) {
-            //     grabber.openCargo();
+                grabber.open();
+            } else if (operator.armXboxController.getAButton()) {
+                grabber.openCargo();
             } else {
                 grabber.grip();
             }
@@ -226,7 +225,7 @@ public class Robot extends TimedRobot {
         if (this.isTest() || this.isAutonomous() || this.isOperatorControl()) {
             // handle lifting by overloading the drive controller buttons
             if (operator.driveXboxController.getStartButton()) {
-                lifter.move(.5);
+                lifter.move(.75);
             }
             else if (operator.driveXboxController.getBackButton()) {
                 lifter.move(-.25);

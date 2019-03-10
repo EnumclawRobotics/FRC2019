@@ -50,19 +50,21 @@ public class Grabber {
     }
 
     public Grabber(RobotMap robotMap) {
-        // when opening encoder values should go up - requires inverting motor direction
+        // when opening the encoder values should go up - requires inverting motor direction
+        robotMap.grabberSpeedController.setNeutralMode(NeutralMode.Brake);
         robotMap.grabberSpeedController.setInverted(true);
         robotMap.grabberEncoder.setReverseDirection(true);
 
         // set intake brake mode and ensure they rotate counter to each other
+        robotMap.rollerBackSpeedController.setNeutralMode(NeutralMode.Brake);
         robotMap.rollerFrontSpeedController.setNeutralMode(NeutralMode.Brake);
         robotMap.rollerFrontSpeedController.setInverted(true);
-        robotMap.rollerBackSpeedController.setNeutralMode(NeutralMode.Brake);
 
         // grabber        
         grabberSpeedController = new RampSpeedController(robotMap.grabberSpeedController, RobotMap.grabberRampFactor);
         grabberEncoder = robotMap.grabberEncoder;
 
+        // for holding at tight positioning
         grabberPid = new PID();
         grabberPid.setGainsPID(RobotMap.grabberPidKp, RobotMap.grabberPidKi, RobotMap.grabberPidKd);
 
@@ -77,7 +79,7 @@ public class Grabber {
         // involved
         this.wrist = wrist;
 
-        // assumes all the way closed
+        // assumes closed at start of autonomous
         baseClicks = getClicks();
     }
 
@@ -90,21 +92,39 @@ public class Grabber {
     public void close() {
         if (state != States.Closing) {
             state = States.Closing;
-            grabberPower = -.5d;
+            grabberPower = -RobotMap.grabberPowerLimit;
+        }
+
+        // find minimum encoder reading
+        if (getClicks() < baseClicks) {
+            baseClicks = getClicks();
         }
     }
 
     public void open() {
         if (state != States.Opening) {
             state = States.Opening;
-            grabberPower = .5d;
+            grabberPower = RobotMap.grabberPowerLimit;
         }
     }
 
+    // hatch adjustment(s) to help grab and release
+    // wrist.nudge(.25);
+
+    // open to cargo-grab size 
+    public void openCargo() {
+        if (state != States.OpeningCargo) {
+            state = States.OpeningCargo;
+            targetClicks = baseClicks + (RobotMap.grabberEncoderClicksPerDegree * RobotMap.grabberCargoOpen);
+            grabberPower = grabberPid.update(targetClicks - grabberEncoder.get(), RobotMap.grabberLocality);
+        }
+    }
+
+    // hold at current position using brake
     public void grip() {
         if (state != States.Gripping) {
             state = States.Gripping;
-            grabberPower = .1d;
+            grabberPower = 0;
         }
     }
 
@@ -172,18 +192,6 @@ public class Grabber {
     // RUN is only place to set motor values
     public void run() {
         if (state != States.Stopped) {
-            if (state == States.Closing) {
-                // close using time. reset baseline after closing and move to gripping
-                if (Timer.getFPGATimestamp() > stateExpiration) {
-                    baseClicks = grabberEncoder.get();
-                    grip();
-                }
-            }
-            else if (state == States.OpeningHatch || state == States.OpeningCargo) {
-                grabberPower = grabberPid.update(targetClicks - getClicks(), RobotMap.grabberLocality);
-                grabberPower = Functions.clip(grabberPower, -.5d, .5d);
-            }
-
             grabberSpeedController.set(grabberPower);
             rollerFrontSpeedController.set(rollerPower);
             rollerBackSpeedController.set(rollerPower);
@@ -194,9 +202,9 @@ public class Grabber {
     public void putTelemetry() {
         telemetry.putString("State", state.toString());
         telemetry.putDouble("Grabber Power", grabberPower);
+        telemetry.putDouble("Base Clicks", baseClicks);
         telemetry.putDouble("Encoder Clicks", grabberEncoder.get());
         telemetry.putDouble("Target Clicks", targetClicks);
-        telemetry.putDouble("Base Clicks", baseClicks);
         telemetry.putDouble("Roller Power (intake|expell)", rollerPower);
         telemetry.putString("Version", "1.0.0");
     }
