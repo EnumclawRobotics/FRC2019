@@ -76,7 +76,7 @@ public class RobotMap {
     // === TUNING CONSTANTS =====================================
 
     public final static double driveSpeedLimiter = .50d;                        // used to limit output when not afterburning
-    public final static double driveRotationLimiter = .40d;                     // used to limit output
+    public final static double driveRotationLimiter = .50d;                     // used to limit output
 
     // safety
     public final static double safetyExpiration = .25d;
@@ -132,7 +132,7 @@ public class RobotMap {
     public final static double liftPidKi = .0d;                                 // PID kI correction factor
     public final static double liftPidKd = .0d;                                 // PID kD correction factor
     public final static double liftStow = -.2d;                                 // retraction power 
-    public final static double liftRamp = .2d;                                  // acceleration
+    public final static double liftRamp = .04d;                                  // acceleration
 
     // // camera
     // public final static double cameraElevation = 35d;           // Camera height from floor;

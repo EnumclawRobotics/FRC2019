@@ -147,46 +147,46 @@ public class Robot extends TimedRobot {
             // }
         }
 
-        if (this.isAutonomous() || this.isOperatorControl()) {
-            // arm height
-            if (operator.cargoFloorButton.get()) {
-                arm.moveFloorCargo();
-                wrist.moveAligned();
-            }
-            if (operator.cargoRocket1Button.get()) {
-                arm.moveRocketCargo1();
-                wrist.moveAligned();
-            }
-            if (operator.cargoRocket2Button.get()) {
-                arm.moveRocketCargo2();
-                wrist.moveAligned();
-            }
-            if (operator.cargoRocket3Button.get()) {
-                arm.moveRocketCargo3();
-                wrist.moveAligned();
-            }
-            if (operator.cargoShipButton.get()) {
-                arm.moveShipCargo();
-                wrist.moveAligned();
-            }
-            if (operator.cargoStationButton.get()) {
-                arm.moveStationCargo();
-                wrist.moveAligned();
-            }
+        // if (this.isAutonomous() || this.isOperatorControl()) {
+        //     // arm height
+        //     if (operator.cargoFloorButton.get()) {
+        //         arm.moveFloorCargo();
+        //         wrist.moveAligned();
+        //     }
+        //     if (operator.cargoRocket1Button.get()) {
+        //         arm.moveRocketCargo1();
+        //         wrist.moveAligned();
+        //     }
+        //     if (operator.cargoRocket2Button.get()) {
+        //         arm.moveRocketCargo2();
+        //         wrist.moveAligned();
+        //     }
+        //     if (operator.cargoRocket3Button.get()) {
+        //         arm.moveRocketCargo3();
+        //         wrist.moveAligned();
+        //     }
+        //     if (operator.cargoShipButton.get()) {
+        //         arm.moveShipCargo();
+        //         wrist.moveAligned();
+        //     }
+        //     if (operator.cargoStationButton.get()) {
+        //         arm.moveStationCargo();
+        //         wrist.moveAligned();
+        //     }
 
-            if (operator.hatchRocket1Button.get()) {
-                arm.moveRocketHatch1();
-                wrist.moveAligned();
-            }
-            if (operator.hatchRocket2Button.get()) {
-                arm.moveRocketHatch2();
-                wrist.moveAligned();
-            }
-            if (operator.hatchRocket3Button.get()) {
-                arm.moveRocketHatch3();
-                wrist.moveAligned();
-            }
-        }
+        //     if (operator.hatchRocket1Button.get()) {
+        //         arm.moveRocketHatch1();
+        //         wrist.moveAligned();
+        //     }
+        //     if (operator.hatchRocket2Button.get()) {
+        //         arm.moveRocketHatch2();
+        //         wrist.moveAligned();
+        //     }
+        //     if (operator.hatchRocket3Button.get()) {
+        //         arm.moveRocketHatch3();
+        //         wrist.moveAligned();
+        //     }
+        // }
 
         if (this.isTest() || this.isAutonomous() || this.isOperatorControl()) {
             // ignore deadband and defaults where we are not moving joystick
@@ -198,9 +198,9 @@ public class Robot extends TimedRobot {
                 // POV moves wrist manually overwriting previous position selection - only use to correct for placing
                 wrist.moveManual(operator.armXboxController.getY(Hand.kRight));
             }
-            if (operator.armXboxController.getAButton()) {
-                wrist.moveAligned();
-            }
+ //           if (operator.armXboxController.getAButton()) {
+ //               wrist.moveAligned();
+ //           }
         }
 
         if (this.isTest() || this.isAutonomous() || this.isOperatorControl()) {
@@ -215,8 +215,8 @@ public class Robot extends TimedRobot {
                 grabber.close();
             } else if (operator.armXboxController.getYButton()) {
                 grabber.open();
-            } else if (operator.armXboxController.getAButton()) {
-                grabber.openCargo();
+//            } else if (operator.armXboxController.getBButton()) {
+//                grabber.openCargo();
             } else {
                 grabber.grip();
             }
@@ -225,10 +225,10 @@ public class Robot extends TimedRobot {
         if (this.isTest() || this.isAutonomous() || this.isOperatorControl()) {
             // handle lifting by overloading the drive controller buttons
             if (operator.driveXboxController.getStartButton()) {
-                lifter.move(.75);
+                lifter.move(1d);
             }
             else if (operator.driveXboxController.getBackButton()) {
-                lifter.move(-.25);
+                lifter.move(-.25d);
             } 
             else if (operator.driveXboxController.getBButton()) {
                 lifter.stowFront();
