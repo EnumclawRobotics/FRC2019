@@ -99,7 +99,7 @@ public class RobotMap {
     public final static double wristStowedAngle = 5d;                               // angle to fold back the grabber for protection
     public final static double wristEncoderClicksPerDegree = (42d*64d)/360d;        // NEO gearbox output shaft include gear reduction
     public final static double wristPidLocality = wristEncoderClicksPerDegree * 3d; // area around setpoint to use PID with 
-    public final static double wristPowerLimit = .60d;                              // power limit
+    public final static double wristPowerLimit = .75d;                              // power limit
     public final static double wristPidKp =  wristPowerLimit / wristPidLocality;    // PID kP correction factor  
     public final static double wristPidKi = 0d;                                     // PID kI correction factor
     public final static double wristPidKd = 0d;                                     // PID kD correction factor
