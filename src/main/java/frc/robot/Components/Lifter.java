@@ -16,7 +16,20 @@ public class Lifter {
         StowingFront,
         StowingBack,
         Moving,
-        Holding
+        Holding,
+        Rolling //NEW!
+    }
+
+    //NEW!
+    public enum ClimbingStates {
+        Inactive,
+        Teleop,
+        Raising,
+        UseLiftWheels,
+        RaiseFrontLift,
+        DriveWheels1,
+        RaiseBackLift,
+        DriveWheels2
     }
 
     private RampSpeedController frontSpeedController;
@@ -38,6 +51,7 @@ public class Lifter {
     private double stateExpiration;
 
     private States state = States.Stopped;
+    private ClimbingStates climbingState; //NEW!
 
     public Lifter(RobotMap robotMap) {
         robotMap.liftFrontSpeedController.setIdleMode(IdleMode.kBrake);
@@ -67,6 +81,11 @@ public class Lifter {
 
     public States getState() {
         return state;
+    }
+
+    //NEW!
+    public ClimbingStates getClimbingState() {
+        return climbingstate;
     }
 
     // hold at position
@@ -117,23 +136,64 @@ public class Lifter {
 
     public void run() {
         // adjustments per cycle
-        if (state != States.Stopped) {
-            if (state == States.Stowing) {
-                if (Timer.getFPGATimestamp() > stateExpiration) {
-                    brake();
+            if (state != States.Stopped) {
+                if (state == States.Stowing) {
+                    if (Timer.getFPGATimestamp() > stateExpiration) {
+                        brake();
+                    }
                 }
-            }
-            else if (state == States.StowingFront) {
-                backPower = backPid.update(backTargetClicks - backEncoder.get(), RobotMap.liftLocality);
-            }
-            else if (state == States.Moving || state == States.Holding) {
-                frontPower = frontPid.update(frontTargetClicks - frontEncoder.get(), RobotMap.liftLocality);
-                backPower = backPid.update(backTargetClicks - backEncoder.get(), RobotMap.liftLocality);
+                else if (state == States.StowingFront) {
+                    backPower = backPid.update(backTargetClicks - backEncoder.get(), RobotMap.liftLocality);
+                }
+                else if (state == States.Moving || state == States.Holding) {
+                    frontPower = frontPid.update(frontTargetClicks - frontEncoder.get(), RobotMap.liftLocality);
+                    backPower = backPid.update(backTargetClicks - backEncoder.get(), RobotMap.liftLocality);
+                }
+                
+                moverPower = (state == States.Rolling) ? 1.0f : 0.0f; //NEW!
+
+                frontSpeedController.set(frontPower);        
+                backSpeedController.set(backPower);
+                moverSpeedController.set(moverPower);
             }
 
-            frontSpeedController.set(frontPower);        
-            backSpeedController.set(backPower);
-            moverSpeedController.set(moverPower);
+        switch (climbingState)
+        {
+            case Inactive:
+            //Nothing
+            break;
+            case Teleop:
+            //Nothing
+            break;
+
+            case Raising:
+            //move(/*power*/);
+            if (frontEncoder.get >= 000000000000) {
+                climbingState = ClimbingStates.UseLiftWheels;
+                Timer rollingStateDuration = new Timer();
+            }
+            break;
+
+            case UseLiftWheels:
+            state = States.Rolling;
+            if (rollingStateDuration.getFPGATimestamp() >= 2.0)
+            {
+                climbingState = ClimbingStates.RaiseFrontLift;
+            }
+
+            break;
+            case RaiseFrontLift:
+            //...
+            break;
+            case DriveWheels1:
+            //...
+            break;
+            case RaiseBackLift:
+            //...
+            break;
+            case DriveWheels2:
+            //...
+            break;
         }
 
         putTelemetry();
