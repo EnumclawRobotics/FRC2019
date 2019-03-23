@@ -42,6 +42,8 @@ public class Arm {
 
     public enum States {
         Stopped,
+        MovingFront,
+        MovingBack,
         MovingStowed,
         MovingRocketHatch1, MovingRocketHatch2, 
         MovingDepotCargo, 
@@ -122,53 +124,76 @@ public class Arm {
         return encoder.getPosition();
     }
 
+    // moving into a storage position 
     public void moveStowed() {
         state = States.MovingStowed;
         targetAngle = getFacingNormal() ? RobotMap.armAngleStowed : (360 - RobotMap.armAngleStowed);
         targetClicks = clicksFromAngle(targetAngle);
     }
 
+    // moving to the front side
+    public void moveFront() {
+        state = States.MovingFront;
+        targetAngle = RobotMap.armAngleRocketHatch2;
+        targetClicks = clicksFromAngle(targetAngle);
+    }
+
+    // moving to the back side 
+    public void moveBack() {
+        state = States.MovingBack;
+        targetAngle = (360 - RobotMap.armAngleRocketHatch2);
+        targetClicks = clicksFromAngle(targetAngle);
+    }
+
+    // rocket hatch 1
     public void moveRocketHatch1() {
         state = States.MovingRocketHatch1;
         targetAngle = getFacingNormal() ? RobotMap.armAngleRocketHatch1 : (360 - RobotMap.armAngleRocketHatch1);
         targetClicks = clicksFromAngle(targetAngle);
     }
+    // rocket hatch 2
     public void moveRocketHatch2() {
         state = States.MovingRocketHatch2;
         targetAngle = getFacingNormal() ? RobotMap.armAngleRocketHatch2 : (360 - RobotMap.armAngleRocketHatch2);
         targetClicks = clicksFromAngle(targetAngle);
     }
 
+    // rocket cargo 1
     public void moveRocketCargo1() {
         state = States.MovingRocketCargo1;
         targetAngle = getFacingNormal() ? RobotMap.armAngleRocketCargo1 : (360 - RobotMap.armAngleRocketCargo1);
         targetClicks = clicksFromAngle(targetAngle);
     }
 
+    // rocket cargo 2
     public void moveRocketCargo2() {
         state = States.MovingRocketCargo2;
         targetAngle = getFacingNormal() ? RobotMap.armAngleRocketCargo2 : (360 - RobotMap.armAngleRocketCargo2);
         targetClicks = clicksFromAngle(targetAngle);
     }
 
+    // depot cargo
     public void moveDepotCargo() {
         state = States.MovingDepotCargo;
         targetAngle = getFacingNormal() ? RobotMap.armAngleDepotCargo : (360 - RobotMap.armAngleDepotCargo);
         targetClicks = clicksFromAngle(targetAngle);
     }
 
+    // station cargo
     public void moveStationCargo() {
         state = States.MovingStationCargo;
         targetAngle = getFacingNormal() ? RobotMap.armAngleStationCargo : (360 - RobotMap.armAngleStationCargo);
         targetClicks = clicksFromAngle(targetAngle);
     }
 
+    // ship cargo
     public void moveShipCargo() {
         state = States.MovingShipCargo;
         targetAngle = getFacingNormal() ? RobotMap.armAngleShipCargo : (360 - RobotMap.armAngleShipCargo);
         targetClicks = clicksFromAngle(targetAngle);
     }
 
+    // move a bit based on controller intensity 
     public void moveManual(double controlPower) {
         // ignore deadband and defaults where we are not moving joystick
         if (Math.abs(controlPower) > .05) {

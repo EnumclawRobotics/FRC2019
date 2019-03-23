@@ -44,6 +44,8 @@ public class Wrist {
 
     public enum States {
         Stopped,
+        MovingFront,
+        MovingBack,
         MovingStowed,
         MovingRocketHatch1, MovingRocketHatch2, 
         MovingDepotCargo, 
@@ -112,6 +114,20 @@ public class Wrist {
         targetClicks = clicksFromAngle(targetAngle);
     }
 
+    // moving to the front side
+    public void moveFront() {
+        state = States.MovingFront;
+        targetAngle = RobotMap.wristAngleRocketHatch2;
+        targetClicks = clicksFromAngle(targetAngle);
+    }
+
+    // moving to the back side 
+    public void moveBack() {
+        state = States.MovingBack;
+        targetAngle = (360 - RobotMap.wristAngleRocketHatch2);
+        targetClicks = clicksFromAngle(targetAngle);
+    }
+    
     // go for cargo on floor
     public void moveDepotCargo() {
         state = States.MovingDepotCargo;
