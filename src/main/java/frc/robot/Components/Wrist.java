@@ -1,5 +1,7 @@
 package frc.robot.Components;
 
+import com.revrobotics.CANSparkMax.IdleMode;
+
 import common.instrumentation.Telemetry;
 import edu.wpi.first.wpilibj.*;
 import frc.robot.*;
@@ -41,16 +43,25 @@ public class Wrist {
     States state = States.Stopped;
 
     public enum States {
-        Stopped,                // disable stop
-        MovingStowed,           // held in tight?
-        MovingAligned,          // wrist aligned with arm into single bar for grabbing cargo off floor
-        MovingHorizontal,       // wrist aligned to horizontal
-        MovingManual            // manually adjusting
+        Stopped,
+        MovingFront,
+        MovingBack,
+        MovingStowed,
+        MovingRocketHatch1, MovingRocketHatch2, 
+        MovingDepotCargo, 
+        MovingStationCargo,
+        MovingRocketCargo1, MovingRocketCargo2,  
+        MovingShipCargo, 
+        MovingManual,
     }
 
     // Constructor holds onto motor controller and sensor references
     public Wrist(RobotMap robotMap) {
-        // invert due to mounting direction
+        // config motor controllers
+        // NOTE: zero angle is straight up 
+        // wrist uses positive clicks to rotate from stowed at top to straight out to folded under 
+        //     and so needs to match reversed right hand side direction from drive. 
+        robotMap.wristSpeedController.setIdleMode(IdleMode.kBrake);
         robotMap.wristSpeedController.setInverted(true);
 
         this.pid = new PID();
@@ -70,7 +81,7 @@ public class Wrist {
         baseClicks = encoder.get();
 
         // reset derived fields
-        targetClicks = baseClicks;                        
+        targetClicks = baseClicks;      // start angle is all the way at the end of the rotation 360 - stowed angle   
         feedForward = 0;
         power = 0;
     }
@@ -99,8 +110,71 @@ public class Wrist {
     // hold wrist in close 
     public void moveStowed() {
         state = States.MovingStowed;
-        targetAngle = -1;
-        targetClicks = (arm.getFacingNormal() ? baseClicks : baseClicks + RobotMap.wristEncoderClicksPerDegree * (360 - 2 * RobotMap.wristStowedAngle));        
+        targetAngle = arm.getFacingNormal() ? RobotMap.wristAngleStowed : (360 - RobotMap.wristAngleStowed);
+        targetClicks = clicksFromAngle(targetAngle);
+    }
+
+    // moving to the front side
+    public void moveFront() {
+        state = States.MovingFront;
+        targetAngle = RobotMap.wristAngleRocketHatch2;
+        targetClicks = clicksFromAngle(targetAngle);
+    }
+
+    // moving to the back side 
+    public void moveBack() {
+        state = States.MovingBack;
+        targetAngle = (360 - RobotMap.wristAngleRocketHatch2);
+        targetClicks = clicksFromAngle(targetAngle);
+    }
+    
+    // go for cargo on floor
+    public void moveDepotCargo() {
+        state = States.MovingDepotCargo;
+        targetAngle = arm.getFacingNormal() ? RobotMap.wristAngleDepotCargo : (360 - RobotMap.wristAngleDepotCargo);
+        targetClicks = clicksFromAngle(targetAngle);
+    }
+
+    // go for cargo level 1
+    public void moveRocketCargo1() {
+        state = States.MovingRocketCargo1;
+        targetAngle = arm.getFacingNormal() ? RobotMap.wristAngleRocketCargo1 : (360 - RobotMap.wristAngleRocketCargo1);
+        targetClicks = clicksFromAngle(targetAngle);
+    }
+
+    // go for cargo level 2
+    public void moveRocketCargo2() {
+        state = States.MovingRocketCargo2;
+        targetAngle = arm.getFacingNormal() ? RobotMap.wristAngleRocketCargo2 : (360 - RobotMap.wristAngleRocketCargo2);
+        targetClicks = clicksFromAngle(targetAngle);
+    }
+
+    // go for cargo station
+    public void moveStationCargo() {
+        state = States.MovingStationCargo;
+        targetAngle = arm.getFacingNormal() ? RobotMap.wristAngleStationCargo : (360 - RobotMap.wristAngleStationCargo);
+        targetClicks = clicksFromAngle(targetAngle);
+    }
+
+    // go for cargo ship
+    public void moveShipCargo() {
+        state = States.MovingShipCargo;
+        targetAngle = arm.getFacingNormal() ? RobotMap.wristAngleShipCargo : (360 - RobotMap.wristAngleShipCargo);
+        targetClicks = clicksFromAngle(targetAngle);
+    }
+    
+    // go for hatch level 1
+    public void moveRocketHatch1() {
+        state = States.MovingRocketHatch1;
+        targetAngle = arm.getFacingNormal() ? RobotMap.wristAngleRocketHatch1 : (360 - RobotMap.wristAngleRocketHatch1);
+        targetClicks = clicksFromAngle(targetAngle);
+    }
+
+    // go for hatch level 2
+    public void moveRocketHatch2() {
+        state = States.MovingRocketHatch2;
+        targetAngle = arm.getFacingNormal() ? RobotMap.wristAngleRocketHatch2 : (360 - RobotMap.wristAngleRocketHatch2);
+        targetClicks = clicksFromAngle(targetAngle);
     }
 
     // manually move wrist
@@ -109,7 +183,8 @@ public class Wrist {
         if (Math.abs(controlPower) > .01) {
             state = States.MovingManual;
             targetAngle = -1;
-            targetClicks = getClicks() + (controlPower * RobotMap.wristEncoderClicksPerDegree);
+            // positive from joystick is decrease in angle from baseline
+            targetClicks = getClicks() + (-controlPower * RobotMap.wristEncoderClicksPerDegree);
         }
     }
 
@@ -122,28 +197,8 @@ public class Wrist {
         }
     }
     
-    // keep wrist straight aligned with arm
-    public void moveAligned() {
-        state = States.MovingAligned;
-        targetAngle = 180;
-        targetClicks = clicksFromAngle(targetAngle);
-    }
-
-    // keep the wrist horizontal compared to the arm angle
-    public void moveHorizontal() {
-        state = States.MovingHorizontal;
-        targetAngle = horizontalAngleFromArm();
-        targetClicks = clicksFromAngle(targetAngle);
-    }
-
     public void run() {
         if (state != States.Stopped) {
-            // adjust target based on current arm move?
-            if (state == States.MovingHorizontal) {
-                targetAngle = horizontalAngleFromArm();
-                targetClicks = clicksFromAngle(targetAngle);
-            }
-
             // current angle implies how much force gravity applies
             angle = getAngle();
             armAngle = arm.getAngle();
@@ -151,7 +206,7 @@ public class Wrist {
             feedForward = Functions.gravity(gravityAngle) * RobotMap.wristFeedForwardFactor;
 
             // get PID output that is best to go towards the target clicks
-            pidPower = pid.update(targetClicks - getClicks(), RobotMap.wristPidLocality);
+            pidPower = pid.update(targetClicks - getClicks(), RobotMap.wristPidLocality, RobotMap.wristPowerLimit);
 
             // add in bias and reduce the power to the allowed range
             // **** be safe for now until we get the settings right ***
@@ -190,6 +245,9 @@ public class Wrist {
 
     // given clicks figure out angle 
     public double angleFromClicks(double clicks) {
+        // baseClicks is 360 - StowedAngle 
+        // subtract off from there. 
+
         return (((double)(clicks - baseClicks)) / RobotMap.wristEncoderClicksPerDegree);
     }
     
@@ -198,19 +256,19 @@ public class Wrist {
         return (angle * RobotMap.wristEncoderClicksPerDegree) + baseClicks;
     }
 
-    // returns the horizontal correction angle given the arm angle. 
-    public double horizontalAngleFromArm() {
-        double angle = 0;
+    // // returns the horizontal correction angle given the arm angle. 
+    // public double horizontalAngleFromArm() {
+    //     double angle = 0;
 
-        double armAngle = arm.getAngle(); 
-        if (armAngle >= 0 && armAngle < 180) {
-            // arm 0-180 - wrist is 180 degrees ahead of arm - but want 90 degree align with horizontal
-            angle = 270 - armAngle;
-        } else if (armAngle >= 180 && armAngle <= 360){
-            // arm 180-360 - wrist is 180 degrees ahead of arm - but want 90 degree align with horizontal
-            angle = 450 - armAngle ; 
-        }
+    //     double armAngle = arm.getAngle(); 
+    //     if (armAngle >= 0 && armAngle < 180) {
+    //         // arm 0-180 - wrist is 180 degrees ahead of arm - but want 90 degree align with horizontal
+    //         angle = 270 - armAngle;
+    //     } else if (armAngle >= 180 && armAngle <= 360){
+    //         // arm 180-360 - wrist is 180 degrees ahead of arm - but want 90 degree align with horizontal
+    //         angle = 450 - armAngle ; 
+    //     }
 
-        return angle;
-    }
+    //     return angle;
+    // }
 }

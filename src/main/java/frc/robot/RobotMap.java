@@ -73,8 +73,9 @@ public class RobotMap {
     // TODO: Add buttons to control height
  
 
-    // === TUNING CONSTANTS =====================================
+    // === CONSTANTS - TUNING etc =====================================
 
+    // drive
     public final static double driveSpeedLimiter = .50d;                        // used to limit output when not afterburning
     public final static double driveRotationLimiter = .50d;                     // used to limit output
 
@@ -82,19 +83,46 @@ public class RobotMap {
     public final static double safetyExpiration = .25d;
 
     // arm geometries (in inches)
+    // arm geometries
     public final static double armPivotHeight = 37.25d;                         // pivot above ground
     public final static double armLength = 19d;                                 // pivot to pivot
-    public final static double armStowedAngle = 5d;                             // starting angle for arm  
-    public final static double armEncoderClicksPerDegree = (42d*100d)/360d;     // NEO gearbox output shaft include gear reduction  
-    public final static double armPidLocality = armEncoderClicksPerDegree * 2d;   // area around setpoint to use PID with 
-    public final static double armPowerLimit = .35d;                           // power limit
+
+    public final static double armAngleStowed = 5d;                             // starting angle for arm  
+    public final static double armAngleRocketHatch1 = armAngleStowed;
+    public final static double armAngleRocketHatch2 = 120.879;
+    public final static double armAngleShipHatch = armAngleRocketHatch1;
+    public final static double armAngleStationHatch = armAngleRocketHatch1;
+
+    public final static double armAngleRocketCargo1 = 59.126;
+    public final static double armAngleRocketCargo2 = 163.848;
+    public final static double armAngleDepotCargo = 42.330;             // requires wrist to be straight with arm instead of held level
+    public final static double armAngleStationCargo = 111.213;
+    public final static double armAngleShipCargo = 94.528;
+
+    public final static double armEncoderConversionFactor = 42d;                // clicks per rpm for NEO
+    public final static double armGearboxConversionFactor = 100d;               // 100:1 Andymark gearbox reduction
+    public final static double armEncoderClicksPerDegree = (armEncoderConversionFactor * armGearboxConversionFactor)/360d;  
+    public final static double armPidLocality = armEncoderClicksPerDegree * 5d;   // area around setpoint to use PID with 
+    public final static double armPowerLimit = .26d;                            // power limit
     public final static double armPidKp = armPowerLimit / armPidLocality;       // PID kP correction factor  
-    public final static double armPidKi = 0d;                                   // PID kI correction factor 
-    public final static double armPidKd = 0d;                                   // PID kD correction factor 
-    public final static double armFeedForwardFactor = .15d;                    // power for feed forward amount
+    public final static double armPidKi = .0015d;                               // PID kI correction factor 
+    public final static double armPidKd = 0d;                                   // PID kD correction factor
+    public final static double armFeedForwardFactor = 0d;                     // power for feed forward amount
     public final static double armRampFactor = .04d;                            // ramp change power limit per cycle (60hz) 
 
     // wrist
+    public final static double wristAngleStowed = 5d;                             // starting angle for arm  
+    public final static double wristAngleRocketHatch1 = 90 + armAngleRocketHatch1;
+    public final static double wristAngleRocketHatch2 = 90 + armAngleRocketHatch2;
+    public final static double wristAngleShipHatch = wristAngleRocketHatch1;
+    public final static double wristAngleStationHatch = wristAngleRocketHatch1;
+
+    public final static double wristAngleRocketCargo1 = 90 + armAngleRocketCargo1;
+    public final static double wristAngleRocketCargo2 = 90 + armAngleRocketCargo2;
+    public final static double wristAngleDepotCargo = 180;         // requires wrist to be straight with arm instead of held level
+    public final static double wristAngleStationCargo = 90 + armAngleStationCargo;
+    public final static double wristAngleShipCargo = 90 + armAngleShipCargo;
+
     public final static double wristLength = 7.75d; 
     public final static double wristStowedAngle = 5d;                               // angle to fold back the grabber for protection
     public final static double wristEncoderClicksPerDegree = (42d*64d)/360d;        // NEO gearbox output shaft include gear reduction
@@ -165,7 +193,7 @@ public class RobotMap {
     // sensors
     //    public ADXRS450_Gyro driveGyro;                           // ROBORIO is mounted wrong for this
 
-    public CANEncoder2 armEncoder;
+    public CANEncoder2 leftArmEncoder;
 //    public DigitalInput armLimitSwitch;
 
     public CANEncoder2 wristEncoder;
@@ -208,7 +236,7 @@ public class RobotMap {
         // arm
         armLeftSpeedController = new CANSparkMax(armLeftCan, MotorType.kBrushless);
         armRightSpeedController = new CANSparkMax(armRightCan, MotorType.kBrushless);
-        armEncoder = new CANEncoder2(armRightSpeedController);
+        leftArmEncoder = new CANEncoder2(armLeftSpeedController);
 //        armLimitSwitch = new DigitalInput(armLimitSwitchDio);
 
         // wrist

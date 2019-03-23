@@ -6,6 +6,7 @@ import common.instrumentation.Telemetry;
 import edu.wpi.first.wpilibj.*;
 import frc.robot.*;
 import common.util.PID;
+import common.util.Functions;
 
 public class Lifter {
     private Telemetry telemetry = new Telemetry("Robot/Lifter");
@@ -45,8 +46,13 @@ public class Lifter {
     private double frontTargetClicks;
     private double backTargetClicks;
 
+    private double frontError;
+    private double backError;
+
+    private double balancePower;
     private double frontPower;
     private double backPower;
+
     private double moverPower;
     private double stateExpiration;
 
@@ -86,6 +92,15 @@ public class Lifter {
     //NEW!
     public ClimbingStates getClimbingState() {
         return climbingstate;
+    }
+    public double getFrontError() {
+        frontError = frontTargetClicks - frontEncoder.get();
+        return frontError;
+    }
+
+    public double getBackError() {
+        backError = backTargetClicks - backEncoder.get();
+        return backError;
     }
 
     // hold at position
@@ -143,13 +158,29 @@ public class Lifter {
                     }
                 }
                 else if (state == States.StowingFront) {
-                    backPower = backPid.update(backTargetClicks - backEncoder.get(), RobotMap.liftLocality);
+                    backPower = backPid.update(getBackError(), RobotMap.liftLocality, RobotMap.liftPower);
                 }
                 else if (state == States.Moving || state == States.Holding) {
-                    frontPower = frontPid.update(frontTargetClicks - frontEncoder.get(), RobotMap.liftLocality);
-                    backPower = backPid.update(backTargetClicks - backEncoder.get(), RobotMap.liftLocality);
+                    frontError = getFrontError();
+                    backError = getBackError();
+    
+                    // try and keep the front and back in synch
+                    if (frontError > backError) {
+                        frontPower = frontPid.update(frontError, RobotMap.liftLocality, RobotMap.liftPower) + .05d;
+                        backPower = backPid.update(backError, RobotMap.liftLocality, RobotMap.liftPower);
+                    } else if (backError > frontError) {
+                        frontPower = frontPid.update(frontError, RobotMap.liftLocality, RobotMap.liftPower);
+                        backPower = backPid.update(backError, RobotMap.liftLocality, RobotMap.liftPower) + .05d;
+                    } else {
+                        frontPower = frontPid.update(frontError, RobotMap.liftLocality, RobotMap.liftPower);
+                        backPower = backPid.update(backError, RobotMap.liftLocality, RobotMap.liftPower);
+                    }
+    
+                    balancePower = (((frontError - backError)/2d) / RobotMap.liftLocality) * RobotMap.liftPidKp;
+                    
+                    frontPower = frontPid.update(frontError, RobotMap.liftLocality, RobotMap.liftPower) - balancePower;
+                    backPower = backPid.update(backError, RobotMap.liftLocality, RobotMap.liftPower) + balancePower;
                 }
-                
                 moverPower = (state == States.Rolling) ? 1.0f : 0.0f; //NEW!
 
                 frontSpeedController.set(frontPower);        
@@ -194,6 +225,11 @@ public class Lifter {
             case DriveWheels2:
             //...
             break;
+           
+
+            frontSpeedController.set(frontPower);     
+            backSpeedController.set(backPower);
+            moverSpeedController.set(moverPower);
         }
 
         putTelemetry();
@@ -214,6 +250,7 @@ public class Lifter {
         telemetry.putDouble("Back Clicks", backEncoder.get());
         telemetry.putDouble("Back Target Clicks", backTargetClicks);
         telemetry.putDouble("Back Power", backPower);
+        telemetry.putDouble("Balance Power", moverPower);
         telemetry.putDouble("Move Power", moverPower);
         telemetry.putString("Version", "1.0.0");
     }
