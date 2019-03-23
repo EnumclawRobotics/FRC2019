@@ -4,6 +4,7 @@ package frc.robot.Components;
 import common.instrumentation.Telemetry;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.buttons.JoystickButton;
 import frc.robot.*;
 
@@ -15,7 +16,7 @@ public class Operator {
     public XboxController armXboxController; 
     public Joystick armButtons; 
 
-    private final int cargoFloorButtonNumber = 7;
+    private final int cargoDepotButtonNumber = 7;
     private final int cargoRocket1ButtonNumber = 4;
     private final int cargoRocket2ButtonNumber = 5;
     private final int cargoRocket3ButtonNumber = 6;
@@ -23,8 +24,8 @@ public class Operator {
     private final int cargoStationButtonNumber = 9; 
 
     private final int hatchRocket1ButtonNumber = 1;
-    private final int hatchRocket2ButtonNumber = 2;
-    private final int hatchRocket3ButtonNumber = 3;
+    private final int hatchRocket2ButtonNumber = 3;
+    private final int hatchRocket3ButtonNumber = 2;
     private final int hatchShipButtonNumber = 1; 
     private final int hatchStationButtonNumber = 1; 
 
@@ -47,7 +48,7 @@ public class Operator {
         armXboxController = robotMap.armXboxController;
         armButtons = robotMap.armButtons;
         
-        cargoFloorButton = new JoystickButton(armButtons, cargoFloorButtonNumber);
+        cargoFloorButton = new JoystickButton(armButtons, cargoDepotButtonNumber);
         cargoRocket1Button = new JoystickButton(armButtons, cargoRocket1ButtonNumber);
         cargoRocket2Button = new JoystickButton(armButtons, cargoRocket2ButtonNumber);
         cargoRocket3Button = new JoystickButton(armButtons, cargoRocket3ButtonNumber);
@@ -61,9 +62,15 @@ public class Operator {
         hatchStationButton = new JoystickButton(armButtons, hatchStationButtonNumber);
     }
 
+    public void run() {
+        putTelemetry();
+    }
+
     public void putTelemetry() {
-        telemetry.putDouble("Speed (forward|back)", driveXboxController.getY());
-        telemetry.putDouble("Turn (left|right)", driveXboxController.getX());
+        telemetry.putDouble("Speed (forward|back)", driveXboxController.getY(Hand.kLeft));
+        telemetry.putDouble("Turn (left|right)", driveXboxController.getX(Hand.kRight));
+        telemetry.putDouble("Arm", armXboxController.getY(Hand.kLeft));
+        telemetry.putDouble("Wrist", armXboxController.getY(Hand.kRight));
         telemetry.putBoolean("Cargo Floor", cargoFloorButton.get());
         telemetry.putBoolean("Cargo Rocket1", cargoRocket1Button.get());
         telemetry.putBoolean("Cargo Rocket2", cargoRocket2Button.get());

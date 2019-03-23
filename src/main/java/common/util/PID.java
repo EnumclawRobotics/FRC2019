@@ -6,6 +6,7 @@ public class PID {
     double priorTime = 0;
     double priorError = 0;
     double integral = 0;
+    double derivative = 0;
 
     double kP = 0;                  // .60Ku
     double kI = 0;                  // 1.2Ku/Tu
@@ -53,6 +54,7 @@ public class PID {
         priorTime = 0;
         priorError = 0;
         integral = 0;
+        derivative = 0;
     }
 
     // // updates PID controller based on target metric
@@ -61,19 +63,22 @@ public class PID {
     // }
 
     // updates PID controller based on error variance in target metric - use locality to see if we are even getting close
-    public double update(double currentError, double locality) { 
-        double derivative = 0; 
+    public double update(double currentError, double locality, double powerLimit) { 
+        // reset derivative since its a one-time thing
+        derivative = 0; 
 
-        // setpoint far away? ignore integral and derivative 
-        if (currentError < -locality || currentError > locality) {
+        // setpoint far away? reset any integral and derivative 
+        if (Math.abs(currentError) > locality) {
             reset();
+            integral = 0;
+            derivative = 0;
             currentError = Math.signum(currentError) * locality;
         } 
         // setpoint getting closer? we can start using integral and derivative
         else {
             // since last time
             double currentTime = Timer.getFPGATimestamp();
-            double iterationTime = (priorTime == 0 ? .02 : currentTime - priorTime); 
+            double iterationTime = (priorTime == 0 ? 1d/60d : currentTime - priorTime); 
 
             // accumulate error 
             // reset to current if we just overshot in order to throw away any windup?
@@ -93,6 +98,9 @@ public class PID {
         // proportional + accumulated error - future expected as a brake)
         output = kP*currentError + kI*integral - kD*derivative;
         
+        // restrict to limit
+        output = Functions.clip(output, -powerLimit, powerLimit);
+
         return output;
     }
 

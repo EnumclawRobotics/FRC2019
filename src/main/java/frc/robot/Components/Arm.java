@@ -27,7 +27,6 @@ public class Arm {
     private Wrist wrist;
 
     // set/derived through command
-    private double targetHeight = 0;
     private double targetAngle = 0;
     private double targetClicks = 0;
 
@@ -44,29 +43,33 @@ public class Arm {
     public enum States {
         Stopped,
         MovingStowed,
-        MovingFloorCargo, 
-        MovingStationHatch, MovingStationCargo,
-        MovingRocketHatch1, MovingRocketHatch2, MovingRocketHatch3,
-        MovingRocketCargo1, MovingRocketCargo2, MovingRocketCargo3, 
-        MovingShipHatch, MovingShipCargo, 
+        MovingRocketHatch1, MovingRocketHatch2, 
+        MovingDepotCargo, 
+        MovingStationCargo,
+        MovingRocketCargo1, MovingRocketCargo2,  
+        MovingShipCargo, 
         MovingManual,
     }
 
     // Constructor that saves controller and sensor references
     public Arm(RobotMap robotMap) {
         // config motor controllers
+        // Zero ange is straight down 
+        // arm uses positive clicks to rotate from front over top to back end 
+        //     and so needs to run in reverse direction from drive. 
+        // the Drive inverts right side so we'll invert the Arm's Left side.
         robotMap.armLeftSpeedController.setIdleMode(IdleMode.kBrake);
-        robotMap.armRightSpeedController.setInverted(true);
+        robotMap.armLeftSpeedController.setInverted(true);
         robotMap.armRightSpeedController.setIdleMode(IdleMode.kBrake);
 
         // keep references
         leftSpeedController = new RampSpeedController(robotMap.armLeftSpeedController, RobotMap.armRampFactor); 
         rightSpeedController = new RampSpeedController(robotMap.armRightSpeedController, RobotMap.armRampFactor); 
-        encoder = robotMap.armEncoder;
+        encoder = robotMap.leftArmEncoder;
+        encoder.setPositionConversionFactor(RobotMap.armEncoderConversionFactor);
 //        limitSwitch = robotMap.armLimitSwitch;
 
         pid = new PID();
-        //pidController.setZnGainsP(RobotMap.armPidKu); 
         pid.setGainsPID(RobotMap.armPidKp, RobotMap.armPidKi, RobotMap.armPidKd);
 
         stop();
@@ -77,7 +80,7 @@ public class Arm {
         // involved 
         this.wrist = wrist;
 
-        baseClicks = encoder.get();
+        baseClicks = getClicks();
 
         // reset derived fields
         targetClicks = baseClicks;                        
@@ -109,80 +112,60 @@ public class Arm {
         return angleFromClicks(getClicks());
     }    
 
-    // start side goes [0-180) 
+    // start side goes [0-180) while opposite goes [180-360)  
     public boolean getFacingNormal() {
         return (getAngle() < 180);
     }
 
     // encoder clicks
     public double getClicks() {
-        return encoder.get();
+        return encoder.getPosition();
     }
 
     public void moveStowed() {
         state = States.MovingStowed;
-        targetHeight = -1;
-        targetClicks = (getFacingNormal() ? baseClicks : baseClicks + RobotMap.armEncoderClicksPerDegree * (360 - 2 * RobotMap.armStowedAngle));
+        targetAngle = getFacingNormal() ? RobotMap.armAngleStowed : (360 - RobotMap.armAngleStowed);
+        targetClicks = clicksFromAngle(targetAngle);
     }
 
     public void moveRocketHatch1() {
         state = States.MovingRocketHatch1;
-        targetHeight = FieldMap.heightRocketHatch1;
+        targetAngle = getFacingNormal() ? RobotMap.armAngleRocketHatch1 : (360 - RobotMap.armAngleRocketHatch1);
         targetClicks = clicksFromAngle(targetAngle);
     }
     public void moveRocketHatch2() {
         state = States.MovingRocketHatch2;
-        targetHeight = FieldMap.heightRocketHatch2;
-        targetClicks = clicksFromAngle(targetAngle);
-    }
-    public void moveRocketHatch3() {
-        state = States.MovingRocketHatch3;
-        targetHeight = FieldMap.heightRocketHatch3;
+        targetAngle = getFacingNormal() ? RobotMap.armAngleRocketHatch2 : (360 - RobotMap.armAngleRocketHatch2);
         targetClicks = clicksFromAngle(targetAngle);
     }
 
     public void moveRocketCargo1() {
         state = States.MovingRocketCargo1;
-        targetHeight = FieldMap.heightRocketCargo1;
+        targetAngle = getFacingNormal() ? RobotMap.armAngleRocketCargo1 : (360 - RobotMap.armAngleRocketCargo1);
         targetClicks = clicksFromAngle(targetAngle);
     }
 
     public void moveRocketCargo2() {
         state = States.MovingRocketCargo2;
-        targetHeight = FieldMap.heightRocketCargo2;
-        targetClicks = clicksFromAngle(targetAngle);
-    }
-    public void moveRocketCargo3() {
-        state = States.MovingRocketCargo3;
-        targetHeight = FieldMap.heightRocketCargo3;
+        targetAngle = getFacingNormal() ? RobotMap.armAngleRocketCargo2 : (360 - RobotMap.armAngleRocketCargo2);
         targetClicks = clicksFromAngle(targetAngle);
     }
 
-    public void moveFloorCargo() {
-        state = States.MovingFloorCargo;
-        targetHeight = FieldMap.heightFloorCargo;
+    public void moveDepotCargo() {
+        state = States.MovingDepotCargo;
+        targetAngle = getFacingNormal() ? RobotMap.armAngleDepotCargo : (360 - RobotMap.armAngleDepotCargo);
         targetClicks = clicksFromAngle(targetAngle);
     }
 
-    public void moveStationHatch() {
-        state = States.MovingStationHatch;
-        targetHeight = FieldMap.heightStationHatch;
-        targetClicks = clicksFromAngle(targetAngle);
-    }
     public void moveStationCargo() {
         state = States.MovingStationCargo;
-        targetHeight = FieldMap.heightStationCargo;
+        targetAngle = getFacingNormal() ? RobotMap.armAngleStationCargo : (360 - RobotMap.armAngleStationCargo);
         targetClicks = clicksFromAngle(targetAngle);
     }
 
-    public void moveShipHatch() {
-        state = States.MovingShipHatch;
-        targetHeight = FieldMap.heightShipHatch;
-        targetClicks = clicksFromAngle(targetAngle);
-    }
     public void moveShipCargo() {
         state = States.MovingShipCargo;
-        targetHeight = FieldMap.heightShipCargo;
+        targetAngle = getFacingNormal() ? RobotMap.armAngleShipCargo : (360 - RobotMap.armAngleShipCargo);
         targetClicks = clicksFromAngle(targetAngle);
     }
 
@@ -190,8 +173,8 @@ public class Arm {
         // ignore deadband and defaults where we are not moving joystick
         if (Math.abs(controlPower) > .05) {
             state = States.MovingManual;
-            targetHeight = -1;
-            targetClicks = getClicks() + (controlPower * RobotMap.armEncoderClicksPerDegree);
+            targetAngle = -1;
+            targetClicks = getClicks() + (controlPower * RobotMap.armPidLocality);
         }
     }
 
@@ -203,11 +186,11 @@ public class Arm {
             // TODO: Incorporate change in wrist angle 
 
             // get PID output that is best to go towards the target clicks
-            pidPower = pid.update(targetClicks - encoder.get(), RobotMap.armPidLocality);    
+//            pidPower = pid.update(targetClicks - getClicks(), RobotMap.armPidLocality, RobotMap.armPowerLimit);    
+            pidPower = pid.update(targetClicks - getClicks(), RobotMap.armPidLocality, .35d);    
 
             // add in bias and reduce the power to the allowed range
             // **** be safe for now until we get the settings right ***
-            //power = Functions.clip(feedForward + pidPower, -.25d, .25d);
             power = feedForward + pidPower;
 
             // is limit switch saying we are going too far?
@@ -227,11 +210,11 @@ public class Arm {
         telemetry.putString("State", state.toString());
 //        telemetry.putBoolean("LimitSwitch.get()", limitSwitch.get());
         telemetry.putDouble("Angle", getAngle());
+        telemetry.putDouble("PidKp", RobotMap.armPidKp);
         telemetry.putDouble("PIDPower", pidPower);
         telemetry.putDouble("FeedForward", feedForward);
         telemetry.putDouble("Power", power);
-        telemetry.putDouble("Clicks", encoder.get());
-        telemetry.putDouble("TargetHeight", targetHeight);
+        telemetry.putDouble("Clicks", getClicks());
         telemetry.putDouble("TargetAngle", targetAngle);
         telemetry.putDouble("TargetClicks", targetClicks);
         telemetry.putString("Version", "1.0.0");
@@ -241,47 +224,11 @@ public class Arm {
 
     // given clicks figure out angle 
     private double angleFromClicks(double clicks) {
-        return (((double)(clicks - baseClicks)) / RobotMap.armEncoderClicksPerDegree);
+        return ((clicks - baseClicks) / RobotMap.armEncoderClicksPerDegree);
     }
     
     // given a target angle figure out target clicks
     private double clicksFromAngle(double angle) {
         return (angle * RobotMap.armEncoderClicksPerDegree) + baseClicks;
-    }
-
-    // getting an angle in degrees from a height above ground
-    private double angleFromHeight(double targetHeight, boolean facingNormal) {
-        double height;
-        double angle;
-
-        // TODO: Figure out angle where height is sine and then rotate it based on zero degrees for arm is straight down
-        height = (targetHeight - RobotMap.armPivotHeight)/RobotMap.armLength; 
-        angle = Math.toDegrees(Math.acos(height)) + ((facingNormal) ? 90 : 270);
-
-        // // figure angle about pivot point given reach points in the vertical plane
-        // if (facingNormal) {
-        //     if (RobotMap.armPivotHeight >= targetHeight) { 
-        //         // reaching low on start side - height is cos
-        //         height = (RobotMap.armPivotHeight - targetHeight)/RobotMap.armLength;
-        //         angle = Math.toDegrees(Math.acos(height));
-        //     } else {
-        //         // reaching high on start side - height is sin 
-        //         height = (targetHeight - RobotMap.armPivotHeight)/RobotMap.armLength;
-        //         angle = Math.toDegrees(Math.asin(height)) + 90;
-        //     }
-        // }
-        // else {
-        //     if (RobotMap.armPivotHeight >= targetHeight) { 
-        //         // reaching low on opposite side - height is sin
-        //         height = (RobotMap.armPivotHeight - targetHeight)/RobotMap.armLength;
-        //         angle = Math.toDegrees(Math.asin(height)) + 270;
-        //     } else {
-        //         // reaching high on opposite side - height is cos
-        //         height = (RobotMap.armPivotHeight - targetHeight)/RobotMap.armLength;
-        //         angle = Math.toDegrees(Math.acos(height)) + 180;
-        //     }
-        // }
-
-        return angle;
     }
 }

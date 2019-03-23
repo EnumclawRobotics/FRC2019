@@ -116,7 +116,7 @@ public class Grabber {
         if (state != States.OpeningCargo) {
             state = States.OpeningCargo;
             targetClicks = baseClicks + (RobotMap.grabberEncoderClicksPerDegree * RobotMap.grabberCargoOpen);
-            grabberPower = grabberPid.update(targetClicks - grabberEncoder.get(), RobotMap.grabberLocality);
+            grabberPower = grabberPid.update(targetClicks - grabberEncoder.get(), RobotMap.grabberLocality, RobotMap.grabberPowerLimit);
         }
     }
 
