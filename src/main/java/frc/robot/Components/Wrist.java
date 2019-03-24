@@ -117,14 +117,14 @@ public class Wrist {
     // moving to the front side
     public void moveFront() {
         state = States.MovingFront;
-        targetAngle = RobotMap.wristAngleRocketHatch2;
+        targetAngle = RobotMap.wristStowedAngle;
         targetClicks = clicksFromAngle(targetAngle);
     }
 
     // moving to the back side 
     public void moveBack() {
         state = States.MovingBack;
-        targetAngle = (360 - RobotMap.wristAngleRocketHatch2);
+        targetAngle = (360 - RobotMap.wristStowedAngle);
         targetClicks = clicksFromAngle(targetAngle);
     }
     
@@ -188,14 +188,14 @@ public class Wrist {
         }
     }
 
-    // nudges wrist by a percent of an angle. 
-    // used when switching from open to close and vice versa to aid with grabbing and placing
-    public void nudge(double nudgeAngle) {
-        // ignore deadband and defaults where we are not moving joystick
-        if (Math.abs(nudgeAngle) > .01) {
-            targetClicks = targetClicks + (nudgeAngle * RobotMap.wristEncoderClicksPerDegree);
-        }
-    }
+    // // nudges wrist by a percent of an angle. 
+    // // used when switching from open to close and vice versa to aid with grabbing and placing
+    // public void nudge(double nudgeAngle) {
+    //     // ignore deadband and defaults where we are not moving joystick
+    //     if (Math.abs(nudgeAngle) > .01) {
+    //         targetClicks = targetClicks + (nudgeAngle * RobotMap.wristEncoderClicksPerDegree);
+    //     }
+    // }
     
     public void run() {
         if (state != States.Stopped) {

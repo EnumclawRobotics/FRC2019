@@ -148,44 +148,44 @@ public class Robot extends TimedRobot {
         }
 
         if (this.isAutonomous() || this.isOperatorControl()) {
-        //     // arm height
-            if (operator.cargoFloorButton.get()) {
+            if (operator.armFrontButton.get()) {
+                arm.moveFront();
+                 wrist.moveFront();
+            }
+            if (operator.armBackButton.get()) {
+                arm.moveBack();
+                 wrist.moveBack();
+            }
+
+            //     // arm height
+            if (operator.cargoDepotButton.get()) {
                 arm.moveDepotCargo();
-        //         wrist.moveAligned();
+        //         wrist.moveDepotCargo();
             }
-            if (operator.cargoRocket1Button.get()) {
-                arm.moveRocketCargo1();
-        //         wrist.moveAligned();
-            }
-            if (operator.cargoRocket2Button.get()) {
-                arm.moveRocketCargo2();
-        //         wrist.moveAligned();
-            }
-        //     if (operator.cargoRocket3Button.get()) {
-        //         arm.moveRocketCargo3();
-        //         wrist.moveAligned();
-        //     }
             if (operator.cargoShipButton.get()) {
                 arm.moveShipCargo();
-        //         wrist.moveAligned();
+        //         wrist.moveShipCargo();
             }
             if (operator.cargoStationButton.get()) {
                 arm.moveStationCargo();
-        //         wrist.moveAligned();
+        //         wrist.moveStationCargo();
             }
-
+            if (operator.cargoRocket1Button.get()) {
+                arm.moveRocketCargo1();
+        //         wrist.moveRocketCargo1();
+            }
+            if (operator.cargoRocket2Button.get()) {
+                arm.moveRocketCargo2();
+        //         wrist.moveRocketCargo2();
+            }
             if (operator.hatchRocket1Button.get()) {
                 arm.moveRocketHatch1();
-//                 wrist.moveAligned();
+//                 wrist.moveRocketHatch1();
             }
             if (operator.hatchRocket2Button.get()) {
                 arm.moveRocketHatch2();
-        //         wrist.moveAligned();
+        //         wrist.moveRocketHatch2();
             }
-        //     if (operator.hatchRocket3Button.get()) {
-        //         arm.moveRocketHatch3();
-        //         wrist.moveAligned();
-        //    }
         }
 
         if (this.isTest() || this.isAutonomous() || this.isOperatorControl()) {
@@ -198,9 +198,6 @@ public class Robot extends TimedRobot {
                 // POV moves wrist manually overwriting previous position selection - only use to correct for placing
                 wrist.moveManual(-operator.armXboxController.getY(Hand.kRight));
             }
- //           if (operator.armXboxController.getAButton()) {
- //               wrist.moveAligned();
- //           }
         }
 
         if (this.isTest() || this.isAutonomous() || this.isOperatorControl()) {
@@ -225,10 +222,10 @@ public class Robot extends TimedRobot {
         if (this.isTest() || this.isAutonomous() || this.isOperatorControl()) {
             // handle lifting by overloading the drive controller buttons
             if (operator.driveXboxController.getStartButton()) {
-                lifter.move(1d);
+                lifter.moveAll(1d);
             }
             else if (operator.driveXboxController.getBackButton()) {
-                lifter.move(-.25d);
+                lifter.moveAll(-.25d);
             } 
             else if (operator.driveXboxController.getBButton()) {
                 lifter.stowFront();
@@ -256,4 +253,4 @@ public class Robot extends TimedRobot {
         telemetry.putString("Version", "1.0.0");
     }
 }
-//hello world
+// hello world - changed
