@@ -17,7 +17,20 @@ public class Lifter {
         StowingFront,
         StowingBack,
         Moving,
-        Holding
+        Holding,
+        Rolling //NEW!
+    }
+
+    //NEW!
+    public enum ClimbingStates {
+        Inactive,
+        Teleop,
+        Raising,
+        UseLiftWheels,
+        RaiseFrontLift,
+        DriveWheels1,
+        RaiseBackLift,
+        DriveWheels2
     }
 
     private RampSpeedController frontSpeedController;
@@ -47,6 +60,9 @@ public class Lifter {
     private double stateExpiration;
 
     private States state = States.Stopped;
+    private ClimbingStates climbingState = ClimbingStates.Inactive;
+
+    private double rollingStateDuration;
 
     public Lifter(RobotMap robotMap) {
         robotMap.liftFrontSpeedController.setIdleMode(IdleMode.kBrake);
@@ -88,6 +104,10 @@ public class Lifter {
         return backEncoder.getPosition();
     }
 
+    //NEW!
+    public ClimbingStates getClimbingState() {
+        return climbingState;
+    }
     public double getFrontError() {
         frontError = frontTargetClicks - getFrontClicks();
         return frontError;
@@ -202,10 +222,49 @@ public class Lifter {
                 frontPower = frontPid.update(frontError, RobotMap.liftLocality, RobotMap.liftPower) - balancePower;
                 backPower = backPid.update(backError, RobotMap.liftLocality, RobotMap.liftPower) + balancePower;
             }
+            moverPower = (state == States.Rolling) ? 1.0f : 0.0f; //NEW!
 
-            frontSpeedController.set(frontPower);     
+            frontSpeedController.set(frontPower);        
             backSpeedController.set(backPower);
             moverSpeedController.set(moverPower);
+        }
+
+        switch (climbingState)
+        {
+            case Inactive:
+                //Nothing
+            break;
+            case Teleop:
+                //Nothing
+            break;
+
+            case Raising:
+                //move(/*power*/);
+                if (getFrontClicks() >= 000000000000d) {
+                    climbingState = ClimbingStates.UseLiftWheels;
+                    rollingStateDuration = Timer.getFPGATimestamp();
+                }
+            break;
+
+            case UseLiftWheels:
+                state = States.Rolling;
+                if (Timer.getFPGATimestamp() >= rollingStateDuration + 2.0)
+                {
+                    climbingState = ClimbingStates.RaiseFrontLift;
+                }
+            break;
+            case RaiseFrontLift:
+                //...
+            break;
+            case DriveWheels1:
+                //...
+            break;
+            case RaiseBackLift:
+                //...
+            break;
+            case DriveWheels2:
+                //...
+            break;
         }
 
         putTelemetry();
