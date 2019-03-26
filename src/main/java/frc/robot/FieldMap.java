@@ -32,8 +32,8 @@ public class FieldMap {
 
     // hab geometries
     public final static double heightHabLevel1 = 3; 
-    public final static double heightHabLevel2 = 6;
-    public final static double heightHabLevel3 = 19;
+    public final static double heightHabLevel2 = 6; //Based off of hab 1 as the ground
+    public final static double heightHabLevel3 = 19; //Based off of hab 1 as the ground
 
     // game piece geometries
     public final static double hatchDiameter = 19;

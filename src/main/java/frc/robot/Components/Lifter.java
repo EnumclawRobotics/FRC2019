@@ -254,7 +254,10 @@ public class Lifter {
                 }
             break;
             case RaiseFrontLift:
-                //...
+                stowFront();
+                if (getFrontClicks() <= 0) { //If front hab lift has fully retracted
+                    climbingState = ClimbingStates.DriveWheels1;
+                }
             break;
             case DriveWheels1:
                 //...
