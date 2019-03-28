@@ -77,7 +77,7 @@ public class RobotMap {
 
     // drive
     public final static double driveSpeedLimiter = .50d;                        // used to limit output when not afterburning
-    public final static double driveRotationLimiter = .50d;                     // used to limit output
+    public final static double driveRotationLimiter = .40d;                     // used to limit output
 
     // safety
     public final static double safetyExpiration = .25d;
@@ -107,8 +107,8 @@ public class RobotMap {
     public final static double armPidKp = armPowerLimit / armPidLocality;       // PID kP correction factor  
     public final static double armPidKi = .0015d;                               // PID kI correction factor 
     public final static double armPidKd = 0d;                                   // PID kD correction factor
-    public final static double armFeedForwardFactor = 0d;                     // power for feed forward amount
-    public final static double armRampFactor = .04d;                            // ramp change power limit per cycle (60hz) 
+    public final static double armFeedForwardFactor = .13d;                     // power for feed forward amount
+    public final static double armRampFactor = .1d;                            // ramp change power limit per cycle (60hz) 
 
     // wrist
     public final static double wristAngleStowed = 5d;                             // starting angle for arm  
@@ -125,14 +125,25 @@ public class RobotMap {
 
     public final static double wristLength = 7.75d; 
     public final static double wristStowedAngle = 5d;                               // angle to fold back the grabber for protection
-    public final static double wristEncoderClicksPerDegree = (42d*64d)/360d;        // NEO gearbox output shaft include gear reduction
+
+    public final static double wristEncoderConversionFactor = 42d;                  // clicks per rpm for NEO
+    public final static double wristGearboxConversionFactor = 64d;                  // 64:1 Andymark gearbox reduction
+    public final static double wristEncoderClicksPerDegree = (armEncoderConversionFactor * armGearboxConversionFactor)/360d;  
     public final static double wristPidLocality = wristEncoderClicksPerDegree * 3d; // area around setpoint to use PID with 
-    public final static double wristPowerLimit = .75d;                              // power limit
+//    public final static double wristPowerLimit = .75d;                            // power limit
+    public final static double wristPowerLimit = .25d;                              // power limit
     public final static double wristPidKp =  wristPowerLimit / wristPidLocality;    // PID kP correction factor  
-    public final static double wristPidKi = 0d;                                     // PID kI correction factor
+//    public final static double wristPidKi = 0d;                                     // PID kI correction factor
+    public final static double wristPidKi = .0045d;                                     // PID kI correction factor
     public final static double wristPidKd = 0d;                                     // PID kD correction factor
-    public final static double wristFeedForwardFactor = .12d;                       // hold at horizontal power. find by testing
-    public final static double wristRampFactor = .04d;                              // ramp change power limit per cycle (60hz)
+    public final static double wristFeedForwardFactor = .1d;                       // hold at horizontal power. find by testing
+//    public final static double wristRampFactor = .04d;                              // ramp change power limit per cycle (60hz)
+    public final static double wristRampFactor = .1d;                              // ramp change power limit per cycle (60hz)
+
+// TODO: Assume that roboinit and autoinit and teleopinit can happen at different times and handle it
+// TODO: Mechanically add magnetic limit switch to arm and apply a zero function 
+// TODO: Allow baseClicks to move lower if encoder says they go there. For both Arm and Wrist
+// TODO: Bumper for wrist. New electronics board and mounting. 
 
     // grabber
     public final static double grabberLength = 10d;

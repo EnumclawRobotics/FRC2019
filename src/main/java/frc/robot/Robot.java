@@ -132,9 +132,9 @@ public class Robot extends TimedRobot {
         // cameraManager.run();
         // mapper.run();
 
-        if (lifter.getClimbingState() != Lifter.ClimbingStates.Inactive) {
+        if (lifter.getClimbingState() == Lifter.ClimbingStates.Inactive) {
             if (this.isAutonomous() || this.isOperatorControl() ) {            // driver set up default move - may be overwritten by other elements
-                    drive.move(-operator.driveXboxController.getY(Hand.kLeft), operator.driveXboxController.getX(Hand.kRight), false);
+                    drive.move(operator.driveXboxController.getY(Hand.kLeft), operator.driveXboxController.getX(Hand.kRight), false);
 
                     // // assist in straight driving? add turbo function?
                     // if (operator.driveXboxController.getBumper(Hand.kLeft)) {

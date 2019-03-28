@@ -40,6 +40,8 @@ public class Arm {
 
     private States state = States.Stopped;
 
+    private boolean isInited = false;
+
     public enum States {
         Stopped,
         MovingFront,
@@ -79,15 +81,21 @@ public class Arm {
 
     // assumes that arm is Stowed at start of autonomous
     public void init(Wrist wrist) {
-        // involved 
-        this.wrist = wrist;
+        if (!isInited) {
+            // involved systems
+            this.wrist = wrist;
 
-        baseClicks = getClicks();
+            // set up baseline
+            baseClicks = getClicks();
 
-        // reset derived fields
-        targetClicks = baseClicks;                        
-        feedForward = 0;
-        power = 0;
+            // reset derived fields
+            targetClicks = baseClicks;
+            feedForward = 0;
+            power = 0;
+
+            // show that we are inited
+            isInited = true;
+        }
     }
 
     // not triggerable by user 
@@ -204,6 +212,11 @@ public class Arm {
     }
 
     public void run() {
+        // arm not zeroed right? update zero position
+        if (getClicks() < baseClicks) {
+            baseClicks = getClicks();
+        }
+
         if (state != States.Stopped) {
             // current angle implies how much force gravity applies and so what we need to make neutral
             double angle = getAngle();

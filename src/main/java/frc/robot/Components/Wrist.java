@@ -42,6 +42,8 @@ public class Wrist {
 
     States state = States.Stopped;
 
+    private boolean isInited = false;
+
     public enum States {
         Stopped,
         MovingFront,
@@ -65,25 +67,31 @@ public class Wrist {
         robotMap.wristSpeedController.setInverted(true);
 
         this.pid = new PID();
-        this.pid.setGainsPID(RobotMap.wristPidKp, RobotMap.wristPidKi, RobotMap.wristPidKd);
+        //this.pid.setGainsPID(RobotMap.wristPidKp, RobotMap.wristPidKi, RobotMap.wristPidKd);
+        this.pid.setNoOvershootGainsPID(RobotMap.wristPidKp, .3d);
 
         this.speedController = new RampSpeedController(robotMap.wristSpeedController, RobotMap.wristRampFactor);
         this.encoder = robotMap.wristEncoder;
+        this.encoder.setPositionConversionFactor(RobotMap.wristEncoderConversionFactor);
 //        this.limitSwitch = robotMap.wristLimitSwitch;
     }
 
     // assumes that arm is Stowed at start of autonomous 
     public void init(Arm arm) {
-        // involved parts
-        this.arm = arm;
+        if (!isInited) {
+            // involved systems
+            this.arm = arm;
 
-        // store starting position
-        baseClicks = encoder.get();
+            // store starting position
+            baseClicks = encoder.get();
 
-        // reset derived fields
-        targetClicks = baseClicks;      // start angle is all the way at the end of the rotation 360 - stowed angle   
-        feedForward = 0;
-        power = 0;
+            // reset derived fields
+            targetClicks = baseClicks;      // start angle is all the way at the end of the rotation 360 - stowed angle   
+            feedForward = 0;
+            power = 0;
+
+            isInited = true;
+        }
     }
 
     // not triggerable by user 
@@ -184,7 +192,7 @@ public class Wrist {
             state = States.MovingManual;
             targetAngle = -1;
             // positive from joystick is decrease in angle from baseline
-            targetClicks = getClicks() + (-controlPower * RobotMap.wristEncoderClicksPerDegree);
+            targetClicks = getClicks() + (-controlPower * RobotMap.wristPidLocality);
         }
     }
 
@@ -198,6 +206,10 @@ public class Wrist {
     // }
     
     public void run() {
+        if (getClicks() < baseClicks) {
+            baseClicks = getClicks();
+        }
+
         if (state != States.Stopped) {
             // current angle implies how much force gravity applies
             angle = getAngle();

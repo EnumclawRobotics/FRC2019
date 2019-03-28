@@ -8,9 +8,9 @@ public class PID {
     double integral = 0;
     double derivative = 0;
 
-    double kP = 0;                  // .60Ku
-    double kI = 0;                  // 1.2Ku/Tu
-    double kD = 0;                  // 3KuTu/40
+    double kP = 0;
+    double kI = 0;
+    double kD = 0;
     
     double output = 0;
 
@@ -48,6 +48,12 @@ public class PID {
         this.kP = .60d * kU;
         this.kI = (1.2d * kU)/tU;
         this.kD = (3d * kU * tU) / 40d;
+    }
+
+    public void setNoOvershootGainsPID(double kU, double tU) {
+        this.kP = kU/5d;
+        this.kI = (.40d * kU)/tU;
+        this.kD = (kU * tU)/15;
     }
 
     public void reset() {
