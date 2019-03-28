@@ -11,14 +11,15 @@ import common.util.Functions;
 public class Lifter {
     private Telemetry telemetry = new Telemetry("Robot/Lifter");
 
+    private boolean rolling = false;
+
     public enum States {
         Stopped,
         Stowing, 
         StowingFront,
         StowingBack,
         Moving,
-        Holding,
-        Rolling //NEW!
+        Holding
     }
 
     //NEW!
@@ -62,7 +63,7 @@ public class Lifter {
     private States state = States.Stopped;
     private ClimbingStates climbingState = ClimbingStates.Inactive;
 
-    private double rollingStateDuration;
+    private double climbingStateStartTime;
 
     public Lifter(RobotMap robotMap) {
         robotMap.liftFrontSpeedController.setIdleMode(IdleMode.kBrake);
@@ -222,7 +223,7 @@ public class Lifter {
                 frontPower = frontPid.update(frontError, RobotMap.liftLocality, RobotMap.liftPower) - balancePower;
                 backPower = backPid.update(backError, RobotMap.liftLocality, RobotMap.liftPower) + balancePower;
             }
-            moverPower = (state == States.Rolling) ? 1.0f : 0.0f; //NEW!
+            moverPower = (rolling && state == States.Holding) ? RobotMap.liftMoverPower : 0.0f; //NEW!
 
             frontSpeedController.set(frontPower);        
             backSpeedController.set(backPower);
@@ -239,17 +240,23 @@ public class Lifter {
             break;
 
             case Raising:
-                //move(/*power*/);
-                if (getFrontClicks() >= 000000000000d) {
+                int clicksToHab = RobotMap.liftEncoderClicksPerInch * (RobotMap.liftStartingError + FieldMap.heightHabLevel2);
+                frontTargetClicks = clicksToHab;
+                backTargetClicks = clicksToHab;
+                state = State.Moving;
+
+                if (getFrontClicks() >= clicksToHab) {
                     climbingState = ClimbingStates.UseLiftWheels;
-                    rollingStateDuration = Timer.getFPGATimestamp();
+                    climbingStateStartTime = Timer.getFPGATimestamp();
                 }
             break;
 
             case UseLiftWheels:
-                state = States.Rolling;
-                if (Timer.getFPGATimestamp() >= rollingStateDuration + 2.0)
-                {
+                state = State.Holding;
+                rolling = true;
+
+                if (Timer.getFPGATimestamp() >= climbingStateStartTime + 2.0f) {
+                    rolling = false;
                     climbingState = ClimbingStates.RaiseFrontLift;
                 }
             break;
@@ -257,16 +264,27 @@ public class Lifter {
                 stowFront();
                 if (getFrontClicks() <= 0) { //If front hab lift has fully retracted
                     climbingState = ClimbingStates.DriveWheels1;
+                    climbingStateStartTime = Timer.getFPGATimestamp();
                 }
             break;
             case DriveWheels1:
-                //...
+                drive.move(0.05f, 0.0f, false);
+                if (Timer.getFPGATimestamp() >= climbingStateStartTime + 2.0f) {
+                    climbingState = ClimbingStates.RaiseBackLift;
+                }
             break;
             case RaiseBackLift:
-                //...
+                stowBack();
+                if (getBackClicks() <= 0) { //If back hab lift has fully retracted
+                    climbingState = ClimbingStates.DriveWheels2;
+                    climbingStateStartTime = Timer.getFPGATimestamp();
+                }
             break;
             case DriveWheels2:
-                //...
+                drive.move(0.05f, 0.0f, false);
+                if (Timer.getFPGATimestamp() >= climbingStateStartTime + 2.0f) {
+                    climbingState = ClimbingStates.Inactive;
+                }
             break;
         }
 
