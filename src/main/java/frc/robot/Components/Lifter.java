@@ -11,8 +11,6 @@ import common.util.Functions;
 public class Lifter {
     private Telemetry telemetry = new Telemetry("Robot/Lifter");
 
-    private boolean rolling = false;
-
     public enum States {
         Stopped,
         Stowing, 
@@ -22,16 +20,19 @@ public class Lifter {
         Holding
     }
 
+    private Drive drive;
+
     //NEW!
     public enum ClimbingStates {
         Inactive,
         Teleop,
         Raising,
-        UseLiftWheels,
+        DriveWheels0,
         RaiseFrontLift,
         DriveWheels1,
         RaiseBackLift,
-        DriveWheels2
+        DriveWheels2,
+        Done
     }
 
     private RampSpeedController frontSpeedController;
@@ -61,9 +62,12 @@ public class Lifter {
     private double stateExpiration;
 
     private States state = States.Stopped;
-    private ClimbingStates climbingState = ClimbingStates.Inactive;
 
+    private ClimbingStates climbingState = ClimbingStates.Inactive;
     private double climbingStateStartTime;
+
+    private boolean rolling = false;
+   
 
     public Lifter(RobotMap robotMap) {
         robotMap.liftFrontSpeedController.setIdleMode(IdleMode.kBrake);
@@ -85,12 +89,14 @@ public class Lifter {
         backPid.setGainsPID(RobotMap.liftPidKp, RobotMap.liftPidKi, RobotMap.liftPidKd);
     }
 
-    public void init() {
+    public void init(Drive drive) {
         frontBaseClicks = getFrontClicks();
         backBaseClicks = getBackClicks();
         frontTargetClicks = frontBaseClicks;
         backTargetClicks = backBaseClicks;
         stow();
+
+        this.drive = drive;
     }
 
     public States getState() {
@@ -119,7 +125,7 @@ public class Lifter {
         return backError;
     }
 
-    // hold at position
+    // // hold at position
     private void brake() {
         frontPower = 0;
         backPower = 0;
@@ -148,47 +154,65 @@ public class Lifter {
         state = States.StowingBack;
     }
     
-    // raising / lowering
-    public void moveAll(double controlPower) {
-        moveFront(controlPower);
-        moveBack(controlPower);
-        state = States.Moving;
+    // // raising / lowering
+    // public void moveAll(double controlPower) {
+    //     moveFront(controlPower);
+    //     moveBack(controlPower);
+    //     state = States.Moving;
+    // }
+
+    // // raising / lowering
+    // public void moveFront(double controlPower) {
+    //     frontTargetClicks = frontTargetClicks + (controlPower * RobotMap.liftLocality);
+    // }
+
+    // // raising / lowering
+    // public void moveBack(double controlPower) {
+    //     backTargetClicks = backTargetClicks + (controlPower * RobotMap.liftLocality);
+    // }
+
+    // // raising / lowering
+    // public void moveAllClicks(double clicks) {
+    //     moveFrontClicks(clicks);
+    //     moveBackClicks(clicks);
+    //     state = States.Moving;
+    // }
+
+    // // raising / lowering
+    // public void moveFrontClicks(double clicks) {
+    //     frontTargetClicks = frontBaseClicks + clicks;
+    // }
+
+    // // raising / lowering
+    // public void moveBackClicks(double clicks) {
+    //     backTargetClicks = backBaseClicks + clicks;
+    // }
+
+    // // holding position
+    // public void holding() {
+    //     if (state != States.Holding) {
+    //         frontTargetClicks = getFrontClicks();
+    //         backTargetClicks = getBackClicks();
+    //         state = States.Holding;
+    //     }
+    // }
+
+    public void climbHabitat3() {
+        // start raising the bot to hab 3
+        double clicksToHab = RobotMap.liftEncoderClicksPerInch * (RobotMap.liftStartingError + FieldMap.heightHabLevel3);
+        frontTargetClicks = frontBaseClicks + clicksToHab;
+        backTargetClicks = backBaseClicks + clicksToHab;
+
+        climbingState = ClimbingStates.Raising;
     }
 
-    // raising / lowering
-    public void moveFront(double controlPower) {
-        frontTargetClicks = frontTargetClicks + (controlPower * RobotMap.liftLocality);
-    }
-
-    // raising / lowering
-    public void moveBack(double controlPower) {
-        backTargetClicks = backTargetClicks + (controlPower * RobotMap.liftLocality);
-    }
-
-    // raising / lowering
-    public void moveAllClicks(double clicks) {
-        moveFrontClicks(clicks);
-        moveBackClicks(clicks);
-        state = States.Moving;
-    }
-
-    // raising / lowering
-    public void moveFrontClicks(double clicks) {
-        frontTargetClicks = frontBaseClicks + clicks;
-    }
-
-    // raising / lowering
-    public void moveBackClicks(double clicks) {
-        backTargetClicks = backBaseClicks + clicks;
-    }
-
-    // holding position
-    public void holding() {
-        if (state != States.Holding) {
-            frontTargetClicks = getFrontClicks();
-            backTargetClicks = getBackClicks();
-            state = States.Holding;
-        }
+    public void climbHabitat2() {
+        // start raising the bot to hab 2
+        double clicksToHab = RobotMap.liftEncoderClicksPerInch * (RobotMap.liftStartingError + FieldMap.heightHabLevel2);
+        frontTargetClicks = frontBaseClicks + clicksToHab;
+        backTargetClicks = backBaseClicks + clicksToHab;
+        
+        climbingState = ClimbingStates.Raising;
     }
 
     public void run() {
@@ -240,51 +264,72 @@ public class Lifter {
             break;
 
             case Raising:
-                int clicksToHab = RobotMap.liftEncoderClicksPerInch * (RobotMap.liftStartingError + FieldMap.heightHabLevel2);
-                frontTargetClicks = clicksToHab;
-                backTargetClicks = clicksToHab;
-                state = State.Moving;
+                state = States.Moving;
 
-                if (getFrontClicks() >= clicksToHab) {
-                    climbingState = ClimbingStates.UseLiftWheels;
+                // near target height? (within a quarter inch)
+                if (Math.abs(getFrontClicks() - frontTargetClicks) < RobotMap.liftEncoderClicksPerInch * .25d
+                    && Math.abs(getBackClicks() - backTargetClicks) < RobotMap.liftEncoderClicksPerInch * .25d) {
+                    climbingState = ClimbingStates.DriveWheels0;
                     climbingStateStartTime = Timer.getFPGATimestamp();
                 }
             break;
 
-            case UseLiftWheels:
-                state = State.Holding;
-                rolling = true;
+            case DriveWheels0:
+                // move green wheel on lift and the main drive wheels to get something on hab
+                moverSpeedController.set(moverPower);
+                drive.move(0.05f, 0.0f, false);
 
                 if (Timer.getFPGATimestamp() >= climbingStateStartTime + 2.0f) {
-                    rolling = false;
-                    climbingState = ClimbingStates.RaiseFrontLift;
+                    moverSpeedController.stopMotor();
+                    drive.move(0f, 0.0f, false);
+                        climbingState = ClimbingStates.RaiseFrontLift;
                 }
             break;
+
             case RaiseFrontLift:
                 stowFront();
-                if (getFrontClicks() <= 0) { //If front hab lift has fully retracted
+
+                // If front hab lift has fully retracted? (within .5 inch)
+                if (Math.abs(getFrontClicks() - frontBaseClicks) < RobotMap.liftEncoderClicksPerInch * .5d) {
                     climbingState = ClimbingStates.DriveWheels1;
                     climbingStateStartTime = Timer.getFPGATimestamp();
                 }
             break;
+
             case DriveWheels1:
+                // drive forward to get more than half the weight on hab
+                moverSpeedController.set(moverPower);
                 drive.move(0.05f, 0.0f, false);
+
                 if (Timer.getFPGATimestamp() >= climbingStateStartTime + 2.0f) {
-                    climbingState = ClimbingStates.RaiseBackLift;
+                    moverSpeedController.stopMotor();
+                    drive.move(0f, 0.0f, false);
+                        climbingState = ClimbingStates.RaiseBackLift;
                 }
             break;
+
             case RaiseBackLift:
                 stowBack();
-                if (getBackClicks() <= 0) { //If back hab lift has fully retracted
+
+                //If back hab lift has fully retracted
+                if (Math.abs(getBackClicks() - backBaseClicks) < RobotMap.liftEncoderClicksPerInch * .5d) { 
                     climbingState = ClimbingStates.DriveWheels2;
                     climbingStateStartTime = Timer.getFPGATimestamp();
                 }
             break;
+            
             case DriveWheels2:
+                // get all the way on hab
                 drive.move(0.05f, 0.0f, false);
+
                 if (Timer.getFPGATimestamp() >= climbingStateStartTime + 2.0f) {
-                    climbingState = ClimbingStates.Inactive;
+                    drive.move(0f, 0.0f, false);
+                    climbingState = ClimbingStates.Done;
                 }
+            break;
+
+            case Done:
+                // nothing
             break;
         }
 

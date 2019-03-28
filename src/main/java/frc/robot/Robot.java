@@ -48,7 +48,7 @@ public class Robot extends TimedRobot {
         arm.init(wrist);
         wrist.init(arm);
         grabber.init(wrist);
-        lifter.init();
+        lifter.init(drive);
     }
 
     /**
@@ -221,21 +221,28 @@ public class Robot extends TimedRobot {
         }
 
         if (this.isTest() || this.isAutonomous() || this.isOperatorControl()) {
-            // handle lifting by overloading the drive controller buttons
+            // // handle lifting by overloading the drive controller buttons
+            // if (operator.driveXboxController.getStartButton()) {
+            //     lifter.moveAll(1d);
+            // }
+            // else if (operator.driveXboxController.getBackButton()) {
+            //     lifter.moveAll(-.25d);
+            // } 
+            // else if (operator.driveXboxController.getBButton()) {
+            //     lifter.stowFront();
+            // } 
+            // else if (operator.driveXboxController.getAButton()) {
+            //     lifter.stowBack();
+            // } 
+            // else {
+            //     lifter.holding();
+            // }
+
             if (operator.driveXboxController.getStartButton()) {
-                lifter.moveAll(1d);
+                lifter.climbHabitat3();
             }
-            else if (operator.driveXboxController.getBackButton()) {
-                lifter.moveAll(-.25d);
-            } 
-            else if (operator.driveXboxController.getBButton()) {
-                lifter.stowFront();
-            } 
-            else if (operator.driveXboxController.getAButton()) {
-                lifter.stowBack();
-            } 
-            else {
-                lifter.holding();
+            if (operator.driveXboxController.getBackButton()) {
+                lifter.climbHabitat2();
             }
         }
 
