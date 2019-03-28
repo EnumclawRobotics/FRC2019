@@ -152,8 +152,10 @@ public class RobotMap {
     // lift 
 //    public final static double liftHeight = 19.5d;                            // inches to raise bot
     public final static double liftMoverPower = 1d;                             // power to roll forward
+    public final static double liftStartingError = 1d;                          // additional inches lift needs to extend to raise the robot 6 or 19 inches
 //    public final static double liftEncoderClicksPerDegree = 42d*(12d * 24d/18d)/360d;      // 12:1 output shaft with 24/18 sprocket reduction
-    public final static double liftEncoderClicksPerDegree = 42d*(20d * 24d/18d)/360d;  // 20:1 output shaft with 24/18 sprocket reduction
+    public final static double liftEncoderClicksPerDegree = 42d*(20d * (24d/18d))/360d;  // 20:1 output shaft with 24/18 sprocket reduction
+    public final static double liftEncoderClicksPerInch = (42d*20d)/(2d* Math.PI * 1d); //Clicks per revolution / Distance of curcomferance 
     public final static double liftLocality = liftEncoderClicksPerDegree * 2d;  // area around setpoint to use PID with
     public final static double liftPower = .85d;                                // extend lift power limit
     public final static double liftPidKp = liftPower / liftLocality;            // PID kP correction factor

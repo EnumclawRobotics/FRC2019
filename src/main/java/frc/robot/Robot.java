@@ -132,7 +132,7 @@ public class Robot extends TimedRobot {
         // cameraManager.run();
         // mapper.run();
 
-        if (lifter.getClimbingState() != Lifter.ClimbingStates.Inactive) {
+        if (lifter.getClimbingStat == Lifter.ClimbingStates.Inactive) {
             if (this.isAutonomous() || this.isOperatorControl() ) {            // driver set up default move - may be overwritten by other elements
                     drive.move(-operator.driveXboxController.getY(Hand.kLeft), operator.driveXboxController.getX(Hand.kRight), false);
 
@@ -254,4 +254,3 @@ public class Robot extends TimedRobot {
         telemetry.putString("Version", "1.0.0");
     }
 }
-// hello world - changed
