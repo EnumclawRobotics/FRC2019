@@ -198,21 +198,25 @@ public class Lifter {
     // }
 
     public void climbHabitat3() {
-        // start raising the bot to hab 3
-        double clicksToHab = RobotMap.liftEncoderClicksPerInch * (RobotMap.liftStartingError + FieldMap.heightHabLevel3);
-        frontTargetClicks = frontBaseClicks + clicksToHab;
-        backTargetClicks = backBaseClicks + clicksToHab;
+        if (climbingState == ClimbingStates.Inactive) {
+            // start raising the bot to hab 3
+            double clicksToHab = RobotMap.liftEncoderClicksPerInch * (RobotMap.liftStartingError + FieldMap.heightHabLevel3);
+            frontTargetClicks = frontBaseClicks + clicksToHab;
+            backTargetClicks = backBaseClicks + clicksToHab;
 
-        climbingState = ClimbingStates.Raising;
+            climbingState = ClimbingStates.Raising;
+        }
     }
 
     public void climbHabitat2() {
-        // start raising the bot to hab 2
-        double clicksToHab = RobotMap.liftEncoderClicksPerInch * (RobotMap.liftStartingError + FieldMap.heightHabLevel2);
-        frontTargetClicks = frontBaseClicks + clicksToHab;
-        backTargetClicks = backBaseClicks + clicksToHab;
-        
-        climbingState = ClimbingStates.Raising;
+        if (climbingState == ClimbingStates.Inactive) {
+            // start raising the bot to hab 2
+            double clicksToHab = RobotMap.liftEncoderClicksPerInch * (RobotMap.liftStartingError + FieldMap.heightHabLevel2);
+            frontTargetClicks = frontBaseClicks + clicksToHab;
+            backTargetClicks = backBaseClicks + clicksToHab;
+            
+            climbingState = ClimbingStates.Raising;
+        }
     }
 
     public void run() {

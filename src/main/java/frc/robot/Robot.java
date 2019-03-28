@@ -238,10 +238,10 @@ public class Robot extends TimedRobot {
             //     lifter.holding();
             // }
 
-            if (operator.driveXboxController.getStartButton()) {
+            if (operator.driveXboxController.getStartButtonPressed()) {
                 lifter.climbHabitat3();
             }
-            if (operator.driveXboxController.getBackButton()) {
+            if (operator.driveXboxController.getBackButtonPressed()) {
                 lifter.climbHabitat2();
             }
         }
