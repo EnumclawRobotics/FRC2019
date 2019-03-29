@@ -54,7 +54,7 @@ public class Lifter {
     private double frontError;
     private double backError;
 
-    private double balancePower;
+    //private double balancePower;
     private double frontPower;
     private double backPower;
 
@@ -66,7 +66,7 @@ public class Lifter {
     private ClimbingStates climbingState = ClimbingStates.Inactive;
     private double climbingStateStartTime;
 
-    private boolean rolling = false;
+    //private boolean rolling = false;
    
 
     public Lifter(RobotMap robotMap) {
@@ -246,12 +246,12 @@ public class Lifter {
                     backPower = backPid.update(backError, RobotMap.liftLocality, RobotMap.liftPower);
                 }
 
-                balancePower = (((frontError - backError)/2d) / RobotMap.liftLocality) * RobotMap.liftPidKp;
+                //balancePower = (((frontError - backError)/2d) / RobotMap.liftLocality) * RobotMap.liftPidKp;
                 
-                frontPower = frontPid.update(frontError, RobotMap.liftLocality, RobotMap.liftPower) - balancePower;
-                backPower = backPid.update(backError, RobotMap.liftLocality, RobotMap.liftPower) + balancePower;
+                //frontPower = frontPid.update(frontError, RobotMap.liftLocality, RobotMap.liftPower) - balancePower;
+                //backPower = backPid.update(backError, RobotMap.liftLocality, RobotMap.liftPower) + balancePower;
             }
-            moverPower = (rolling && state == States.Holding) ? RobotMap.liftMoverPower : 0.0f; //NEW!
+            //moverPower = (rolling && state == States.Holding) ? RobotMap.liftMoverPower : 0.0f; //NEW!
 
             frontSpeedController.set(frontPower);        
             backSpeedController.set(backPower);
@@ -280,11 +280,13 @@ public class Lifter {
 
             case DriveWheels0:
                 // move green wheel on lift and the main drive wheels to get something on hab
-                moverSpeedController.set(moverPower);
+                moverPower = RobotMap.liftMoverPower;
+                //moverSpeedController.set(moverPower);
                 drive.move(0.05f, 0.0f, false);
 
                 if (Timer.getFPGATimestamp() >= climbingStateStartTime + 2.0f) {
-                    moverSpeedController.stopMotor();
+                    //moverSpeedController.stopMotor();
+                    moverPower = 0d;
                     drive.move(0f, 0.0f, false);
                         climbingState = ClimbingStates.RaiseFrontLift;
                 }
@@ -302,11 +304,13 @@ public class Lifter {
 
             case DriveWheels1:
                 // drive forward to get more than half the weight on hab
-                moverSpeedController.set(moverPower);
+                moverPower = RobotMap.liftMoverPower;
+                //moverSpeedController.set(moverPower);
                 drive.move(0.05f, 0.0f, false);
 
                 if (Timer.getFPGATimestamp() >= climbingStateStartTime + 2.0f) {
-                    moverSpeedController.stopMotor();
+                    //moverSpeedController.stopMotor();
+                    moverPower = 0d;
                     drive.move(0f, 0.0f, false);
                         climbingState = ClimbingStates.RaiseBackLift;
                 }
