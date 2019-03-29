@@ -66,9 +66,6 @@ public class Lifter {
     private ClimbingStates climbingState = ClimbingStates.Inactive;
     private double climbingStateStartTime;
 
-    //private boolean rolling = false;
-   
-
     public Lifter(RobotMap robotMap) {
         robotMap.liftFrontSpeedController.setIdleMode(IdleMode.kBrake);
         robotMap.liftBackSpeedController.setIdleMode(IdleMode.kBrake);
@@ -138,7 +135,7 @@ public class Lifter {
         frontPower = RobotMap.liftStow;     // gently retract for a period
         backPower = RobotMap.liftStow;
         moverPower = 0;
-        stateExpiration = Timer.getFPGATimestamp() + 1d;
+        stateExpiration = Timer.getFPGATimestamp() + 1.5d;
         state = States.Stowing;
         climbingState = ClimbingStates.Inactive;
     }
@@ -247,17 +244,12 @@ public class Lifter {
                     backPower = backPid.update(backError, RobotMap.liftLocality, RobotMap.liftPower);
                 }
 
+                // or
                 //balancePower = (((frontError - backError)/2d) / RobotMap.liftLocality) * RobotMap.liftPidKp;
-                
                 //frontPower = frontPid.update(frontError, RobotMap.liftLocality, RobotMap.liftPower) - balancePower;
                 //backPower = backPid.update(backError, RobotMap.liftLocality, RobotMap.liftPower) + balancePower;
             }
-            //moverPower = (rolling && state == States.Holding) ? RobotMap.liftMoverPower : 0.0f; //NEW!
 
-            frontSpeedController.set(frontPower);        
-            backSpeedController.set(backPower);
-            moverSpeedController.set(moverPower);
-        
             switch (climbingState)
             {
                 case Inactive:
@@ -281,11 +273,9 @@ public class Lifter {
                 case DriveWheels0:
                     // move green wheel on lift and the main drive wheels to get something on hab
                     moverPower = RobotMap.liftMoverPower;
-                    //moverSpeedController.set(moverPower);
                     drive.move(0.05f, 0.0f, false);
 
                     if (Timer.getFPGATimestamp() >= climbingStateStartTime + 2.0f) {
-                        //moverSpeedController.stopMotor();
                         moverPower = 0d;
                         drive.move(0f, 0.0f, false);
                             climbingState = ClimbingStates.RaiseFrontLift;
@@ -305,14 +295,12 @@ public class Lifter {
                 case DriveWheels1:
                     // drive forward to get more than half the weight on hab
                     moverPower = RobotMap.liftMoverPower;
-                    //moverSpeedController.set(moverPower);
                     drive.move(0.05f, 0.0f, false);
 
                     if (Timer.getFPGATimestamp() >= climbingStateStartTime + 2.0f) {
-                        //moverSpeedController.stopMotor();
                         moverPower = 0d;
                         drive.move(0f, 0.0f, false);
-                            climbingState = ClimbingStates.RaiseBackLift;
+                        climbingState = ClimbingStates.RaiseBackLift;
                     }
                 break;
 
@@ -341,6 +329,9 @@ public class Lifter {
                 break;
             }
 
+            frontSpeedController.set(frontPower);        
+            backSpeedController.set(backPower);
+            moverSpeedController.set(moverPower);
         }
 
         putTelemetry();
@@ -360,12 +351,14 @@ public class Lifter {
     private void putTelemetry() {
         telemetry.putString("State", state.toString());
         telemetry.putDouble("Front Clicks", frontEncoder.get());
+        telemetry.putDouble("Front Base Clicks", frontBaseClicks);
         telemetry.putDouble("Front Target Clicks", frontTargetClicks);
         telemetry.putDouble("Front Power", frontPower);
         telemetry.putDouble("Back Clicks", backEncoder.get());
+        telemetry.putDouble("Back Base Clicks", backBaseClicks);
         telemetry.putDouble("Back Target Clicks", backTargetClicks);
         telemetry.putDouble("Back Power", backPower);
-        telemetry.putDouble("Balance Power", moverPower);
+//        telemetry.putDouble("Balance Power", balancePower);
         telemetry.putDouble("Move Power", moverPower);
         telemetry.putString("Version", "1.0.0");
     }

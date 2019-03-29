@@ -151,41 +151,41 @@ public class Robot extends TimedRobot {
         if (this.isAutonomous() || this.isOperatorControl()) {
             if (operator.armFrontButton.get()) {
                 arm.moveFront();
-                 wrist.moveFront();
+                wrist.moveFront();
             }
             if (operator.armBackButton.get()) {
                 arm.moveBack();
-                 wrist.moveBack();
+                wrist.moveBack();
             }
 
-            //     // arm height
+            // arm and wrist
             if (operator.cargoDepotButton.get()) {
                 arm.moveDepotCargo();
-        //         wrist.moveDepotCargo();
+                wrist.moveDepotCargo();
             }
             if (operator.cargoShipButton.get()) {
                 arm.moveShipCargo();
-        //         wrist.moveShipCargo();
+                wrist.moveShipCargo();
             }
             if (operator.cargoStationButton.get()) {
                 arm.moveStationCargo();
-        //         wrist.moveStationCargo();
+                wrist.moveStationCargo();
             }
             if (operator.cargoRocket1Button.get()) {
                 arm.moveRocketCargo1();
-        //         wrist.moveRocketCargo1();
+                wrist.moveRocketCargo1();
             }
             if (operator.cargoRocket2Button.get()) {
                 arm.moveRocketCargo2();
-        //         wrist.moveRocketCargo2();
+                wrist.moveRocketCargo2();
             }
             if (operator.hatchRocket1Button.get()) {
                 arm.moveRocketHatch1();
-//                 wrist.moveRocketHatch1();
+                wrist.moveRocketHatch1();
             }
             if (operator.hatchRocket2Button.get()) {
                 arm.moveRocketHatch2();
-        //         wrist.moveRocketHatch2();
+                wrist.moveRocketHatch2();
             }
         }
 
@@ -237,7 +237,7 @@ public class Robot extends TimedRobot {
             if (operator.driveXboxController.getStartButton() && operator.driveXboxController.getYButton()) {
                 lifter.climbHabitat3();
             }
-            else if (operator.driveXboxController.getStartButton() && operator.driveXboxController.getYButton()) {
+            else if (operator.driveXboxController.getStartButton() && operator.driveXboxController.getXButton()) {
                 lifter.climbHabitat2();
             }
             else if (operator.driveXboxController.getBackButton()) {

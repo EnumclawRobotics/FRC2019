@@ -195,7 +195,7 @@ public class Wrist {
             // positive from joystick is decrease in angle from baseline
             targetClicks = getClicks() + (-controlPower * RobotMap.wristPidLocality);
         }
-        // were we moving manual and now we are not? try holding
+        // were we moving manual and now we hae let up on joystick? try holding
         else if (state == States.MovingManual) {
             state = States.HoldingManual;
             targetClicks = getClicks();
