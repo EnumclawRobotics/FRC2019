@@ -55,6 +55,7 @@ public class Wrist {
         MovingRocketCargo1, MovingRocketCargo2,  
         MovingShipCargo, 
         MovingManual,
+        HoldingManual,
     }
 
     // Constructor holds onto motor controller and sensor references
@@ -188,11 +189,16 @@ public class Wrist {
     // manually move wrist
     public void moveManual(double controlPower) {
         // ignore deadband and defaults where we are not moving joystick
-        if (Math.abs(controlPower) > .01) {
+        if (Math.abs(controlPower) > .05d) {
             state = States.MovingManual;
             targetAngle = -1;
             // positive from joystick is decrease in angle from baseline
             targetClicks = getClicks() + (-controlPower * RobotMap.wristPidLocality);
+        }
+        // were we moving manual and now we are not? try holding
+        else if (state == States.MovingManual) {
+            state = States.HoldingManual;
+            targetClicks = getClicks();
         }
     }
 
@@ -206,6 +212,7 @@ public class Wrist {
     // }
     
     public void run() {
+        // has arm moved lower thn expected baseline? then reset baseline
         if (getClicks() < baseClicks) {
             baseClicks = getClicks();
         }
@@ -217,20 +224,24 @@ public class Wrist {
             double gravityAngle = (angle - 180) + armAngle;       // wrist angle is 180 degrees ahead of arm in orientation
             feedForward = Functions.gravity(gravityAngle) * RobotMap.wristFeedForwardFactor;
 
-            // get PID output that is best to go towards the target clicks
-            pidPower = pid.update(targetClicks - getClicks(), RobotMap.wristPidLocality, RobotMap.wristPowerLimit);
+            if (state == States.HoldingManual) {
+                pidPower = 0;
+                power = 0;
+            }
+            else {
+                // get PID output that is best to go towards the target clicks
+                pidPower = pid.update(targetClicks - getClicks(), RobotMap.wristPidLocality, RobotMap.wristPowerLimit);
 
-            // add in bias and reduce the power to the allowed range
-            // **** be safe for now until we get the settings right ***
-            //power = Functions.clip(feedForward + pidPower, -.22d, .22d);
-            power = feedForward + pidPower;
+                // add in bias
+                power = feedForward + pidPower;
 
-            // is limit switch saying we are going too far?
-            // if (limitSwitch.get() && 
-            //        ((angle > 180 && power > 0)                  // opposite side too far 
-            //         || (angle < 180 && power < 0))) {           // normal side too far
-            //     power = 0;
-            // }
+                // is limit switch saying we are going too far?
+                // if (limitSwitch.get() && 
+                //        ((angle > 180 && power > 0)                  // opposite side too far 
+                //         || (angle < 180 && power < 0))) {           // normal side too far
+                //     power = 0;
+                // }
+            }
 
             // apply the correction to move towards the target
             speedController.set(power);

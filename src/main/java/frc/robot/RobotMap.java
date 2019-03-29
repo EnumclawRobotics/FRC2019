@@ -124,18 +124,20 @@ public class RobotMap {
     public final static double wristAngleShipCargo = 90 + armAngleShipCargo;
 
     public final static double wristLength = 7.75d; 
-    public final static double wristStowedAngle = 5d;                               // angle to fold back the grabber for protection
+//    public final static double wristStowedAngle = 5d;                               // angle to fold back the grabber for protection
+    public final static double wristStowedAngle = 15d;                               // angle to fold back the grabber for protection
 
     public final static double wristEncoderConversionFactor = 42d;                  // clicks per rpm for NEO
     public final static double wristGearboxConversionFactor = 64d;                  // 64:1 Andymark gearbox reduction
     public final static double wristEncoderClicksPerDegree = (armEncoderConversionFactor * armGearboxConversionFactor)/360d;  
     public final static double wristPidLocality = wristEncoderClicksPerDegree * 3d; // area around setpoint to use PID with 
-//    public final static double wristPowerLimit = .75d;                            // power limit
-    public final static double wristPowerLimit = .25d;                              // power limit
+//    public final static double wristPowerLimit = .25d;                            // power limit
+    public final static double wristPowerLimit = .35d;                              // power limit
     public final static double wristPidKp =  wristPowerLimit / wristPidLocality;    // PID kP correction factor  
 //    public final static double wristPidKi = 0d;                                     // PID kI correction factor
     public final static double wristPidKi = .0045d;                                     // PID kI correction factor
     public final static double wristPidKd = 0d;                                     // PID kD correction factor
+//    public final static double wristFeedForwardFactor = .1d;                       // hold at horizontal power. find by testing
     public final static double wristFeedForwardFactor = .1d;                       // hold at horizontal power. find by testing
 //    public final static double wristRampFactor = .04d;                              // ramp change power limit per cycle (60hz)
     public final static double wristRampFactor = .1d;                              // ramp change power limit per cycle (60hz)
@@ -173,7 +175,7 @@ public class RobotMap {
     public final static double liftPidKi = .0d;                                 // PID kI correction factor
     public final static double liftPidKd = .0d;                                 // PID kD correction factor
     public final static double liftStow = -.2d;                                 // retraction power 
-    public final static double liftRamp = .04d;                                  // acceleration
+    public final static double liftRamp = .1d;                                  // acceleration
 
     // // camera
     // public final static double cameraElevation = 35d;           // Camera height from floor;

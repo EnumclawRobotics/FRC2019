@@ -190,15 +190,11 @@ public class Robot extends TimedRobot {
         }
 
         if (this.isTest() || this.isAutonomous() || this.isOperatorControl()) {
-            // ignore deadband and defaults where we are not moving joystick
-            if (Math.abs(operator.armXboxController.getY(Hand.kLeft)) > .01d) {
-                // joystick moves arm manually overwriting previous height selection - only use to correct for placing
-                arm.moveManual(-operator.armXboxController.getY(Hand.kLeft));
-            }
-            if (Math.abs(operator.armXboxController.getY(Hand.kRight)) > .01d) {
-                // POV moves wrist manually overwriting previous position selection - only use to correct for placing
-                wrist.moveManual(-operator.armXboxController.getY(Hand.kRight));
-            }
+            // moves arm manually overwriting previous height selection - only use to correct for placing
+            arm.moveManual(-operator.armXboxController.getY(Hand.kLeft));
+
+            // moves wrist manually overwriting previous position selection - only use to correct for placing
+            wrist.moveManual(-operator.armXboxController.getY(Hand.kRight));
         }
 
         if (this.isTest() || this.isAutonomous() || this.isOperatorControl()) {
@@ -238,11 +234,14 @@ public class Robot extends TimedRobot {
             //     lifter.holding();
             // }
 
-            if (operator.driveXboxController.getStartButtonPressed()) {
+            if (operator.driveXboxController.getStartButton() && operator.driveXboxController.getYButton()) {
                 lifter.climbHabitat3();
             }
-            if (operator.driveXboxController.getBackButtonPressed()) {
+            else if (operator.driveXboxController.getStartButton() && operator.driveXboxController.getYButton()) {
                 lifter.climbHabitat2();
+            }
+            else if (operator.driveXboxController.getBackButton()) {
+                lifter.stow();
             }
         }
 

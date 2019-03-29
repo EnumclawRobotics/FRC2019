@@ -140,6 +140,7 @@ public class Lifter {
         moverPower = 0;
         stateExpiration = Timer.getFPGATimestamp() + 1d;
         state = States.Stowing;
+        climbingState = ClimbingStates.Inactive;
     }
 
     // stores front lift
@@ -256,89 +257,90 @@ public class Lifter {
             frontSpeedController.set(frontPower);        
             backSpeedController.set(backPower);
             moverSpeedController.set(moverPower);
-        }
+        
+            switch (climbingState)
+            {
+                case Inactive:
+                    //Nothing
+                break;
+                case Teleop:
+                    //Nothing
+                break;
 
-        switch (climbingState)
-        {
-            case Inactive:
-                //Nothing
-            break;
-            case Teleop:
-                //Nothing
-            break;
+                case Raising:
+                    state = States.Moving;
 
-            case Raising:
-                state = States.Moving;
+                    // near target height? (within a quarter inch)
+                    if (Math.abs(getFrontClicks() - frontTargetClicks) < RobotMap.liftEncoderClicksPerInch * .25d
+                        && Math.abs(getBackClicks() - backTargetClicks) < RobotMap.liftEncoderClicksPerInch * .25d) {
+                        climbingState = ClimbingStates.DriveWheels0;
+                        climbingStateStartTime = Timer.getFPGATimestamp();
+                    }
+                break;
 
-                // near target height? (within a quarter inch)
-                if (Math.abs(getFrontClicks() - frontTargetClicks) < RobotMap.liftEncoderClicksPerInch * .25d
-                    && Math.abs(getBackClicks() - backTargetClicks) < RobotMap.liftEncoderClicksPerInch * .25d) {
-                    climbingState = ClimbingStates.DriveWheels0;
-                    climbingStateStartTime = Timer.getFPGATimestamp();
-                }
-            break;
+                case DriveWheels0:
+                    // move green wheel on lift and the main drive wheels to get something on hab
+                    moverPower = RobotMap.liftMoverPower;
+                    //moverSpeedController.set(moverPower);
+                    drive.move(0.05f, 0.0f, false);
 
-            case DriveWheels0:
-                // move green wheel on lift and the main drive wheels to get something on hab
-                moverPower = RobotMap.liftMoverPower;
-                //moverSpeedController.set(moverPower);
-                drive.move(0.05f, 0.0f, false);
+                    if (Timer.getFPGATimestamp() >= climbingStateStartTime + 2.0f) {
+                        //moverSpeedController.stopMotor();
+                        moverPower = 0d;
+                        drive.move(0f, 0.0f, false);
+                            climbingState = ClimbingStates.RaiseFrontLift;
+                    }
+                break;
 
-                if (Timer.getFPGATimestamp() >= climbingStateStartTime + 2.0f) {
-                    //moverSpeedController.stopMotor();
-                    moverPower = 0d;
-                    drive.move(0f, 0.0f, false);
-                        climbingState = ClimbingStates.RaiseFrontLift;
-                }
-            break;
+                case RaiseFrontLift:
+                    stowFront();
 
-            case RaiseFrontLift:
-                stowFront();
+                    // If front hab lift has fully retracted? (within .5 inch)
+                    if (Math.abs(getFrontClicks() - frontBaseClicks) < RobotMap.liftEncoderClicksPerInch * .5d) {
+                        climbingState = ClimbingStates.DriveWheels1;
+                        climbingStateStartTime = Timer.getFPGATimestamp();
+                    }
+                break;
 
-                // If front hab lift has fully retracted? (within .5 inch)
-                if (Math.abs(getFrontClicks() - frontBaseClicks) < RobotMap.liftEncoderClicksPerInch * .5d) {
-                    climbingState = ClimbingStates.DriveWheels1;
-                    climbingStateStartTime = Timer.getFPGATimestamp();
-                }
-            break;
+                case DriveWheels1:
+                    // drive forward to get more than half the weight on hab
+                    moverPower = RobotMap.liftMoverPower;
+                    //moverSpeedController.set(moverPower);
+                    drive.move(0.05f, 0.0f, false);
 
-            case DriveWheels1:
-                // drive forward to get more than half the weight on hab
-                moverPower = RobotMap.liftMoverPower;
-                //moverSpeedController.set(moverPower);
-                drive.move(0.05f, 0.0f, false);
+                    if (Timer.getFPGATimestamp() >= climbingStateStartTime + 2.0f) {
+                        //moverSpeedController.stopMotor();
+                        moverPower = 0d;
+                        drive.move(0f, 0.0f, false);
+                            climbingState = ClimbingStates.RaiseBackLift;
+                    }
+                break;
 
-                if (Timer.getFPGATimestamp() >= climbingStateStartTime + 2.0f) {
-                    //moverSpeedController.stopMotor();
-                    moverPower = 0d;
-                    drive.move(0f, 0.0f, false);
-                        climbingState = ClimbingStates.RaiseBackLift;
-                }
-            break;
+                case RaiseBackLift:
+                    stowBack();
 
-            case RaiseBackLift:
-                stowBack();
+                    //If back hab lift has fully retracted
+                    if (Math.abs(getBackClicks() - backBaseClicks) < RobotMap.liftEncoderClicksPerInch * .5d) { 
+                        climbingState = ClimbingStates.DriveWheels2;
+                        climbingStateStartTime = Timer.getFPGATimestamp();
+                    }
+                break;
+                
+                case DriveWheels2:
+                    // get all the way on hab
+                    drive.move(0.05f, 0.0f, false);
 
-                //If back hab lift has fully retracted
-                if (Math.abs(getBackClicks() - backBaseClicks) < RobotMap.liftEncoderClicksPerInch * .5d) { 
-                    climbingState = ClimbingStates.DriveWheels2;
-                    climbingStateStartTime = Timer.getFPGATimestamp();
-                }
-            break;
-            
-            case DriveWheels2:
-                // get all the way on hab
-                drive.move(0.05f, 0.0f, false);
+                    if (Timer.getFPGATimestamp() >= climbingStateStartTime + 2.0f) {
+                        drive.move(0f, 0.0f, false);
+                        climbingState = ClimbingStates.Done;
+                    }
+                break;
 
-                if (Timer.getFPGATimestamp() >= climbingStateStartTime + 2.0f) {
-                    drive.move(0f, 0.0f, false);
-                    climbingState = ClimbingStates.Done;
-                }
-            break;
+                case Done:
+                    stow();
+                break;
+            }
 
-            case Done:
-                // nothing
-            break;
         }
 
         putTelemetry();
@@ -349,6 +351,10 @@ public class Lifter {
         frontSpeedController.stopMotor();
         backSpeedController.stopMotor();
         moverSpeedController.stopMotor();
+
+        frontPower = 0;
+        backPower = 0;
+        moverPower = 0;
     }
 
     private void putTelemetry() {

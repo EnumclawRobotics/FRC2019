@@ -84,7 +84,7 @@ public class PID {
         else {
             // since last time
             double currentTime = Timer.getFPGATimestamp();
-            double iterationTime = (priorTime == 0 ? 1d/60d : currentTime - priorTime); 
+            double iterationTime = (priorTime == 0 ? 1d/50d : currentTime - priorTime); 
 
             // accumulate error 
             // reset to current if we just overshot in order to throw away any windup?
@@ -92,6 +92,11 @@ public class PID {
             //     integral = currentError;
             // }
             integral = integral + (currentError * iterationTime);
+
+            // limit integral term in order to not accumulate a huge windup when stalled / at a stop
+            if (kI != 0 && Math.abs(integral * kI) > 1d ) {
+                integral = Math.signum(integral) * 1d/kI;
+            }
 
             // future estimate based on most recent performance
             derivative = (iterationTime != 0) ? (currentError - priorError)/iterationTime : 0;

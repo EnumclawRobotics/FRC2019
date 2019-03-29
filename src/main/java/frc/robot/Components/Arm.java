@@ -53,6 +53,7 @@ public class Arm {
         MovingRocketCargo1, MovingRocketCargo2,  
         MovingShipCargo, 
         MovingManual,
+        HoldingManual,
     }
 
     // Constructor that saves controller and sensor references
@@ -204,10 +205,15 @@ public class Arm {
     // move a bit based on controller intensity 
     public void moveManual(double controlPower) {
         // ignore deadband and defaults where we are not moving joystick
-        if (Math.abs(controlPower) > .05) {
+        if (Math.abs(controlPower) > .05d) {
             state = States.MovingManual;
             targetAngle = -1;
             targetClicks = getClicks() + (controlPower * RobotMap.armPidLocality);
+        }
+        // were we moving manual and now we are not? try holding
+        else if (state == States.MovingManual) {
+            state = States.HoldingManual;
+            targetClicks = getClicks();
         }
     }
 
