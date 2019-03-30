@@ -94,8 +94,8 @@ public class PID {
             integral = integral + (currentError * iterationTime);
 
             // limit integral term in order to not accumulate a huge windup when stalled / at a stop
-            if (kI != 0 && Math.abs(integral * kI) > 1d ) {
-                integral = Math.signum(integral) * 1d/kI;
+            if (kI != 0 && Math.abs(integral * kI) > .5d ) {
+                integral = Math.signum(integral) * .5d/kI;
             }
 
             // future estimate based on most recent performance

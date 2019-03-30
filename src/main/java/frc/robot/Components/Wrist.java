@@ -69,7 +69,7 @@ public class Wrist {
 
         this.pid = new PID();
         //this.pid.setGainsPID(RobotMap.wristPidKp, RobotMap.wristPidKi, RobotMap.wristPidKd);
-        this.pid.setNoOvershootGainsPID(RobotMap.wristPidKp, .3d);
+        this.pid.setNoOvershootGainsPID(RobotMap.wristPidKu, .3d);
 
         this.speedController = new RampSpeedController(robotMap.wristSpeedController, RobotMap.wristRampFactor);
         this.encoder = robotMap.wristEncoder;
@@ -199,6 +199,7 @@ public class Wrist {
         else if (state == States.MovingManual) {
             state = States.HoldingManual;
             targetClicks = getClicks();
+            pid.reset();
         }
     }
 
@@ -224,6 +225,10 @@ public class Wrist {
             double gravityAngle = (angle - 180) + armAngle;       // wrist angle is 180 degrees ahead of arm in orientation
             feedForward = Functions.gravity(gravityAngle) * RobotMap.wristFeedForwardFactor;
 
+            // TODO: Green roller from lift is not needed. Remove it? Power it?
+            // TODO: Change lift height to 6" on back.
+            // TODO: Broken wrist gearbox? Or motor? Replace wrist motor / gearbox with spare from practice bot?
+            // TODO: Wrist gearbox holds or doesnt? If it doesnt then we need to comment this clause                
             if (state == States.HoldingManual) {
                 pidPower = 0;
                 power = 0;
@@ -259,6 +264,7 @@ public class Wrist {
         telemetry.putDouble("TargetAngle", targetAngle);
         telemetry.putDouble("TargetClicks", targetClicks);
         telemetry.putDouble("PIDPower", pidPower);
+        telemetry.putDouble("kP", RobotMap.wristPidKp);
         telemetry.putDouble("FeedForward", feedForward);
         telemetry.putDouble("Power", power);
         telemetry.putString("Version", "1.0.0");
