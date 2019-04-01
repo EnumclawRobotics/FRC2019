@@ -69,7 +69,7 @@ public class Wrist {
 
         this.pid = new PID();
         //this.pid.setGainsPID(RobotMap.wristPidKp, RobotMap.wristPidKi, RobotMap.wristPidKd);
-        this.pid.setNoOvershootGainsPID(RobotMap.wristPidKu, .3d);
+        this.pid.setNoOvershootGainsPID(RobotMap.wristPidKu, RobotMap.wristPidTu);
 
         this.speedController = new RampSpeedController(robotMap.wristSpeedController, RobotMap.wristRampFactor);
         this.encoder = robotMap.wristEncoder;
@@ -229,11 +229,11 @@ public class Wrist {
             // TODO: Change lift height to 6" on back.
             // TODO: Broken wrist gearbox? Or motor? Replace wrist motor / gearbox with spare from practice bot?
             // TODO: Wrist gearbox holds or doesnt? If it doesnt then we need to comment this clause                
-            if (state == States.HoldingManual) {
-                pidPower = 0;
-                power = 0;
-            }
-            else {
+//            if (state == States.HoldingManual) {
+//                pidPower = 0;
+//                power = 0;
+//            }
+//            else {
                 // get PID output that is best to go towards the target clicks
                 pidPower = pid.update(targetClicks - getClicks(), RobotMap.wristPidLocality, RobotMap.wristPowerLimit);
 
@@ -246,7 +246,7 @@ public class Wrist {
                 //         || (angle < 180 && power < 0))) {           // normal side too far
                 //     power = 0;
                 // }
-            }
+//            }
 
             // apply the correction to move towards the target
             speedController.set(power);

@@ -222,7 +222,7 @@ public class Robot extends TimedRobot {
                  lifter.moveAll(1d);
             }
             else if (operator.driveXboxController.getBackButton()) {
-                 lifter.moveAll(-.25d);
+                 lifter.moveAll(-.50d);
             } 
             // else if (operator.driveXboxController.getBButton()) {
             //     lifter.stowFront();

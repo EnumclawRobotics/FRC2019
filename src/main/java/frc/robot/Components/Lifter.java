@@ -156,12 +156,12 @@ public class Lifter {
 
     // // raising / lowering
     // public void moveFront(double controlPower) {
-    //     frontTargetClicks = frontTargetClicks + (controlPower * RobotMap.liftLocality);
+    //     frontTargetClicks = getFrontClicks + (controlPower * RobotMap.liftLocality);
     // }
 
     // raising / lowering
     public void moveBack(double controlPower) {
-        backTargetClicks = backTargetClicks + (controlPower * RobotMap.liftLocality);
+        backTargetClicks = getBackClicks() + (-controlPower * RobotMap.liftLocality);
     }
 
     // // raising / lowering
@@ -221,7 +221,7 @@ public class Lifter {
                 }
             }
             else if (state == States.Moving || state == States.Holding) {
-                 backPower = backPid.update(getBackError(), RobotMap.liftLocality, RobotMap.liftPower);
+                 backPower = backPid.update(-getBackError(), RobotMap.liftLocality, RobotMap.liftPower);
             }
             // else if (state == States.StowingFront) {
             //     backPower = backPid.update(getBackError(), RobotMap.liftLocality, RobotMap.liftPower);

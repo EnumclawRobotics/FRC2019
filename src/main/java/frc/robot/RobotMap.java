@@ -134,7 +134,9 @@ public class RobotMap {
 //    public final static double wristPowerLimit = .25d;                            // power limit
     public final static double wristPowerLimit = .35d;                              // power limit
 //    public final static double wristPidKu = .010d;                                // steady oscillation
-    public final static double wristPidKu = .010d;                                  // steady oscillation
+    public final static double wristPidKu = .010d;                                  // steady oscillation power
+//    public final static double wristPidTu = .3d;                                     // steady oscillation cycle seconds
+    public final static double wristPidTu = .25d;                                     // steady oscillation cycle seconds
     public final static double wristPidKp =  wristPowerLimit / wristPidLocality;    // PID kP correction factor  
 //    public final static double wristPidKi = 0d;                                     // PID kI correction factor
     public final static double wristPidKi = 0d;                                     // PID kI correction factor
@@ -172,8 +174,8 @@ public class RobotMap {
 //    public final static double liftEncoderClicksPerDegree = 42d*(12d * 24d/18d)/360d;      // 12:1 output shaft with 24/18 sprocket reduction
     public final static double liftEncoderClicksPerDegree = 42d*(20d * (24d/18d))/360d;  // 20:1 output shaft with 24/18 sprocket reduction
     public final static double liftEncoderClicksPerInch = (42d*20d)/(2d* Math.PI * 1d); //Clicks per revolution / Distance of curcomferance 
-    public final static double liftLocality = liftEncoderClicksPerDegree * 2d;  // area around setpoint to use PID with
-    public final static double liftPower = .85d;                                // extend lift power limit
+    public final static double liftLocality = liftEncoderClicksPerDegree * 20d;  // area around setpoint to use PID with
+    public final static double liftPower = .35d;                                // extend lift power limit
     public final static double liftPidKp = liftPower / liftLocality;            // PID kP correction factor
 //    public final static double liftPidKp = .85;                                 // PID kP correction factor
     public final static double liftPidKi = .0d;                                 // PID kI correction factor
